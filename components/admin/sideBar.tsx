@@ -11,6 +11,8 @@ import {
   LogOut,
   Menu,
   X,
+  MapPin,
+  UserPen
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/public/Logo/Logo.svg";
@@ -58,11 +60,17 @@ const menuItems: MenuItem[] = [
       {
         id: "konfirmasi-penerima",
         label: "Konfirmasi Penerima",
-        icon: <Users size={15} />,
+        icon: <UserPen size={15} />,
         to: "/admin/dashboard/konfirmasiPenerima",
       },
     ],
   },
+  {
+    id: "kelola-lokasi",
+    label: "Kelola Lokasi",
+    icon: <MapPin size={18} />,
+    to: "/admin/dashboard/kelolaLokasi",
+  }
 ];
 
 export default function Sidebar() {
@@ -190,7 +198,7 @@ export default function Sidebar() {
               <div
                 onClick={() => handleMenuClick(item)}
                 className={`
-                  sb-menu-item flex items-center gap-3 px-3 py-2.5 rounded-xl
+                  sb-menu-item flex items-center gap-3  rounded-xl
                   cursor-pointer mb-0.5 relative transition-all duration-200
                   ${
                     activeMenu === item.id && !item.children
@@ -201,7 +209,7 @@ export default function Sidebar() {
               >
                 <Link
                   href={`${item.to || "#"}`}
-                  className="flex items-center gap-3 w-full"
+                  className="flex items-center gap-3 w-full px-3 py-2.5"
                 >
                   <span className="shrink-0 w-4.5 flex items-center justify-center">
                     {item.icon}
