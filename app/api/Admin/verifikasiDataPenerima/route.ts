@@ -12,7 +12,7 @@ async function verifikasiDataPenerima(
     if (!shipmentId || !action) {
       return NextResponse.json(
         { message: "Data tidak lengkap" },
-        { status: 400 },
+        { status: 400 }, 
       );
     }
 
