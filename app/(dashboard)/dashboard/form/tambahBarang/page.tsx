@@ -19,10 +19,10 @@ export default function FormInformasiBarang() {
   useEffect(() => {
     const fetchLokasi = async () => {
       try {
-        const token = localStorage.getItem("token"); // sesuaikan dengan cara simpan token kamu
-        const res = await fetch("/api/LokasiPengumpulan", {
+        const res = await fetch("/api/LokasiPengumpulan/getPlace", {
+          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         });
         const data = await res.json();
@@ -59,7 +59,6 @@ export default function FormInformasiBarang() {
     setErrorMsg("");
 
     try {
-      const token = localStorage.getItem("token"); // sesuaikan
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("desc", form.desc);
@@ -69,9 +68,6 @@ export default function FormInformasiBarang() {
 
       const res = await fetch("/api/Barang/simpanBarang", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -95,9 +91,9 @@ export default function FormInformasiBarang() {
   const labelClass = "text-sm font-medium text-gray-700 w-40 shrink-0 pt-2";
 
   return (
-    <div className="min-h-screen bg-white px-10 py-10">
-
-      <h1 className="text-2xl font-bold text-gray-800 text-center mb-8">
+    <div className="flex flex-col h-screen bg-gray-50 p-10">
+      <div className="bg-white w-full p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <h1 className="text-2xl font-bold text-gray-800 text-center mb-8">
         Informasi Barang
       </h1>
 
@@ -112,7 +108,7 @@ export default function FormInformasiBarang() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1">
 
         {/* Nama Barang */}
         <div className="flex items-start gap-4">
@@ -170,7 +166,7 @@ export default function FormInformasiBarang() {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-between items-center pt-6 mt-4 border-t border-gray-100">
+        <div className="flex flex-1 justify-between items-center pt-6 mt-4 border-t border-gray-100">
           <button type="button" className="px-12 py-3 bg-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-300 transition tracking-widest uppercase">
             Kembali
           </button>
@@ -180,6 +176,7 @@ export default function FormInformasiBarang() {
         </div>
 
       </form>
+      </div>
     </div>
   );
 }
