@@ -21,7 +21,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Gender = "Laki-laki" | "Perempuan";
+type Gender = "Pria" | "Wanita";
 
 interface UserProfile {
   id: number;
@@ -39,81 +39,6 @@ interface PendingItem {
   shipmentId: number;
   userProfile: UserProfile;
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_DATA: PendingItem[] = [
-  {
-    shipmentId: 1,
-    userProfile: {
-      id: 1,
-      namaLengkap: "Budi Santoso",
-      phone: "081234567890",
-      pekerjaan: "Guru SD",
-      address: "Jl. Merdeka No. 12, Bandung, Jawa Barat 40111",
-      usia: 34,
-      gender: "Laki-laki",
-      identityId: "3201234567890001",
-      isVerified: false,
-    },
-  },
-  {
-    shipmentId: 2,
-    userProfile: {
-      id: 2,
-      namaLengkap: "Siti Rahayu",
-      phone: "085678901234",
-      pekerjaan: "Ibu Rumah Tangga",
-      address: "Jl. Kebon Jeruk No. 7, Jakarta Barat 11530",
-      usia: 29,
-      gender: "Perempuan",
-      identityId: "3171987654321002",
-      isVerified: false,
-    },
-  },
-  {
-    shipmentId: 3,
-    userProfile: {
-      id: 3,
-      namaLengkap: "Ahmad Fauzi",
-      phone: "087712345678",
-      pekerjaan: "Buruh Harian",
-      address: "Jl. Pahlawan RT.03 No. 4, Surabaya, Jawa Timur 60272",
-      usia: 42,
-      gender: "Laki-laki",
-      identityId: "3578234512346789",
-      isVerified: false,
-    },
-  },
-  {
-    shipmentId: 4,
-    userProfile: {
-      id: 4,
-      namaLengkap: "Dewi Lestari",
-      phone: "082298765432",
-      pekerjaan: "Pelajar",
-      address: "Jl. Flamboyan No. 19, Yogyakarta 55281",
-      usia: 21,
-      gender: "Perempuan",
-      identityId: "3404200102030001",
-      isVerified: false,
-    },
-  },
-  {
-    shipmentId: 5,
-    userProfile: {
-      id: 5,
-      namaLengkap: "Rudi Hartono",
-      phone: "089912356789",
-      pekerjaan: "Nelayan",
-      address: "Jl. Pantai Indah Blok C No. 2, Makassar 90111",
-      usia: 38,
-      gender: "Laki-laki",
-      identityId: "7371381501820003",
-      isVerified: false,
-    },
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -372,12 +297,45 @@ function UserCard({ item, index, onAction }: UserCardProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function VerifikasiPenerimaPage() {
-  const [items, setItems] = useState<PendingItem[]>(MOCK_DATA);
+  const [items, setItems] = useState<PendingItem[]>([]);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | null;
   }>({ message: "", type: null });
+
+  useEffect(() => {
+    const fetchDataUnverifidUsers = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/Pengguna/getUnverifiedUser");
+        if (!res.ok) throw new Error("Gagal mengambil data pengguna");
+        const { data } = await res.json();
+        const formattedData: PendingItem[] = [];
+
+        // Karena API getUnverifiedUser ini return userProfile include dengan shipment, maka akan ada Array shipment di dalam Array userProfile, maka perlu dijelajahi dulu
+        data.forEach((userProfile: any) => {
+          if (userProfile.shipment && userProfile.shipment.length > 0) {
+            userProfile.shipment.forEach((shipment: any) => {
+              formattedData.push({
+                shipmentId: shipment.id,
+                userProfile: userProfile
+              })
+            })
+          }
+        })
+        setItems(formattedData);
+      } catch (error) {
+        console.error("Error fetching unverified users:", error);
+        setToast({ message: "Gagal mengambil data pengguna", type: "error" });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchDataUnverifidUsers();
+  }, [])
 
   const filtered = items.filter((item) =>
     item.userProfile.namaLengkap.toLowerCase().includes(search.toLowerCase())
@@ -388,25 +346,14 @@ export default function VerifikasiPenerimaPage() {
     action: "Approve" | "Reject"
   ) => {
     try {
-      // ── Replace this with real fetch ──────────────────────────────────────
-      // const res = await fetch("/api/admin/verifikasi-penerima", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ shipmentId, action }),
-      // });
-      // if (!res.ok) throw new Error();
-      // ─────────────────────────────────────────────────────────────────────
-
-      await new Promise((r) => setTimeout(r, 1100)); // simulated delay
-
-      setItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
-      setToast({
-        message:
-          action === "Approve"
-            ? "Pengguna berhasil diverifikasi"
-            : "Pengajuan ditolak",
-        type: action === "Approve" ? "success" : "error",
+      const res = await fetch("/api/Admin/verifikasiDataPenerima", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shipmentId, action }),
       });
+
+      if (!res.ok) throw new Error("Gagal memverifikasi data penerima");
+      setItems((prev) => prev.filter((item) => item.shipmentId !== shipmentId));
     } catch {
       setToast({ message: "Terjadi kesalahan, coba lagi", type: "error" });
     }

@@ -64,8 +64,8 @@ function MetaField({ label, value }: { label: string; value: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="grid grid-cols-[120px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 animate-pulse">
-      <div className="w-[120px] min-h-[140px] bg-[#E1F5EE]" />
+    <div className="grid grid-cols-[10px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 animate-pulse">
+      <div className="w-[180px] min-h-[200px] bg-[#E1F5EE]" />
       <div className="p-4 flex flex-col gap-3">
         <div className="h-4 w-3/5 rounded-md bg-[#E1F5EE]" />
         <div className="h-3 w-2/5 rounded-md bg-[#E1F5EE]" />
@@ -122,7 +122,7 @@ function ItemCard({
   return (
     <div
       className={[
-        "relative grid grid-cols-[120px_1fr] bg-white border rounded-2xl overflow-hidden mb-3.5",
+        "relative grid grid-cols-[180px_1fr] bg-white border rounded-2xl overflow-hidden mb-3.5",
         "transition-all duration-300 ease-out",
         "hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)]",
         "border-[#e8f5ef]",
@@ -136,7 +136,7 @@ function ItemCard({
       <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
 
       {/* Image */}
-      <div className="relative w-[120px] min-h-[140px] overflow-hidden shrink-0">
+      <div className="relative w-[180px] min-h-[200px] overflow-hidden shrink-0">
         {item.imageURL ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
