@@ -44,7 +44,7 @@ const menuItems: MenuItem[] = [
     id: "daftar-barang",
     label: "Daftar Barang",
     icon: <Package size={18} />,
-    to: "/admin/dashboard/daftarBarang",
+    to: "/admin/dashboard/DaftarBarang",
   },
   {
     id: "penerima",
