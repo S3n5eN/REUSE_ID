@@ -1,0 +1,36 @@
+import { prisma } from "@/lib/prisma";
+import { NextResponse, NextRequest } from "next/server";
+import { protect } from "@/lib/protect";
+
+async function getAlamat(req: Request, payload: any) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      include: {
+        profile: true
+      }
+    });
+
+    if (!user || !user.profile) {
+      return NextResponse.json(
+        { message: "Alamat tidak ditemukan" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      address: user.profile.address
+    });
+
+  } catch (error) {
+    console.error("ERROR GET ALAMAT:", error);
+    return NextResponse.json(
+      { message: "Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  return (await protect(getAlamat, ["user"]))(req);
+}

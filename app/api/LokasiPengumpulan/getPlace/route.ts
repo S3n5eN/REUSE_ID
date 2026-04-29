@@ -18,5 +18,5 @@ async function getPlace(req: Request, payload: any) {
 }
 
 export async function GET(req: NextRequest) {
-  return (await protect(getPlace, ["user", "admin"]))(req);s
+  return (await protect(getPlace, ["user", "admin"]))(req);
 }n
