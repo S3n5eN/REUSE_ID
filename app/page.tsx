@@ -25,7 +25,7 @@ const dmSans = DM_Sans({
 export default function Page() {
   return (
     <div
-      className={`${dmSans.variable} ${playfair.variable} font-sans bg-[#F5F2EB] text-[#1A1A18] selection:bg-[#007582] selection:text-[#F5F2EB]`}
+      className={`${dmSans.variable} ${playfair.variable} font-sans bg-[#fafafa] text-[#1A1A18] selection:bg-[#007582] selection:text-[#F5F2EB]`}
     >
       <Navbar />
       <main>

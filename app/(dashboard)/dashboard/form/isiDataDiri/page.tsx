@@ -22,14 +22,16 @@ export default function FormDataDiri() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch("/api/Pengguna/isiDataDiri", {
+      const res = await fetch("/api/Pengguna/isiDataDiri", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(form),
       });
-      alert("Berhasil disimpan"); // Untuk feedback sementara
+      if (res.ok) {
+        alert("Berhasil disimpan");
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
     }

@@ -75,7 +75,7 @@ export default function Features() {
         {features.map((f, i) => (
           <div
             key={i}
-            className={`bg-[#F5F2EB] p-10 lg:p-16 hover:-translate-y-1.5 transition-transform duration-500 cursor-default ${f.span}`}
+            className={`bg-[#fcfcfc] p-10 lg:p-16 hover:-translate-y-1.5 transition-transform duration-500 cursor-default ${f.span}`}
           >
             <svg
               viewBox="0 0 24 24"

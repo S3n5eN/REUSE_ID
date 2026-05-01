@@ -23,7 +23,7 @@ export default function HowItWorks() {
     <section
       id="cara-kerja"
       // UBAH: Tambahkan scroll-mt-24 agar judul tidak tertutup Navbar
-      className="scroll-mt-24 py-32 lg:py-48 px-6 lg:px-16 bg-[#F5F2EB]"
+      className="scroll-mt-24 py-32 lg:py-48 px-6 lg:px-16 bg-[#fafafa]"
     >
       <div className="mb-20">
         <label className="text-[10px] uppercase tracking-[0.3em] text-[#007582] font-bold block mb-4">
@@ -39,7 +39,7 @@ export default function HowItWorks() {
         {steps.map((step, i) => (
           <div key={i} className="group cursor-default">
             <span
-              className={`${playfair.className} text-8xl lg:text-9xl text-[#E8E4DA] font-black leading-none block mb-4 transition-colors group-hover:text-[#007582]/10`}
+              className={`${playfair.className} text-8xl lg:text-9xl text-[#E8E4DA] font-black leading-none block mb-4 transition-colors group-hover:text-[#007582]/40`}
             >
               {step.num}
             </span>

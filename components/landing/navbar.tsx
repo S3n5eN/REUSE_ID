@@ -4,7 +4,7 @@ import Logo from "@/public/Logo/Logo.svg"
 
 export default function Navbar() {
   return (
-     <nav className="sticky top-0 z-50 bg-[#F5F2EB]/90 backdrop-blur-sm border-b border-[#D8D4CC] px-6 lg:px-16 py-4 flex justify-between items-center">
+     <nav className="sticky top-0 z-50 bg-[#fafafa] backdrop-blur-sm border-b border-[#D8D4CC] px-6 lg:px-16 py-4 flex justify-between items-center">
     {/* Berikan ukuran spesifik atau persentase pada parent */}
     <div className=" flex items-center justify-center relative h-10 w-32">
       <Image src={Logo} alt="Logo ReuseID" className="object-contain" />
