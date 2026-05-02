@@ -1,8 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import ProfileDropdown from "@/components/Pengguna/profileDropdown";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Logo from "@/public/Logo/Logo.svg"
 
 export default function DashboardPage() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [penggunaName, setPenggunaName] = useState("");
+
+  const router = useRouter();
+
+  const getPenggunaName = async () => {
+    try {
+      const res = await fetch("/api/Pengguna");
+      const data = await res.json();
+      setPenggunaName(data.name);
+    } catch (error) {
+      console.error("Error fetching pengguna name:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/logout", {
+        method: "POST",
+      });
+      if (res.ok) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  useEffect(() => {
+    getPenggunaName();
+  }, []);
+
   const items = [
     {
       name: "SUSU MBG",
@@ -47,16 +84,23 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="bg-[#f5f0e8] min-h-screen">
-
+    <div className="bg-[#fafafa] min-h-screen">
       {/* NAVBAR */}
-      <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-[#f5f0e8] shadow-sm">
-        <div className="font-bold text-teal-600 text-lg">ReuseID</div>
+      <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-[#fafafa] shadow-sm">
+        <div className=" flex items-center justify-center relative h-10 w-32">
+          <Image src={Logo} alt="Logo ReuseID" className="object-contain" />
+        </div>
 
-        <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700">
-          <a href="#" className="hover:text-teal-600 transition-colors">Cara Donasi</a>
-          <a href="#" className="hover:text-teal-600 transition-colors">Penyaluran</a>
-          <a href="#" className="hover:text-teal-600 transition-colors">Tentang Kami</a>
+        <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700 items-center">
+          <a href="#" className="hover:text-teal-600 transition-colors">
+            Cara Donasi
+          </a>
+          <a href="#" className="hover:text-teal-600 transition-colors">
+            Penyaluran
+          </a>
+          <a href="#" className="hover:text-teal-600 transition-colors">
+            Tentang Kami
+          </a>
           <button className="bg-teal-600 text-white px-3 py-1 rounded hover:bg-teal-700 transition-colors">
             <Link href="dashboard/form/tambahBarang">Donasi</Link>
           </button>
@@ -67,11 +111,18 @@ export default function DashboardPage() {
             placeholder="Search here..."
             className="border border-gray-300 bg-white px-3 py-1 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
-          <img
-            src="https://i.pravatar.cc/150?img=3"
-            alt="User profile"
-            className="w-8 h-8 rounded-full object-cover cursor-pointer"
-          />
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
+          >
+            {penggunaName.charAt(0)}
+            {isOpen && (
+              <ProfileDropdown
+                namapengguna={penggunaName}
+                onLogout={handleLogout}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -96,18 +147,27 @@ export default function DashboardPage() {
           <div className="mt-4 inline-block bg-orange-400 text-black px-4 py-2 rounded-full font-semibold">
             BERBAGI UNTUK SESAMA
           </div>
-          <p className="mt-4 text-sm md:text-base">PAKAIAN • BUKU • MAINAN • PERALATAN</p>
-          <p className="text-sm md:text-base mt-1">MINGGU, 12 OKTOBER • 09:00 - 16:00</p>
+          <p className="mt-4 text-sm md:text-base">
+            PAKAIAN • BUKU • MAINAN • PERALATAN
+          </p>
+          <p className="text-sm md:text-base mt-1">
+            MINGGU, 12 OKTOBER • 09:00 - 16:00
+          </p>
         </div>
       </div>
 
       {/* CONTENT */}
       <div className="p-6">
-        <h2 className="text-lg font-bold mb-4 text-gray-800">Rekomendasi Barang:</h2>
+        <h2 className="text-lg font-bold mb-4 text-gray-800">
+          Rekomendasi Barang:
+        </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {items.map((item, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 flex flex-col">
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 flex flex-col"
+            >
               <img
                 src={item.img}
                 alt={item.name}

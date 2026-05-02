@@ -2,29 +2,35 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 import { protect } from "@/lib/protect";
 
-async function getItemPending(req: Request, payload: any) {
+async function getItemPending(req: Request, payload: { id: string }) {
   try {
-    const items = await prisma.item.findMany({
+    const shipments = await prisma.shipment.findMany({
       where: {
-        status: "PendingApproval",
+        status: "Pending",
+        type: "Donation",
       },
       include: {
-        user: true,
-        place: true,
+        item: {
+          include: {
+            user: true,
+            place: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(items);
+    const items = shipments.map((shipment) => ({
+      shipmentId: shipment.id,
+      ...shipment.item,
+    }));
 
+    return NextResponse.json(items);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { message: "Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
-  return (await protect(getItemPending, ["admin"])) (req);
+  return (await protect(getItemPending, ["admin"]))(req);
 }

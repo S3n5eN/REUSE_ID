@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Item = {
+  shipmentId: number;
   id: number;
   name: string;
   category: string;
@@ -105,12 +106,12 @@ function ItemCard({
   const handleApprove = () => {
     if (!selectedQuality) return;
     setExiting(true);
-    setTimeout(() => onApprove(item.id, selectedQuality as QualityValue), 350);
+    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue), 350);
   };
 
   const handleReject = () => {
     setExiting(true);
-    setTimeout(() => onReject(item.id), 350);
+    setTimeout(() => onReject(item.shipmentId), 350);
   };
 
   const formattedDate = new Date(item.createdAt).toLocaleDateString("id-ID", {
@@ -298,19 +299,19 @@ export default function DaftarBarangPendingPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleApprove = async (id: number, quality: QualityValue) => {
+  const handleApprove = async (shipmentId: number, quality: QualityValue) => {
     try {
       setLoading(true);
-      const res = await fetch("/api/verifikasiBarang", {
+      const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: id, action: "Approve", quality }),
+        body: JSON.stringify({ shipmentId, action: "Approve", quality }),
       });
       const text = await res.text();
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
       const data = JSON.parse(text);
       showToast(data.message ?? "Barang berhasil diverifikasi", "success");
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      setItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
       showToast("Terjadi error di frontend", "error");
@@ -319,19 +320,19 @@ export default function DaftarBarangPendingPage() {
     }
   };
 
-  const handleReject = async (id: number) => {
+  const handleReject = async (shipmentId: number) => {
     try {
       setLoading(true);
-      const res = await fetch("/api/verifikasiBarang", {
+      const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: id, action: "Reject" }),
+        body: JSON.stringify({ shipmentId, action: "Reject" }),
       });
       const text = await res.text();
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
       const data = JSON.parse(text);
       showToast(data.message ?? "Barang ditolak", "success");
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      setItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
       showToast("Terjadi error di frontend", "error");
@@ -350,10 +351,10 @@ export default function DaftarBarangPendingPage() {
         }
       `}</style>
 
-      <div className="max-w-full mx-auto px-6 py-8">
+      <div className="grid grid-cols-2 gap-3 max-w-full mx-auto px-6 py-8">
 
         {/* ── Page header ── */}
-        <div className="flex items-center gap-3.5 mb-8">
+        <div className="flex col-span-2 items-center gap-3.5 mb-8">
           <div className="w-11 h-11 rounded-xl bg-[#E1F5EE] border border-[#9FE1CB] flex items-center justify-center shrink-0">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
