@@ -7,7 +7,7 @@ async function getPenerimaApprove(decoded: { id: number }) {
     try {
         const response = await prisma.shipment.findMany({
             where: {
-                claimType: { in: null },
+                claimType: { not: null },
                 status: "Approved",
                 type: "claim"
             },
