@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
+
 
 export default function FormInformasiBarang() {
   const [form, setForm] = useState({
@@ -168,7 +170,8 @@ export default function FormInformasiBarang() {
         {/* Buttons */}
         <div className="flex flex-1 justify-between items-center pt-6 mt-4 border-t border-gray-100">
           <button type="button" className="px-12 py-3 bg-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-300 transition tracking-widest uppercase">
-            Kembali
+            
+            <Link href="/dashboard">kembali</Link>
           </button>
           <button type="submit" disabled={loading} className="px-12 py-3 bg-teal-500 text-white rounded-xl text-sm font-bold hover:bg-teal-600 transition tracking-widest uppercase disabled:opacity-60">
             {loading ? "Menyimpan..." : "Simpan"}
