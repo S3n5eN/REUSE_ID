@@ -45,7 +45,6 @@ model user {
   profile     userProfile?
   certificate certificate[]
   item        item[]
-  news        news[]
   shipment    shipment[]
 }
 
@@ -76,6 +75,7 @@ model admin {
   placeId  Int?
   place    place?      @relation(fields: [placeId], references: [id], map: "Admin_placeId_fkey")
   shipment shipment[]
+  news     news[]
 
   @@index([placeId], map: "Admin_placeId_fkey")
 }
@@ -148,16 +148,10 @@ model certificate {
 model news {
   id          Int      @id @default(autoincrement())
   title       String
-  description String
   image       String
-  location    String
-  eventDate   DateTime
-  organizer   String
-  isPopup     Boolean  @default(false)
-  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  userId      Int
-  user        user     @relation(fields: [userId], references: [id], map: "News_userId_fkey")
+  adminId      Int
+  admin        admin     @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
 
-  @@index([userId], map: "News_userId_fkey")
+  @@index([adminId], map: "News_adminId_fkey")
 }
