@@ -190,6 +190,7 @@ export default function DashboardPage() {
         Hubungi Pemilik
       </button>
 
+<<<<<<< Updated upstream
       <div className="mt-1 flex justify-center">
         <Link
           href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
@@ -197,6 +198,21 @@ export default function DashboardPage() {
         >
           Ajukan
         </Link>
+=======
+                <div className="mt-2 flex justify-center">
+
+                  <Link
+                    href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
+                    className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
+                  >
+                    Ajukan
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+>>>>>>> Stashed changes
       </div>
     </div>
   ))}

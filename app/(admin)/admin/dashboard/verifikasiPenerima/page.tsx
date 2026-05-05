@@ -325,6 +325,7 @@ export default function VerifikasiPenerimaPage() {
             })
           }
         })
+        
         setItems(formattedData);
       } catch (error) {
         console.error("Error fetching unverified users:", error);
