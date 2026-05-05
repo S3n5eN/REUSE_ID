@@ -190,15 +190,6 @@ export default function DashboardPage() {
         Hubungi Pemilik
       </button>
 
-<<<<<<< Updated upstream
-      <div className="mt-1 flex justify-center">
-        <Link
-          href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
-          className="bg-green-500 text-white px-4 py-1 rounded-lg text-xs hover:bg-green-600 transition-colors"
-        >
-          Ajukan
-        </Link>
-=======
                 <div className="mt-2 flex justify-center">
 
                   <Link
@@ -212,13 +203,7 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
->>>>>>> Stashed changes
       </div>
-    </div>
-  ))}
-</div>
-  )}
-  </div>
     </div>
   );
 }
