@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [penggunaName, setPenggunaName] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [fetchingItems, setFetchingItems] = useState(true);
+  const [selectedKategori, setSelectedKategori] = useState("");
+  const [search, setSearch] = useState("");
 
   const router = useRouter();
 
@@ -56,6 +58,12 @@ export default function DashboardPage() {
       console.error("Error logging out:", error);
     }
   };
+  const filteredItems = items.filter((item) => {
+  const matchKategori = selectedKategori ? item.category === selectedKategori : true;
+  const matchSearch = search ? item.name.toLowerCase().includes(search.toLowerCase()) : true;
+  const matchStatus = item.status === "Tersedia";
+  return matchKategori && matchSearch && matchStatus;
+});
 
   useEffect(() => {
     getPenggunaName();
@@ -79,24 +87,31 @@ export default function DashboardPage() {
           </button>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <input
-            placeholder="Search here..."
-            className="border border-gray-300 bg-white px-3 py-1 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-          />
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
-          >
-            {penggunaName.charAt(0)}
-            {isOpen && (
-              <ProfileDropdown
-                namapengguna={penggunaName}
-                onLogout={handleLogout}
-              />
-            )}
-          </div>
-        </div>
+       <div className="flex items-center gap-3">
+  <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
+    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+    </svg>
+    <input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Search here..."
+      className="text-sm focus:outline-none bg-transparent w-36"
+    />
+  </div>
+  <div
+    onClick={() => setIsOpen(!isOpen)}
+    className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
+  >
+    {penggunaName.charAt(0)}
+    {isOpen && (
+      <ProfileDropdown
+        namapengguna={penggunaName}
+        onLogout={handleLogout}
+      />
+    )}
+  </div>
+</div>
       </div>
 
       {/* HERO */}
@@ -128,45 +143,66 @@ export default function DashboardPage() {
 
       {/* CONTENT */}
       <div className="p-6">
-        <h2 className="text-lg font-bold mb-4 text-gray-800">Rekomendasi Barang:</h2>
+       <div className="flex items-center justify-between mb-4">
+  <h2 className="text-lg font-bold text-gray-800">Rekomendasi Barang:</h2>
+  <div className="flex items-center gap-2">
+    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+    </svg>
+    <select
+      value={selectedKategori}
+      onChange={(e) => setSelectedKategori(e.target.value)}
+      className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
+    >
+      <option value="">Semua Kategori</option>
+      <option value="Pakaian">Pakaian</option>
+      <option value="Elektronik">Elektronik</option>
+      <option value="Perabot">Perabot</option>
+      <option value="Mainan">Mainan</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+  </div>
+</div>
 
         {fetchingItems ? (
           <p className="text-sm text-gray-400">Memuat barang...</p>
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <p className="text-sm text-gray-400">Belum ada barang tersedia.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 flex flex-col"
-              >
-                <img
-                  src={item.imageURL}
-                  alt={item.name}
-                  className="w-full h-32 object-cover rounded-md"
-                />
-                <h3 className="font-semibold mt-2 text-gray-800">{item.name}</h3>
-                <p className="text-sm text-gray-500">Kategori: {item.category}</p>
-                <p className="text-sm text-gray-500">Status: {item.status}</p>
-
-                <button className="mt-3 w-full bg-teal-600 text-white py-1.5 rounded-lg text-sm hover:bg-teal-700 transition-colors">
-                  Hubungi Pemilik
-                </button>
-
-                <div className="mt-2 flex justify-center">
-                  <Link
-                    href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
-                    className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
-                  >
-                    Ajukan
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          <div className="grid grid-cols-6 gap-3">
+  {filteredItems.map((item) => (
+    <div
+      key={item.id}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 flex flex-col"
+    >
+      <div className="w-full aspect-square overflow-hidden rounded-md">
+        <img
+          src={item.imageURL}
+          alt={item.name}
+          className="w-full h-full object-cover"
+        />
       </div>
+      <h3 className="font-semibold mt-2 text-gray-800 text-sm truncate">{item.name}</h3>
+      <p className="text-xs text-gray-500">{item.category}</p>
+      <p className="text-xs text-gray-500">{item.status}</p>
+
+      <button className="mt-2 w-full bg-teal-600 text-white py-1 rounded-lg text-xs hover:bg-teal-700 transition-colors">
+        Hubungi Pemilik
+      </button>
+
+      <div className="mt-1 flex justify-center">
+        <Link
+          href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
+          className="bg-green-500 text-white px-4 py-1 rounded-lg text-xs hover:bg-green-600 transition-colors"
+        >
+          Ajukan
+        </Link>
+      </div>
+    </div>
+  ))}
+</div>
+  )}
+  </div>
     </div>
   );
 }
