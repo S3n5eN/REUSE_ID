@@ -16,7 +16,9 @@ async function getItemByPlace(req: Request) {
     }
 
     const items = await prisma.item.findMany({
-      where: { placeId: Number(placeId) },
+      where: { placeId: Number(placeId),
+      status: "Tersedia",
+    },
       select: {
         id: true,
         name: true,

@@ -15,6 +15,9 @@ type Item = {
   imageURL: string;
   status: string;
   placeId: number;
+  place: {
+    name:string;
+  };
 };
 
 export default function DashboardPage() {
@@ -193,7 +196,7 @@ export default function DashboardPage() {
                 <div className="mt-2 flex justify-center">
 
                   <Link
-                    href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(item.imageURL)}`}
+                   href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.place.name)}&img=${encodeURIComponent(item.imageURL)}`}
                     className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
                   >
                     Ajukan

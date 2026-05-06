@@ -5,7 +5,15 @@ import { NextRequest } from "next/server";
 
 async function getItem(req: Request) {
   try {
-    const items = await prisma.item.findMany();
+    const items = await prisma.item.findMany({
+     include: {
+        place: {
+          select: {
+             name: true,
+      }
+    }
+  }
+});   
 
     return NextResponse.json(items);
 
