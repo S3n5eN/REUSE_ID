@@ -5,34 +5,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  
-}
-
-enum ItemStatus {
-  PendingApproval
-  Tersedia
-  Diambil
-  Ditolak
-}
-
-enum Gender {
-  Pria
-  Wanita
-}
-
-enum ItemQuality {
-  SangatBaik
-  Baik
-  CukupBaik
-  Layak
-  CukupLayak
-}
-
-enum ShipmentStatus {
-  Pending
-  Approved
-  Rejected
-  Delivered
 }
 
 model user {
@@ -42,31 +14,10 @@ model user {
   password    String
   poin        Int           @default(0)
   createdAt   DateTime      @default(now())
-  profile     userProfile?
   certificate certificate[]
   item        item[]
   shipment    shipment[]
-}
-
-model userProfile {
-  id           Int       @id @default(autoincrement())
-  userId       Int       @unique
-  namaLengkap  String
-  phone        String
-  pekerjaan    String?
-  address      String
-  usia         Int
-  gender       Gender
-  identityId   String
-  isVerified   Boolean   @default(false)
-  verifiedAt   DateTime?
-  verifiedBy   Int?
-  latitude     Float?
-  longitude    Float?
-  user         user      @relation(fields: [userId], references: [id], map: "UserProfile_userId_fkey")
-  shipment     shipment[]
-
-  @@index([userId], map: "UserProfile_userId_fkey")
+  userprofile userprofile?
 }
 
 model admin {
@@ -75,9 +26,9 @@ model admin {
   email    String     @unique(map: "Admin_email_key")
   password String
   placeId  Int?
-  place    place?      @relation(fields: [placeId], references: [id], map: "Admin_placeId_fkey")
-  shipment shipment[]
+  place    place?     @relation(fields: [placeId], references: [id], map: "Admin_placeId_fkey")
   news     news[]
+  shipment shipment[]
 
   @@index([placeId], map: "Admin_placeId_fkey")
 }
@@ -104,12 +55,12 @@ model item {
   userId      Int
   placeId     Int
   imageData   Bytes?
-  imageType    String?
+  imageType   String?
   status      ItemStatus   @default(PendingApproval)
   quality     ItemQuality?
   weight      Float?
-  user        user         @relation(fields: [userId], references: [id], map: "Item_userId_fkey")
   place       place        @relation(fields: [placeId], references: [id], map: "Item_placeId_fkey")
+  user        user         @relation(fields: [userId], references: [id], map: "Item_userId_fkey")
   shipment    shipment[]
 
   @@index([userId], map: "Item_userId_fkey")
@@ -122,8 +73,8 @@ model shipment {
   userId          Int
   adminId         Int?
   userProfileId   Int?
-  type            String         // "donation" atau "claim"
-  claimType       String?        // "pickup" atau "delivery"
+  type            String
+  claimType       String?
   receivedAt      DateTime?
   receiverAddress String?
   isAutoApproved  Boolean        @default(false)
@@ -134,16 +85,15 @@ model shipment {
   distance        Float?
   deliveryLat     Float?
   deliveryLng     Float?
-
+  admin           admin?         @relation(fields: [adminId], references: [id], map: "Shipment_adminId_fkey")
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
   user            user           @relation(fields: [userId], references: [id], map: "Shipment_userId_fkey")
-  admin           admin?         @relation(fields: [adminId], references: [id], map: "Shipment_adminId_fkey")
-  userProfile     userProfile?   @relation(fields: [userProfileId], references: [id], map: "Shipment_userProfileId_fkey")
+  userProfile     userprofile?   @relation(fields: [userProfileId], references: [id], map: "Shipment_userProfileId_fkey")
 
   @@unique([itemId, type])
-  @@index([userId], map: "Shipment_userId_fkey_new")      
-  @@index([adminId], map: "Shipment_adminId_fkey_new")    
-  @@index([userProfileId], map: "Shipment_userProfileId_fkey_new") 
+  @@index([userId], map: "Shipment_userId_fkey_new")
+  @@index([adminId], map: "Shipment_adminId_fkey_new")
+  @@index([userProfileId], map: "Shipment_userProfileId_fkey_new")
 }
 
 model certificate {
@@ -156,13 +106,61 @@ model certificate {
 }
 
 model news {
-  id          Int      @id @default(autoincrement())
-  title       String
-  imageData       Bytes
-  imageType       String
-  createdAt   DateTime @default(now())
-  adminId      Int
-  admin        admin     @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageData Bytes
+  imageType String
+  createdAt DateTime @default(now())
+  adminId   Int
+  admin     admin    @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
 
   @@index([adminId], map: "News_adminId_fkey")
+}
+
+model userprofile {
+  id          Int                @id @default(autoincrement())
+  userId      Int                @unique(map: "userProfile_userId_key")
+  namaLengkap String
+  phone       String
+  pekerjaan   String?
+  address     String
+  usia        Int
+  gender      userprofile_gender
+  identityId  String
+  isVerified  Boolean            @default(false)
+  verifiedAt  DateTime?
+  verifiedBy  Int?
+  latitude    Float?
+  longitude   Float?
+  shipment    shipment[]
+  user        user               @relation(fields: [userId], references: [id], map: "UserProfile_userId_fkey")
+
+  @@index([userId], map: "UserProfile_userId_fkey")
+}
+
+enum ItemStatus {
+  PendingApproval
+  Tersedia
+  Diambil
+  Ditolak
+}
+
+enum ItemQuality {
+  SangatBaik
+  Baik
+  CukupBaik
+  Layak
+  CukupLayak
+}
+
+enum ShipmentStatus {
+  Pending
+  Approved
+  Rejected
+  Delivered
+}
+
+enum userprofile_gender {
+  Pria
+  Wanita
 }

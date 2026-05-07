@@ -17,7 +17,7 @@ CREATE TABLE `userProfile` (
     `userId` INTEGER NOT NULL,
     `namaLengkap` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NOT NULL,
-    `pekerjaan` VARCHAR(191) NOT NULL,
+    `pekerjaan` VARCHAR(191) NULL,
     `address` VARCHAR(191) NOT NULL,
     `usia` INTEGER NOT NULL,
     `gender` ENUM('Pria', 'Wanita') NOT NULL,
@@ -25,6 +25,8 @@ CREATE TABLE `userProfile` (
     `isVerified` BOOLEAN NOT NULL DEFAULT false,
     `verifiedAt` DATETIME(3) NULL,
     `verifiedBy` INTEGER NULL,
+    `latitude` DOUBLE NULL,
+    `longitude` DOUBLE NULL,
 
     UNIQUE INDEX `userProfile_userId_key`(`userId`),
     INDEX `UserProfile_userId_fkey`(`userId`),
@@ -37,7 +39,7 @@ CREATE TABLE `admin` (
     `name` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
-    `placeId` INTEGER NOT NULL,
+    `placeId` INTEGER NULL,
 
     UNIQUE INDEX `Admin_email_key`(`email`),
     INDEX `Admin_placeId_fkey`(`placeId`),
@@ -52,6 +54,8 @@ CREATE TABLE `place` (
     `managerName` VARCHAR(191) NOT NULL,
     `managerPhone` VARCHAR(191) NOT NULL,
     `operationalJam` VARCHAR(191) NOT NULL,
+    `latitude` DOUBLE NULL,
+    `longitude` DOUBLE NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -65,9 +69,11 @@ CREATE TABLE `item` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `userId` INTEGER NOT NULL,
     `placeId` INTEGER NOT NULL,
-    `imageURL` VARCHAR(191) NOT NULL,
+    `imageData` LONGBLOB NULL,
+    `imageType` VARCHAR(191) NULL,
     `status` ENUM('PendingApproval', 'Tersedia', 'Diambil', 'Ditolak') NOT NULL DEFAULT 'PendingApproval',
     `quality` ENUM('SangatBaik', 'Baik', 'CukupBaik', 'Layak', 'CukupLayak') NULL,
+    `weight` DOUBLE NULL,
 
     INDEX `Item_userId_fkey`(`userId`),
     INDEX `Item_placeId_fkey`(`placeId`),
@@ -89,6 +95,10 @@ CREATE TABLE `shipment` (
     `status` ENUM('Pending', 'Approved', 'Rejected', 'Delivered') NOT NULL DEFAULT 'Pending',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `deliveredDate` DATETIME(3) NULL,
+    `shipmentCost` INTEGER NULL,
+    `distance` DOUBLE NULL,
+    `deliveryLat` DOUBLE NULL,
+    `deliveryLng` DOUBLE NULL,
 
     INDEX `Shipment_userId_fkey_new`(`userId`),
     INDEX `Shipment_adminId_fkey_new`(`adminId`),
@@ -111,17 +121,12 @@ CREATE TABLE `certificate` (
 CREATE TABLE `news` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `title` VARCHAR(191) NOT NULL,
-    `description` VARCHAR(191) NOT NULL,
-    `image` VARCHAR(191) NOT NULL,
-    `location` VARCHAR(191) NOT NULL,
-    `eventDate` DATETIME(3) NOT NULL,
-    `organizer` VARCHAR(191) NOT NULL,
-    `isPopup` BOOLEAN NOT NULL DEFAULT false,
-    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `imageData` LONGBLOB NOT NULL,
+    `imageType` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `userId` INTEGER NOT NULL,
+    `adminId` INTEGER NOT NULL,
 
-    INDEX `News_userId_fkey`(`userId`),
+    INDEX `News_adminId_fkey`(`adminId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -129,7 +134,7 @@ CREATE TABLE `news` (
 ALTER TABLE `userProfile` ADD CONSTRAINT `UserProfile_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `admin` ADD CONSTRAINT `Admin_placeId_fkey` FOREIGN KEY (`placeId`) REFERENCES `place`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `admin` ADD CONSTRAINT `Admin_placeId_fkey` FOREIGN KEY (`placeId`) REFERENCES `place`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `item` ADD CONSTRAINT `Item_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -153,4 +158,4 @@ ALTER TABLE `shipment` ADD CONSTRAINT `Shipment_userProfileId_fkey` FOREIGN KEY 
 ALTER TABLE `certificate` ADD CONSTRAINT `Certificate_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `news` ADD CONSTRAINT `News_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `news` ADD CONSTRAINT `News_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
