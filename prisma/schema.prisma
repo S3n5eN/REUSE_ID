@@ -132,6 +132,8 @@ model shipment {
   deliveredDate   DateTime?
   shipmentCost    Int?
   distance        Float?
+  deliveryLat     Float?
+  deliveryLng     Float?
 
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
   user            user           @relation(fields: [userId], references: [id], map: "Shipment_userId_fkey")

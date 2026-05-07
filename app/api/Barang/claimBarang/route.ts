@@ -17,8 +17,14 @@ async function claimBarang(req: NextRequest, decoded: { id: string }) {
       where: { userId: Number(decoded.id) },
     });
 
-    const isAutoApproved = userProfile?.isVerified ?? false;
-    const userProfileId = userProfile?.id ?? null;
+    if (!userProfile) {
+      return NextResponse.json(
+        { message: "Kamu belum terverifikasi, silahkan lakukan verifikasi data diri terlebih dahulu" },
+        { status: 404 }
+      );
+    }
+
+    const userProfileId = userProfile.id;
     let shipment;
 
     await prisma.$transaction(async (tx) => {
@@ -39,8 +45,8 @@ async function claimBarang(req: NextRequest, decoded: { id: string }) {
           itemId: Number(itemId),
           type: "claim",
           userProfileId: userProfileId,
-          isAutoApproved,
-          status: isAutoApproved ? "Approved" : "Pending",
+          isAutoApproved: userProfile.isVerified,
+          status:"Approved",
           adminId: null
         }
       })
@@ -48,7 +54,7 @@ async function claimBarang(req: NextRequest, decoded: { id: string }) {
 
     return NextResponse.json(
       {
-        message: isAutoApproved
+        message: userProfile.isVerified
           ? "Barang berhasil diklaim dan langsung disetujui"
           : "Barang berhasil diklaim, menunggu verifikasi admin",
           data: shipment

@@ -15,7 +15,10 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
       !body.dataDiri.usia ||
       !body.dataDiri.nomorTelpon ||
       !body.dataDiri.alamat ||
-      !body.dataDiri.gender
+      !body.dataDiri.gender ||
+      !body.dataDiri.longitude ||
+      !body.dataDiri.latitude ||
+      !body.dataDiri.NIK
     ) {
       return new Response(JSON.stringify({ message: "Data tidak lengkap" }), {
         status: 400,
@@ -41,6 +44,8 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
         address: body.dataDiri.alamat,
         identityId: body.dataDiri.NIK,
         pekerjaan: body.dataDiri.pekerjaan ?? undefined,
+        longitude: body.dataDiri.longitude,
+        latitude: body.dataDiri.latitude,
       },
       create: {
         userId: Number(decoded.id),
@@ -51,6 +56,8 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
         address: body.dataDiri.alamat,
         identityId: body.dataDiri.NIK,
         pekerjaan: body.dataDiri.pekerjaan ?? undefined,
+        longitude: body.dataDiri.longitude,
+        latitude: body.dataDiri.latitude,
       },
     });
 

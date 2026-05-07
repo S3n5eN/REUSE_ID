@@ -48,3 +48,6 @@ next-env.d.ts
 
 #uplaoads (biar githubnya ga bengkak)
 /public/uploads
+
+# page untuk testing components
+/app/test
