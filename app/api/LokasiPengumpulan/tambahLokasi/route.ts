@@ -6,9 +6,9 @@ import { NextRequest, NextResponse } from "next/server";
 async function tambahLokasi(req: NextRequest){
     try {
         const body: lokasiPengumpulan = await req.json();
-
+        console.log("Body diterima:", body);
         // ==== Cek apakah semua data yang diminta sudah terisi ====
-        if (!body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam) {
+        if (!body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam || !body.latitude || !body.longitude) {
             return NextResponse.json({ message: "Semua field harus diisi" }, { status: 400 });
         }
 
@@ -26,7 +26,9 @@ async function tambahLokasi(req: NextRequest){
                 address: body.address,
                 managerName: body.managerName,
                 managerPhone: body.managerPhone,
-                operationalJam: body.operationalJam
+                operationalJam: body.operationalJam,
+                latitude: body.latitude,
+                longitude: body.longitude,
             }
         })
         return NextResponse.json({ message: "Lokasi pengumpulan berhasil ditambahkan" }, { status: 201 });

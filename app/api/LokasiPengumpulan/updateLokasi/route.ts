@@ -6,7 +6,7 @@ async function updateLokasi(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.id || !body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam) {
+    if (!body.id || !body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam || body.latitude === undefined || body.latitude === null || body.longitude === undefined || body.longitude === null) {
       return NextResponse.json({ message: "Semua field harus diisi" }, { status: 400 });
     }
 
@@ -18,7 +18,6 @@ async function updateLokasi(req: NextRequest) {
       return NextResponse.json({ message: "Lokasi tidak ditemukan" }, { status: 404 });
     }
 
-    // Cek nama duplikat tapi bukan milik diri sendiri
     const isDuplicate = await prisma.place.findFirst({
       where: {
         name: body.locationName,
@@ -38,6 +37,8 @@ async function updateLokasi(req: NextRequest) {
         managerName: body.managerName,
         managerPhone: body.managerPhone,
         operationalJam: body.operationalJam,
+        latitude: body.latitude,
+        longitude: body.longitude,
       },
     });
 

@@ -25,7 +25,7 @@ async function getItemByPlace(req: Request) {
         category: true,
         status: true,
         quality: true,
-        imageURL: true,
+      
       }
     });
 

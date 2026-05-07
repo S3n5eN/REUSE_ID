@@ -5,4 +5,6 @@ export interface lokasiPengumpulan{
     managerName:string;
     managerPhone:string;
     operationalJam:string;
+    latitude: number;
+    longitude: number;
 }

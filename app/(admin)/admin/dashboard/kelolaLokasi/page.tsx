@@ -9,6 +9,8 @@ type Place = {
   managerName: string;
   managerPhone: string;
   operationalJam: string;
+  latitude: number;
+  longitude: number;
 };
 
 type PlaceItem = {
@@ -17,7 +19,6 @@ type PlaceItem = {
   category: string;
   status: string;
   quality: string | null;
-  imageURL: string;
 };
 
 export default function DaftarLokasiPage() {
@@ -41,7 +42,10 @@ export default function DaftarLokasiPage() {
     address: "",
     managerName: "",
     managerPhone: "",
-    operationalJam: "",
+    jamBuka: "",
+    jamTutup: "",
+    latitude: "",
+    longitude: "",
   });
 
   const fetchPlaces = async () => {
@@ -49,9 +53,10 @@ export default function DaftarLokasiPage() {
     try {
       const res = await fetch("/api/LokasiPengumpulan/getPlace");
       const data = await res.json();
-      setPlaces(data);
+      setPlaces(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Gagal fetch lokasi:", err);
+      setPlaces([]);
     } finally {
       setFetching(false);
     }
@@ -79,74 +84,88 @@ export default function DaftarLokasiPage() {
   };
 
   const handleTambah = async () => {
-    if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.operationalJam) {
-      setError("Semua field harus diisi");
+  if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.jamBuka || !form.jamTutup || !form.latitude || !form.longitude) {
+    setError("Semua field harus diisi");
+    return;
+  }
+
+  if (isNaN(parseFloat(form.latitude)) || isNaN(parseFloat(form.longitude))) {
+    setError("Latitude dan longitude harus berupa angka");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+  try {
+    const res = await fetch("/api/LokasiPengumpulan/tambahLokasi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        locationName: form.name,
+        address: form.address,
+        managerName: form.managerName,
+        managerPhone: form.managerPhone,
+        operationalJam: `${form.jamBuka} - ${form.jamTutup}`,
+        latitude: parseFloat(form.latitude),
+        longitude: parseFloat(form.longitude),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.message || "Gagal menambahkan lokasi");
       return;
     }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/LokasiPengumpulan/tambahLokasi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          locationName: form.name,
-          address: form.address,
-          managerName: form.managerName,
-          managerPhone: form.managerPhone,
-          operationalJam: form.operationalJam,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Gagal menambahkan lokasi");
-        return;
-      }
-      await fetchPlaces();
-      setForm({ name: "", address: "", managerName: "", managerPhone: "", operationalJam: "" });
-      setShowForm(false);
-    } catch (err) {
-      setError("Terjadi kesalahan, coba lagi");
-    } finally {
-      setLoading(false);
-    }
-  };
+    await fetchPlaces();
+    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "" });
+    setShowForm(false);
+  } catch (err) {
+    setError("Terjadi kesalahan, coba lagi");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEdit = async () => {
-    if (!editPlace) return;
-    if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.operationalJam) {
-      setError("Semua field harus diisi");
+  if (!editPlace) return;
+  if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.jamBuka || !form.jamTutup || !form.latitude || !form.longitude) {
+    setError("Semua field harus diisi");
+    return;
+  }
+  if (isNaN(parseFloat(form.latitude)) || isNaN(parseFloat(form.longitude))) {
+    setError("Latitude dan longitude harus berupa angka");
+    return;
+  }
+  setLoading(true);
+  setError("");
+  try {
+    const res = await fetch("/api/LokasiPengumpulan/updateLokasi", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editPlace.id,
+        locationName: form.name,
+        address: form.address,
+        managerName: form.managerName,
+        managerPhone: form.managerPhone,
+        operationalJam: `${form.jamBuka} - ${form.jamTutup}`,
+        latitude: parseFloat(form.latitude),
+        longitude: parseFloat(form.longitude),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.message || "Gagal mengupdate lokasi");
       return;
     }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/LokasiPengumpulan/updateLokasi", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editPlace.id,
-          locationName: form.name,
-          address: form.address,
-          managerName: form.managerName,
-          managerPhone: form.managerPhone,
-          operationalJam: form.operationalJam,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Gagal mengupdate lokasi");
-        return;
-      }
-      await fetchPlaces();
-      setEditPlace(null);
-      setForm({ name: "", address: "", managerName: "", managerPhone: "", operationalJam: "" });
-    } catch (err) {
-      setError("Terjadi kesalahan, coba lagi");
-    } finally {
-      setLoading(false);
-    }
-  };
+    await fetchPlaces();
+    setEditPlace(null);
+    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "" });
+  } catch (err) {
+    setError("Terjadi kesalahan, coba lagi");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handlePindah = async () => {
     if (!selectedPlace || !targetPlaceId || selectedItemIds.length === 0) return;
@@ -188,12 +207,31 @@ export default function DaftarLokasiPage() {
     );
   };
 
-  const handleDeleteSelected = () => {
-    setPlaces(places.filter((p) => !selectedIds.includes(p.id)));
+  const handleDeleteSelected = async () => {
+  try {
+    const res = await fetch("/api/LokasiPengumpulan/deleteLokasi", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selectedIds }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Gagal menghapus lokasi");
+      setShowDeleteConfirm(false);
+      return;
+    }
+
+    await fetchPlaces();
     setSelectedIds([]);
     setDeleteMode(false);
     setShowDeleteConfirm(false);
-  };
+  } catch (err) {
+    console.error("Gagal hapus lokasi:", err);
+    alert("Terjadi kesalahan, coba lagi");
+  }
+};
 
   const exitDeleteMode = () => {
     setDeleteMode(false);
@@ -201,16 +239,20 @@ export default function DaftarLokasiPage() {
   };
 
   const openEdit = (place: Place) => {
-    setEditPlace(place);
-    setForm({
-      name: place.name,
-      address: place.address,
-      managerName: place.managerName,
-      managerPhone: place.managerPhone,
-      operationalJam: place.operationalJam,
-    });
-    setError("");
-  };
+  const [jamBuka, jamTutup] = place.operationalJam.split(" - ");
+  setEditPlace(place);
+  setForm({
+    name: place.name,
+    address: place.address,
+    managerName: place.managerName,
+    managerPhone: place.managerPhone,
+    jamBuka: jamBuka || "",
+    jamTutup: jamTutup || "",
+    latitude: place.latitude.toString(),
+    longitude: place.longitude.toString(),
+  });
+  setError("");
+};
 
   const statusColor = (status: string) => {
     if (status === "Tersedia") return "bg-green-100 text-green-700";
@@ -225,6 +267,8 @@ export default function DaftarLokasiPage() {
     { label: "Nama Manajer", name: "managerName", placeholder: "Budi Santoso" },
     { label: "No. HP Manajer", name: "managerPhone", placeholder: "+62 xxxx xxxx" },
     { label: "Jam Operasional", name: "operationalJam", placeholder: "08:00 - 17:00" },
+    { label: "Latitude", name: "latitude", placeholder: "-6.914744" },
+    { label: "Longitude", name: "longitude", placeholder: "107.609810" },
   ];
 
   // ============ DETAIL VIEW (full page) ============
@@ -339,9 +383,9 @@ export default function DaftarLokasiPage() {
                       )}
                     </div>
                     <img
-                      src={item.imageURL}
-                      alt={item.name}
-                      className="w-10 h-10 object-cover rounded-md flex-shrink-0"
+                       src={`/api/getImage/${item.id}`}
+                       alt={item.name}
+                       className="w-10 h-10 object-cover rounded-md flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
@@ -469,53 +513,153 @@ export default function DaftarLokasiPage() {
 
       {/* Form Popup Tambah Lokasi */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setError(""); }}>
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-800 mb-6">Tambah Lokasi</h2>
-            <div className="space-y-4">
-              {formFields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{field.label}</label>
-                  <input type="text" name={field.name} placeholder={field.placeholder} value={form[field.name as keyof typeof form]} onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition" />
-                </div>
-              ))}
-            </div>
-            {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowForm(false); setError(""); }} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm">Batal</button>
-              <button onClick={handleTambah} disabled={loading} className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50">
-                {loading ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setError(""); }}>
+    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <h2 className="text-lg font-bold text-gray-800 mb-6">Tambah Lokasi</h2>
+      <div className="space-y-4">
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Lokasi</label>
+          <input type="text" name="name" placeholder="Gudang Bandung" value={form.name} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Alamat</label>
+          <input type="text" name="address" placeholder="Jl. Sudirman No. 12" value={form.address} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Manajer</label>
+          <input type="text" name="managerName" placeholder="Budi Santoso" value={form.managerName} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">No. HP Manajer</label>
+          <input type="tel" name="managerPhone" placeholder="+62 xxxx xxxx" value={form.managerPhone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9+]/g, "");
+              setForm({ ...form, managerPhone: val });
+            }}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Jam Buka</label>
+          <input type="time" name="jamBuka" value={form.jamBuka} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Jam Tutup</label>
+          <input type="time" name="jamTutup" value={form.jamTutup} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Latitude</label>
+            <input type="number" name="latitude" placeholder="-6.914744" value={form.latitude} onChange={handleChange}
+              step="any"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Longitude</label>
+            <input type="number" name="longitude" placeholder="107.609810" value={form.longitude} onChange={handleChange}
+              step="any"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
           </div>
         </div>
-      )}
+
+      </div>
+
+      {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
+      <div className="flex gap-3 mt-6">
+        <button onClick={() => { setShowForm(false); setError(""); }} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm">Batal</button>
+        <button onClick={handleTambah} disabled={loading} className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50">
+          {loading ? "Menyimpan..." : "Simpan"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Form Popup Edit Lokasi */}
-      {editPlace && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setEditPlace(null); setError(""); }}>
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-800 mb-6">Edit Lokasi</h2>
-            <div className="space-y-4">
-              {formFields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{field.label}</label>
-                  <input type="text" name={field.name} placeholder={field.placeholder} value={form[field.name as keyof typeof form]} onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition" />
-                </div>
-              ))}
-            </div>
-            {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { setEditPlace(null); setError(""); }} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm">Batal</button>
-              <button onClick={handleEdit} disabled={loading} className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50">
-                {loading ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
+     {editPlace && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setEditPlace(null); setError(""); }}>
+    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <h2 className="text-lg font-bold text-gray-800 mb-6">Edit Lokasi</h2>
+      <div className="space-y-4">
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Lokasi</label>
+          <input type="text" name="name" placeholder="Gudang Bandung" value={form.name} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Alamat</label>
+          <input type="text" name="address" placeholder="Jl. Sudirman No. 12" value={form.address} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Manajer</label>
+          <input type="text" name="managerName" placeholder="Budi Santoso" value={form.managerName} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">No. HP Manajer</label>
+          <input type="tel" name="managerPhone" placeholder="+62 xxxx xxxx" value={form.managerPhone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9+]/g, "");
+              setForm({ ...form, managerPhone: val });
+            }}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Jam Buka</label>
+          <input type="time" name="jamBuka" value={form.jamBuka} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Jam Tutup</label>
+          <input type="time" name="jamTutup" value={form.jamTutup} onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Latitude</label>
+            <input type="number" name="latitude" placeholder="-6.914744" value={form.latitude} onChange={handleChange}
+              step="any"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Longitude</label>
+            <input type="number" name="longitude" placeholder="107.609810" value={form.longitude} onChange={handleChange}
+              step="any"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
           </div>
         </div>
-      )}
+
+      </div>
+
+      {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
+      <div className="flex gap-3 mt-6">
+        <button onClick={() => { setEditPlace(null); setError(""); }} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm">Batal</button>
+        <button onClick={handleEdit} disabled={loading} className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50">
+          {loading ? "Menyimpan..." : "Simpan"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Konfirmasi Delete */}
       {showDeleteConfirm && (
