@@ -61,6 +61,8 @@ model userProfile {
   isVerified   Boolean   @default(false)
   verifiedAt   DateTime?
   verifiedBy   Int?
+  latitude     Float?
+  longitude    Float?
   user         user      @relation(fields: [userId], references: [id], map: "UserProfile_userId_fkey")
   shipment     shipment[]
 
@@ -87,6 +89,8 @@ model place {
   managerName    String
   managerPhone   String
   operationalJam String
+  latitude       Float?
+  longitude      Float?
   admin          admin[]
   item           item[]
 }
@@ -99,9 +103,11 @@ model item {
   createdAt   DateTime     @default(now())
   userId      Int
   placeId     Int
-  imageURL    String
+  imageData   Bytes?
+  imageType    String?
   status      ItemStatus   @default(PendingApproval)
   quality     ItemQuality?
+  weight      Float?
   user        user         @relation(fields: [userId], references: [id], map: "Item_userId_fkey")
   place       place        @relation(fields: [placeId], references: [id], map: "Item_placeId_fkey")
   shipment    shipment[]
@@ -124,6 +130,8 @@ model shipment {
   status          ShipmentStatus @default(Pending)
   createdAt       DateTime       @default(now())
   deliveredDate   DateTime?
+  shipmentCost    Int?
+  distance        Float?
 
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
   user            user           @relation(fields: [userId], references: [id], map: "Shipment_userId_fkey")
@@ -148,7 +156,8 @@ model certificate {
 model news {
   id          Int      @id @default(autoincrement())
   title       String
-  image       String
+  imageData       Bytes
+  imageType       String
   createdAt   DateTime @default(now())
   adminId      Int
   admin        admin     @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")

@@ -179,10 +179,12 @@ export default function DashboardPage() {
       className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 flex flex-col"
     >
       <div className="w-full aspect-square overflow-hidden rounded-md">
-        <img
-          src={item.imageURL}
+        <Image
+          src={`/api/Barang/getImage/${item.id}`}
           alt={item.name}
           className="w-full h-full object-cover"
+          width={300}
+          height={300}
         />
       </div>
       <h3 className="font-semibold mt-2 text-gray-800 text-sm truncate">{item.name}</h3>
@@ -196,7 +198,7 @@ export default function DashboardPage() {
                 <div className="mt-2 flex justify-center">
 
                   <Link
-                   href={`/dashboard/konfirmasi?name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.place.name)}&img=${encodeURIComponent(item.imageURL)}`}
+                   href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(`/api/Barang/getImage/${item.id}`)}`}
                     className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
                   >
                     Ajukan

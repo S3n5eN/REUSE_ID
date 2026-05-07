@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   MapPin,
-  UserPen
+  UserPen,
+  Newspaper
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/public/Logo/Logo.svg";
@@ -70,6 +71,11 @@ const menuItems: MenuItem[] = [
     label: "Kelola Lokasi",
     icon: <MapPin size={18} />,
     to: "/admin/dashboard/kelolaLokasi",
+  }, {
+    id: "kelola-Berita",
+    label: "Kelola Berita",
+    icon: <Newspaper size={18} />,
+    to: "/admin/dashboard/kelolaBerita",
   }
 ];
 

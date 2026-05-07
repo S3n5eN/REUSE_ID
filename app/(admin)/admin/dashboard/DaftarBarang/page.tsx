@@ -12,7 +12,7 @@ type Item = {
   category: string;
   description: string;
   createdAt: string;
-  imageURL: string;
+  imageURL: Buffer | null;
   status: string;
   quality?: string;
   user?: { name: string };
@@ -138,10 +138,10 @@ function ItemCard({
 
       {/* Image */}
       <div className="relative w-[180px] min-h-[200px] overflow-hidden shrink-0">
-        {item.imageURL ? (
+        {item.imageType ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={item.imageURL}
+            src={`/api/Barang/getImage/${item.id}`}
             alt={item.name}
             className="w-full h-full object-cover"
           />
