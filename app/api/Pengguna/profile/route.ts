@@ -6,9 +6,8 @@ async function getProfile(req: NextRequest, decoded: { id: string }) {
   try {
     const userId = Number(decoded.id);
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.userProfile.findFirst({
       where: { id : userId},
-      include: {profile: true}
     });
 
     return NextResponse.json({
