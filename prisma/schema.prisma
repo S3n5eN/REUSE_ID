@@ -17,7 +17,7 @@ model user {
   certificate certificate[]
   item        item[]
   shipment    shipment[]
-  userprofile userprofile?
+  userProfile userProfile?
 }
 
 model admin {
@@ -88,7 +88,7 @@ model shipment {
   admin           admin?         @relation(fields: [adminId], references: [id], map: "Shipment_adminId_fkey")
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
   user            user           @relation(fields: [userId], references: [id], map: "Shipment_userId_fkey")
-  userProfile     userprofile?   @relation(fields: [userProfileId], references: [id], map: "Shipment_userProfileId_fkey")
+  userProfile     userProfile?   @relation(fields: [userProfileId], references: [id], map: "Shipment_userProfileId_fkey")
 
   @@unique([itemId, type])
   @@index([userId], map: "Shipment_userId_fkey_new")
@@ -117,7 +117,7 @@ model news {
   @@index([adminId], map: "News_adminId_fkey")
 }
 
-model userprofile {
+model userProfile {
   id          Int                @id @default(autoincrement())
   userId      Int                @unique(map: "userProfile_userId_key")
   namaLengkap String
@@ -125,7 +125,7 @@ model userprofile {
   pekerjaan   String?
   address     String
   usia        Int
-  gender      userprofile_gender
+  gender      userProfile_gender
   identityId  String
   isVerified  Boolean            @default(false)
   verifiedAt  DateTime?
@@ -160,7 +160,7 @@ enum ShipmentStatus {
   Delivered
 }
 
-enum userprofile_gender {
+enum userProfile_gender {
   Pria
   Wanita
 }
