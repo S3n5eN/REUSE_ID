@@ -33,5 +33,5 @@ async function isVerified(req: NextRequest, decoded: { id: string }) {
 }
 
 export async function GET(req: NextRequest) {
-  return (await protect(getProfile, ["user"]))(req);
+  return (await protect(isVerified, ["user"]))(req);
 }

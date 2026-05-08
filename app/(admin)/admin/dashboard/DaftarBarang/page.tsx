@@ -16,7 +16,7 @@ type Item = {
   status: string;
   quality?: string;
   user?: { name: string };
-  place?: { name: string };
+  place?: {id: number; name: string };
 };
 
 type QualityValue = "SangatBaik" | "Baik" | "CukupBaik" | "Layak" | "CukupLayak";
@@ -275,25 +275,34 @@ export default function DaftarBarangPendingPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "approved">("pending");
   const [pendingItems, setPendingItems] = useState<Item[]>([]);
   const [approvedItems, setApprovedItems] = useState<Item[]>([]);
+  const [places, setPlaces] = useState<{ id: number; name: string }[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const items = activeTab === "pending" ? pendingItems : approvedItems;
+  const items = (activeTab === "pending" ? pendingItems : approvedItems)
+    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true);
 
   const fetchItems = async () => {
   setFetchLoading(true);
   try {
-    const [pendingRes, approvedRes] = await Promise.all([
+    const [pendingRes, approvedRes,placesRes] = await Promise.all([
       fetch("/api/Barang/getItemPending"),
-      fetch("/api/Barang/getItemApproved"),
+      fetch("/api/Barang/getItemApprove"),
+      fetch("/api/LokasiPengumpulan/getPlace")
     ]);
 
     const pendingText = await pendingRes.text();
     const approvedText = await approvedRes.text();
+    const placesText = await placesRes.text();
 
     try { setPendingItems(JSON.parse(pendingText)); } catch { setPendingItems([]); }
     try { setApprovedItems(JSON.parse(approvedText)); } catch { setApprovedItems([]); }
+    try {
+      const placesList = JSON.parse(placesText);
+      setPlaces(Array.isArray(placesList) ? placesList : []);
+    } catch { setPlaces([]); }  
   } finally {
     setFetchLoading(false);
   }
@@ -301,11 +310,7 @@ export default function DaftarBarangPendingPage() {
   useEffect(() => {
     fetchItems();
   }, []);
-
-
-
   
-
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -416,6 +421,31 @@ export default function DaftarBarangPendingPage() {
       {approvedItems.length}
     </span>
   </button>
+</div>
+
+        {/* Filter Gudang */}
+<div className="col-span-2 flex items-center gap-3 mb-2">
+  <svg className="w-4 h-4 text-[#1D9E75] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+  </svg>
+  <select
+    value={selectedPlace ?? ""}
+    onChange={(e) => setSelectedPlace(e.target.value ? Number(e.target.value) : null)}
+    className="border border-[#9FE1CB] rounded-lg px-3 py-1.5 text-sm text-[#085041] bg-[#E1F5EE] focus:ring-2 focus:ring-[#1D9E75] outline-none"
+  >
+    <option value="">Semua Gudang</option>
+    {places.map((p) => (
+      <option key={p.id} value={p.id}>{p.name}</option>
+    ))}
+  </select>
+  {selectedPlace && (
+    <button
+      onClick={() => setSelectedPlace(null)}
+      className="text-xs text-[#0F6E56] hover:text-[#04342C] transition-colors"
+    >
+      Reset
+    </button>
+  )}
 </div>
 
         {/* ── Processing indicator ── */}
