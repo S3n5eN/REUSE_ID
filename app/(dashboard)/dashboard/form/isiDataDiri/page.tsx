@@ -1,7 +1,17 @@
 "use client";
+
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+// Dynamic import biar aman di Next.js
+const LocationPickerMap = dynamic(
+  () => import("@/components/locationPickerMap"),
+  {
+    ssr: false,
+  }
+);
 
 export default function FormDataDiri() {
   const router = useRouter();
@@ -9,16 +19,22 @@ export default function FormDataDiri() {
   const [form, setForm] = useState({
     namaLengkap: "",
     usia: "",
-    email: "",
     gender: "",
     nik: "",
     alamat: "",
     noHp: "",
-    pekerjaan: "",
   });
 
+  // state lokasi map
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  const [errorMsg, setErrorMsg] = useState("");
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   // format +62 jadi 0
@@ -29,8 +45,27 @@ export default function FormDataDiri() {
     return no;
   };
 
+  // handle pilih lokasi map
+  const handleLocationSelect = (lat, lng) => {
+    setSelectedLocation([lat, lng]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validasi usia minimal 17 tahun
+    if (Number(form.usia) < 17) {
+      setErrorMsg("Usia minimal 17 tahun");
+      return;
+    }
+
+    // Validasi lokasi
+    if (!selectedLocation) {
+      setErrorMsg("Lokasi wajib dipilih pada peta");
+      return;
+    }
+
+    setErrorMsg("");
 
     const payload = {
       dataDiri: {
@@ -40,7 +75,10 @@ export default function FormDataDiri() {
         alamat: form.alamat,
         gender: form.gender,
         NIK: form.nik,
-        pekerjaan: form.pekerjaan,
+
+        // sesuai API
+        latitude: selectedLocation[0],
+        longitude: selectedLocation[1],
       },
     };
 
@@ -56,13 +94,13 @@ export default function FormDataDiri() {
       const data = await res.json();
 
       if (res.ok) {
-        // langsung ke dashboard
         router.replace("/dashboard");
       } else {
         alert(data.message);
       }
     } catch (error) {
       console.error("Error:", error);
+      setErrorMsg("Terjadi kesalahan saat mengirim data");
     }
   };
 
@@ -70,14 +108,24 @@ export default function FormDataDiri() {
     "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition";
 
   return (
-    <div className="flex items-center justify-center bg-gray-50 p-10">
-      <div className="relative bg-white w-full p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-10">
 
+      <div className="relative bg-white w-full max-w-6xl p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        {/* Title */}
         <h2 className="text-center text-sm font-semibold tracking-widest uppercase text-gray-700 mb-8">
           Data Diri Penerima
         </h2>
 
+        {/* Error */}
+        {errorMsg && (
+          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 text-red-600 text-sm rounded-lg">
+            {errorMsg}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="relative z-10">
+
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
 
             {/* Nama Lengkap */}
@@ -85,6 +133,7 @@ export default function FormDataDiri() {
               <label className="block text-xs font-semibold text-gray-500 mb-1">
                 Nama Lengkap
               </label>
+
               <input
                 type="text"
                 name="namaLengkap"
@@ -102,6 +151,7 @@ export default function FormDataDiri() {
               placeholder="Usia"
               onChange={handleChange}
               className={inputClass}
+              min="17"
               required
             />
 
@@ -116,15 +166,6 @@ export default function FormDataDiri() {
               <option value="Pria">Pria</option>
               <option value="Wanita">Wanita</option>
             </select>
-
-            {/* Email */}
-            <input
-              type="email"
-              name="email"
-              placeholder="example@gmail.com"
-              onChange={handleChange}
-              className={inputClass}
-            />
 
             {/* NIK */}
             <input
@@ -146,31 +187,48 @@ export default function FormDataDiri() {
               required
             />
 
-            {/* Pekerjaan */}
-            <input
-              type="text"
-              name="pekerjaan"
-              placeholder="Pekerjaan (opsional)"
-              onChange={handleChange}
-              className={inputClass}
-            />
-
             {/* Alamat */}
             <div className="col-span-2">
-              <input
-                type="text"
+              <label className="block text-xs font-semibold text-gray-500 mb-1">
+                Alamat Lengkap
+              </label>
+
+              <textarea
                 name="alamat"
-                placeholder="Alamat lengkap"
+                placeholder="Masukkan alamat lengkap"
                 onChange={handleChange}
-                className={inputClass}
+                className={inputClass + " resize-none min-h-[110px]"}
                 required
               />
+            </div>
+
+            {/* Map Picker */}
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-gray-500 mb-3">
+                Pilih Lokasi Rumah
+              </label>
+
+              <div className="overflow-hidden rounded-xl border border-gray-200">
+                <LocationPickerMap
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={selectedLocation}
+                />
+              </div>
+
+              {selectedLocation && (
+                <p className="text-xs text-teal-600 mt-2">
+                  Latitude: {selectedLocation[0].toFixed(6)} | Longitude:{" "}
+                  {selectedLocation[1].toFixed(6)}
+                </p>
+              )}
             </div>
 
           </div>
 
           {/* Buttons */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t">
+
+            {/* Button Kembali */}
             <Link href="/dashboard">
               <button
                 type="button"
@@ -180,6 +238,7 @@ export default function FormDataDiri() {
               </button>
             </Link>
 
+            {/* Button Submit */}
             <button
               type="submit"
               className="px-8 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
@@ -187,6 +246,7 @@ export default function FormDataDiri() {
               Ambil
             </button>
           </div>
+
         </form>
       </div>
     </div>
