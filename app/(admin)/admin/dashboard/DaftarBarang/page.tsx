@@ -12,7 +12,7 @@ type Item = {
   category: string;
   description: string;
   createdAt: string;
-  imageURL: Buffer | null;
+  imageURL: string;
   status: string;
   quality?: string;
   user?: { name: string };
@@ -272,27 +272,39 @@ function Toast({ message, type }: { message: string; type: "success" | "error" }
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DaftarBarangPendingPage() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [activeTab, setActiveTab] = useState<"pending" | "approved">("pending");
+  const [pendingItems, setPendingItems] = useState<Item[]>([]);
+  const [approvedItems, setApprovedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  const items = activeTab === "pending" ? pendingItems : approvedItems;
+
+  const fetchItems = async () => {
+  setFetchLoading(true);
+  try {
+    const [pendingRes, approvedRes] = await Promise.all([
+      fetch("/api/Barang/getItemPending"),
+      fetch("/api/Barang/getItemApproved"),
+    ]);
+
+    const pendingText = await pendingRes.text();
+    const approvedText = await approvedRes.text();
+
+    try { setPendingItems(JSON.parse(pendingText)); } catch { setPendingItems([]); }
+    try { setApprovedItems(JSON.parse(approvedText)); } catch { setApprovedItems([]); }
+  } finally {
+    setFetchLoading(false);
+  }
+  };
   useEffect(() => {
-    setFetchLoading(true);
-    fetch("/api/Barang/getItemPending")
-      .then(async (res) => {
-        const text = await res.text();
-        try {
-          const parsed = JSON.parse(text);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch {
-          console.error("Response bukan JSON:", text);
-          return [];
-        }
-      })
-      .then((data) => setItems(data))
-      .finally(() => setFetchLoading(false));
+    fetchItems();
   }, []);
+
+
+
+  
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -311,7 +323,7 @@ export default function DaftarBarangPendingPage() {
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
       const data = JSON.parse(text);
       showToast(data.message ?? "Barang berhasil diverifikasi", "success");
-      setItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
+      setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
       showToast("Terjadi error di frontend", "error");
@@ -332,7 +344,7 @@ export default function DaftarBarangPendingPage() {
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
       const data = JSON.parse(text);
       showToast(data.message ?? "Barang ditolak", "success");
-      setItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
+      setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
       showToast("Terjadi error di frontend", "error");
@@ -375,6 +387,36 @@ export default function DaftarBarangPendingPage() {
             </span>
           )}
         </div>
+        {/* Tab */}
+<div className="col-span-2 flex gap-2 mb-4">
+  <button
+    onClick={() => setActiveTab("pending")}
+    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+      ${activeTab === "pending"
+        ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+        : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+      }`}
+  >
+    Pending
+    <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+      {pendingItems.length}
+    </span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab("approved")}
+    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+      ${activeTab === "approved"
+        ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+        : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+      }`}
+  >
+    Tersedia
+    <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+      {approvedItems.length}
+    </span>
+  </button>
+</div>
 
         {/* ── Processing indicator ── */}
         {loading && (
@@ -388,16 +430,47 @@ export default function DaftarBarangPendingPage() {
         {fetchLoading && [1, 2, 3].map((n) => <SkeletonCard key={n} />)}
 
         {/* ── Item list ── */}
-        {!fetchLoading && items.map((item, i) => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            index={i}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            loading={loading}
-          />
-        ))}
+{!fetchLoading && items.map((item, i) => (
+  activeTab === "pending" ? (
+    <ItemCard
+      key={item.id}
+      item={item}
+      index={i}
+      onApprove={handleApprove}
+      onReject={handleReject}
+      loading={loading}
+    />
+  ) : (
+    <div
+      key={item.id}
+      className="relative grid grid-cols-[180px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)] transition-all"
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
+      <div className="relative w-[180px] min-h-[160px] overflow-hidden shrink-0">
+        <img
+          src={`/api/Barang/getImage/${item.id}`}
+          alt={item.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex flex-col gap-2 p-[14px_16px_12px]">
+        <div className="flex items-start justify-between gap-2.5">
+          <h2 className="text-[15px] font-bold text-[#04342C] leading-tight">{item.name}</h2>
+          <span className="font-mono text-[9.5px] font-medium px-2.5 py-1 rounded-full bg-[#E1F5EE] text-[#0F6E56] border border-[#9FE1CB] whitespace-nowrap shrink-0">
+            {item.status}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-y-1 gap-x-4">
+          <MetaField label="Kategori" value={item.category} />
+          <MetaField label="Donatur" value={item.user?.name ?? "—"} />
+          <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
+          <MetaField label="Kualitas" value={item.quality ?? "—"} />
+        </div>
+        <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">{item.description}</p>
+      </div>
+    </div>
+  )
+))}
 
         {/* ── Empty state ── */}
         {!fetchLoading && items.length === 0 && (

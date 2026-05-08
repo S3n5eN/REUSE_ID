@@ -51,7 +51,7 @@ export async function main() {
   });
 
   // ==== UserProfile Penerima (belum verified) ====
-  const profilePenerima = await prisma.userProfile.upsert({
+  const profilePenerima = await prisma.userprofile.upsert({
     where: { userId: penerima.id },
     update: {},
     create: {

@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(
+  () => import("@/components/MapView"),
+  { ssr: false }
+);
 
 type Place = {
   id: number;
@@ -307,6 +313,14 @@ export default function DaftarLokasiPage() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Jam Operasional</p>
               <p className="text-sm text-gray-700 mt-1">{selectedPlace.operationalJam}</p>
             </div>
+            <div>
+             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Lokasi</p>
+             <div className="mt-2 rounded-xl overflow-hidden" style={{ height: "200px" }}>
+              {typeof window !== "undefined" && (
+                 <MapView lat={selectedPlace.latitude} lng={selectedPlace.longitude} />
+              )}
+            </div>
+          </div>
           </div>
         </div>
 
