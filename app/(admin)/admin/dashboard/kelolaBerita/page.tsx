@@ -239,7 +239,7 @@ export default function KelolaBeritaPage() {
                   <img
                     src={`/api/Admin/kelolaBerita/${berita.id}`}
                     alt={berita.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div className="p-4">
