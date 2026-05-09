@@ -159,12 +159,15 @@ export default function DashboardPage() {
   });
 
   const getBerita = async () => {
+    if(sessionStorage.getItem("beritaSudahMuncul")) return;
+
   try {
     const res = await fetch("/api/Pengguna/getBerita");
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
       setBeritaList(data);
       setShowBerita(true);
+      sessionStorage.setItem("beritaSudahMuncul","true");
     }
   } catch (err) {
     console.error("Gagal fetch berita:", err);
