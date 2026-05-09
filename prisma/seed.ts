@@ -13,6 +13,8 @@ export async function main() {
       managerName: "Budi Santoso",
       managerPhone: "08123456789",
       operationalJam: "08:00 - 17:00",
+      latitude: -6.9175,
+      longitude: 107.6191,
     },
   });
 
@@ -51,7 +53,7 @@ export async function main() {
   });
 
   // ==== UserProfile Penerima (belum verified) ====
-  const profilePenerima = await prisma.userprofile.upsert({
+  const profilePenerima = await prisma.userProfile.upsert({
     where: { userId: penerima.id },
     update: {},
     create: {

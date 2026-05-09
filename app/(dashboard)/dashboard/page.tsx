@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Logo from "@/public/Logo/Logo.svg";
+import ReuseBot from "@/components/Chatbot/ReuseBot";
 
 type Item = {
   id: number;
@@ -209,6 +210,9 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* CHATBOT */}
+      <ReuseBot />
     </div>
   );
 }
