@@ -106,13 +106,14 @@ model certificate {
 }
 
 model news {
-  id        Int      @id @default(autoincrement())
-  title     String
-  imageData Bytes
-  imageType String
-  createdAt DateTime @default(now())
-  adminId   Int
-  admin     admin    @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
+  id          Int      @id @default(autoincrement())
+  title       String
+  imageData   Bytes
+  imageType   String
+  createdAt   DateTime @default(now())
+  isPublished Boolean  @default(false)
+  adminId     Int
+  admin       admin    @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
 
   @@index([adminId], map: "News_adminId_fkey")
 }

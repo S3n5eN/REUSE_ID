@@ -28,6 +28,9 @@ export default function DashboardPage() {
   const [fetchingItems, setFetchingItems] = useState(true);
   const [selectedKategori, setSelectedKategori] = useState("");
   const [search, setSearch] = useState("");
+  const [beritaList, setBeritaList] = useState<{ id: number; title: string }[]>([]);
+  const [beritaIndex, setBeritaIndex] = useState(0);
+  const [showBerita, setShowBerita] = useState(false);
 
   // STATUS VERIFIKASI USER
   // ubah jadi true kalau user sudah verified
@@ -155,9 +158,23 @@ export default function DashboardPage() {
     return matchKategori && matchSearch && matchStatus;
   });
 
+  const getBerita = async () => {
+  try {
+    const res = await fetch("/api/Pengguna/getBerita");
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      setBeritaList(data);
+      setShowBerita(true);
+    }
+  } catch (err) {
+    console.error("Gagal fetch berita:", err);
+  }
+};
+
   useEffect(() => {
     getPenggunaName();
     getItems();
+    getBerita();
   }, []);
 
   return (
@@ -379,6 +396,75 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+
+      {/* berita */}
+      {/* Popup Berita */}
+{showBerita && beritaList.length > 0 && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    onClick={() => {
+      if (beritaIndex < beritaList.length - 1) {
+        setBeritaIndex(beritaIndex + 1);
+      } else {
+        setShowBerita(false);
+      }
+    }}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Gambar */}
+      <div className="relative w-full h-64">
+        <img
+          src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
+          alt={beritaList[beritaIndex].title}
+          className="w-full h-full object-cover"
+        />
+        {/* Counter */}
+        <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+          {beritaIndex + 1} / {beritaList.length}
+        </div>
+      </div>
+
+      {/* Konten */}
+      <div className="p-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">{beritaList[beritaIndex].title}</h2>
+
+        <div className="flex gap-3">
+          {/* Tombol tutup/skip */}
+          <button
+            onClick={() => setShowBerita(false)}
+            className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm"
+          >
+            Tutup
+          </button>
+
+          {/* Tombol next atau selesai */}
+          {beritaIndex < beritaList.length - 1 ? (
+            <button
+              onClick={() => setBeritaIndex(beritaIndex + 1)}
+              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold flex items-center justify-center gap-2"
+            >
+              Berikutnya
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowBerita(false)}
+              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold"
+            >
+              Selesai
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* CHATBOT */}
       <ReuseBot />

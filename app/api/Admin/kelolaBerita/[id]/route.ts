@@ -1,28 +1,59 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { protect } from "@/lib/protect";
+import { NextRequest, NextResponse } from "next/server";
 
+async function publishBerita(req: NextRequest, decoded: { id: string }, id: string) {
+  try {
+    const berita = await prisma.news.findUnique({ where: { id: Number(id) } });
+    if (!berita) return NextResponse.json({ message: "Berita tidak ditemukan" }, { status: 404 });
+
+    await prisma.news.update({
+      where: { id: Number(id) },
+      data: { isPublished: true },
+    });
+
+    return NextResponse.json({ message: "Berita berhasil dipublikasi" });
+  } catch {
+    return NextResponse.json({ message: "Gagal mempublikasi berita" }, { status: 500 });
+  }
+}
+
+async function deleteBerita(req: NextRequest, decoded: { id: string }, id: string) {
+  try {
+    const berita = await prisma.news.findUnique({ where: { id: Number(id) } });
+    if (!berita) return NextResponse.json({ message: "Berita tidak ditemukan" }, { status: 404 });
+
+    await prisma.news.delete({ where: { id: Number(id) } });
+
+    return NextResponse.json({ message: "Berita berhasil dihapus" });
+  } catch {
+    return NextResponse.json({ message: "Gagal menghapus berita" }, { status: 500 });
+  }
+}
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    try {
-        const resolvedParams = await params;
-        const imageId = resolvedParams.id;
+  try {
+    const { id } = await params;
+    const berita = await prisma.news.findUnique({ where: { id: Number(id) } });
 
-        const imageBerita = await prisma.news.findUnique({
-            where: {
-                id: Number(imageId),
-            }
-        })
+    if (!berita) return NextResponse.json({ message: "Berita tidak ditemukan" }, { status: 404 });
 
-        if (!imageBerita) {
-            return NextResponse.json({ message: "Berita tidak ditemukan" }, { status: 404 });
-        }
+    return new NextResponse(berita.imageData, {
+      headers: {
+        "Content-Type": berita.imageType,
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  } catch {
+    return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
+  }
+}
 
-        return new NextResponse(imageBerita, {
-            headers: {
-                "Content-Type": imageBerita.imageType,
-                "Cache-Control": "public, max-age=31536000, immutable",
-            }
-        });
-    } catch {
-        return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
-    }
-} 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return (await protect((r, d) => publishBerita(r, d, id), ["admin"]))(req);
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return (await protect((r, d) => deleteBerita(r, d, id), ["admin"]))(req);
+}
