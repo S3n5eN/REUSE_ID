@@ -277,12 +277,14 @@ export default function DaftarBarangPendingPage() {
   const [approvedItems, setApprovedItems] = useState<Item[]>([]);
   const [places, setPlaces] = useState<{ id: number; name: string }[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const items = (activeTab === "pending" ? pendingItems : approvedItems)
-    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true);
+    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
+    .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);  
 
   const fetchItems = async () => {
   setFetchLoading(true);
@@ -392,62 +394,61 @@ export default function DaftarBarangPendingPage() {
             </span>
           )}
         </div>
-        {/* Tab */}
-<div className="col-span-2 flex gap-2 mb-4">
-  <button
-    onClick={() => setActiveTab("pending")}
-    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
-      ${activeTab === "pending"
-        ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-        : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-      }`}
-  >
-    Pending
-    <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
-      {pendingItems.length}
-    </span>
-  </button>
-
-  <button
-    onClick={() => setActiveTab("approved")}
-    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
-      ${activeTab === "approved"
-        ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-        : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-      }`}
-  >
-    Tersedia
-    <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
-      {approvedItems.length}
-    </span>
-  </button>
-</div>
-
-        {/* Filter Gudang */}
-<div className="col-span-2 flex items-center gap-3 mb-2">
-  <svg className="w-4 h-4 text-[#1D9E75] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-  </svg>
-  <select
-    value={selectedPlace ?? ""}
-    onChange={(e) => setSelectedPlace(e.target.value ? Number(e.target.value) : null)}
-    className="border border-[#9FE1CB] rounded-lg px-3 py-1.5 text-sm text-[#085041] bg-[#E1F5EE] focus:ring-2 focus:ring-[#1D9E75] outline-none"
-  >
-    <option value="">Semua Gudang</option>
-    {places.map((p) => (
-      <option key={p.id} value={p.id}>{p.name}</option>
-    ))}
-  </select>
-  {selectedPlace && (
+{/* Tab + Search */}
+<div className="col-span-2 flex items-center justify-between gap-2 mb-4">
+  <div className="flex gap-2">
     <button
-      onClick={() => setSelectedPlace(null)}
-      className="text-xs text-[#0F6E56] hover:text-[#04342C] transition-colors"
+      onClick={() => setActiveTab("pending")}
+      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+        ${activeTab === "pending"
+          ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+          : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+        }`}
     >
-      Reset
+      Pending
+      <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+        {pendingItems.length}
+      </span>
     </button>
-  )}
-</div>
 
+    <button
+      onClick={() => setActiveTab("approved")}
+      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+        ${activeTab === "approved"
+          ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+          : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+        }`}
+    >
+      Tersedia
+      <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+        {approvedItems.length}
+      </span>
+    </button>
+  </div>
+
+  {/* Search — kanan */}
+  <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 border border-[#9FE1CB] rounded-lg px-3 py-1.5 bg-[#E1F5EE]">
+      <svg className="w-3.5 h-3.5 text-[#1D9E75]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+      </svg>
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Cari nama barang..."
+        className="text-sm text-[#085041] bg-transparent outline-none w-48"
+      />
+    </div>
+    {search && (
+      <button
+        onClick={() => setSearch("")}
+        className="text-xs text-[#0F6E56] hover:text-[#04342C] transition-colors"
+      >
+        Reset
+      </button>
+    )}
+  </div>
+</div>
         {/* ── Processing indicator ── */}
         {loading && (
           <div className="flex items-center gap-2 text-[12px] text-[#0F6E56] font-semibold mb-5">
