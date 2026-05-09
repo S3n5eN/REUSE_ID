@@ -35,14 +35,10 @@ interface UserProfile {
   isVerified: boolean;
 }
 
-interface PendingItem {
-  shipmentId: number;
-  userProfile: UserProfile;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getInitials(name: string): string {
+  if (!name) return "?";
   return name
     .split(" ")
     .map((w) => w[0])
@@ -52,6 +48,8 @@ function getInitials(name: string): string {
 }
 
 function maskId(id: string): string {
+  if (!id) return "-";
+  if (id.length <= 8) return id; // Jaga-jaga jika ID terlalu pendek
   return id.slice(0, 4) + "••••••••" + id.slice(-4);
 }
 
@@ -93,24 +91,21 @@ function Toast({ message, type, onClose }: ToastProps) {
 // ─── User Card Component ──────────────────────────────────────────────────────
 
 interface UserCardProps {
-  item: PendingItem;
+  user: UserProfile;
   index: number;
-  // Perubahan 1: Tambahkan userId di parameter onAction
-  onAction: (shipmentId: number, userId: number, action: "Approve" | "Reject") => Promise<void>;
+  onAction: (userId: number, action: "Approve" | "Reject") => Promise<void>;
 }
 
-function UserCard({ item, index, onAction }: UserCardProps) {
+function UserCard({ user, index, onAction }: UserCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showId, setShowId] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [actionType, setActionType] = useState<"Approve" | "Reject" | null>(null);
-  const p = item.userProfile;
 
   const handleAction = (action: "Approve" | "Reject") => {
     setActionType(action);
     startTransition(async () => {
-      // Perubahan 2: Kirim item.userProfile.id ke function parent
-      await onAction(item.shipmentId, item.userProfile.id, action);
+      await onAction(user.id, action);
       setActionType(null);
     });
   };
@@ -130,16 +125,16 @@ function UserCard({ item, index, onAction }: UserCardProps) {
       >
         {/* Avatar */}
         <div className="w-11 h-11 min-w-[44px] rounded-full bg-teal-600 flex items-center justify-center text-white text-sm font-semibold tracking-wide shadow-inner">
-          {getInitials(p.namaLengkap)}
+          {getInitials(user.namaLengkap)}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 truncate">
-            {p.namaLengkap}
+            {user.namaLengkap}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
-            Shipment #{item.shipmentId} · {p.gender} · {p.usia} tahun
+            ID: #{user.id} · {user.gender} · {user.usia} tahun
           </p>
         </div>
 
@@ -179,7 +174,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-0.5">
                   Telepon
                 </p>
-                <p className="text-sm font-medium text-slate-700">{p.phone}</p>
+                <p className="text-sm font-medium text-slate-700">{user.phone}</p>
               </div>
             </div>
 
@@ -193,7 +188,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
                   Pekerjaan
                 </p>
                 <p className="text-sm font-medium text-slate-700">
-                  {p.pekerjaan || "—"}
+                  {user.pekerjaan || "—"}
                 </p>
               </div>
             </div>
@@ -208,7 +203,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
                   Usia
                 </p>
                 <p className="text-sm font-medium text-slate-700">
-                  {p.usia} tahun · {p.gender}
+                  {user.usia} tahun · {user.gender}
                 </p>
               </div>
             </div>
@@ -223,7 +218,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
                   Alamat
                 </p>
                 <p className="text-sm font-medium text-slate-700 leading-snug">
-                  {p.address}
+                  {user.address}
                 </p>
               </div>
             </div>
@@ -243,7 +238,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
                       showId ? "" : "blur-sm select-none"
                     }`}
                   >
-                    {showId ? p.identityId : maskId(p.identityId)}
+                    {showId ? user.identityId : maskId(user.identityId)}
                   </p>
                   <button
                     onClick={() => setShowId((v) => !v)}
@@ -299,7 +294,7 @@ function UserCard({ item, index, onAction }: UserCardProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function VerifikasiPenerimaPage() {
-  const [items, setItems] = useState<PendingItem[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{
@@ -313,21 +308,10 @@ export default function VerifikasiPenerimaPage() {
         setIsLoading(true);
         const res = await fetch("/api/Pengguna/getUnverifiedUser");
         if (!res.ok) throw new Error("Gagal mengambil data pengguna");
-        const { data } = await res.json();
-        const formattedData: PendingItem[] = [];
-
-        data.forEach((userProfile: any) => {
-          if (userProfile.shipment && userProfile.shipment.length > 0) {
-            userProfile.shipment.forEach((shipment: any) => {
-              formattedData.push({
-                shipmentId: shipment.id,
-                userProfile: userProfile
-              });
-            });
-          }
-        });
         
-        setItems(formattedData);
+        const json = await res.json();
+        // Langsung masukkan json.data karena sudah berbentuk array UserProfile
+        setUsers(json.data || []);
       } catch (error) {
         console.error("Error fetching unverified users:", error);
         setToast({ message: "Gagal mengambil data pengguna", type: "error" });
@@ -339,13 +323,11 @@ export default function VerifikasiPenerimaPage() {
     fetchDataUnverifidUsers();
   }, []);
 
-  const filtered = items.filter((item) =>
-    item.userProfile.namaLengkap.toLowerCase().includes(search.toLowerCase())
+  const filtered = users.filter((u) =>
+    u.namaLengkap?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Perubahan 3: Menerima userId dari parameter
   const handleAction = async (
-    shipmentId: number,
     userId: number,
     action: "Approve" | "Reject"
   ) => {
@@ -353,15 +335,15 @@ export default function VerifikasiPenerimaPage() {
       const res = await fetch("/api/Admin/verifikasiDataPenerima", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action }), // Kirim userId
+        // Kirim userId (bukan shipmentId lagi)
+        body: JSON.stringify({ userId, action }),
       });
 
       if (!res.ok) throw new Error("Gagal memverifikasi data penerima");
       
-      // Hapus data dari view. Disini saya set filter berdasarkan userId, 
-      // jadi kalau 1 user punya banyak shipment, semuanya hilang dari list pending karena user sudah diverifikasi.
-      setItems((prev) => prev.filter((item) => item.userProfile.id !== userId));
-      setToast({ message: `Data berhasil di-${action.toLowerCase()}`, type: "success" });
+      // Hapus data pengguna yang berhasil di-approve/reject dari state
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      setToast({ message: `Pengguna berhasil di-${action === "Approve" ? "verifikasi" : "tolak"}`, type: "success" });
     } catch {
       setToast({ message: "Terjadi kesalahan, coba lagi", type: "error" });
     }
@@ -382,8 +364,7 @@ export default function VerifikasiPenerimaPage() {
                 Verifikasi Penerima
               </h1>
               <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">
-                Tinjau dan verifikasi identitas pengguna sebelum pengiriman
-                diproses
+                Tinjau dan verifikasi identitas pengguna sebelum mereka dapat menerima donasi.
               </p>
             </div>
 
@@ -391,7 +372,7 @@ export default function VerifikasiPenerimaPage() {
             <div className="flex items-center gap-2 bg-white border border-amber-200 rounded-2xl px-4 py-2.5 shadow-sm">
               <Users size={15} className="text-amber-500" />
               <span className="text-sm font-semibold text-slate-700">
-                {items.length}
+                {users.length}
               </span>
               <span className="text-xs text-slate-400">menunggu</span>
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
@@ -426,12 +407,16 @@ export default function VerifikasiPenerimaPage() {
         </div>
 
         {/* ── User List ────────────────────────────────────────────────────── */}
-        {filtered.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {filtered.map((item, i) => (
+            {filtered.map((user, i) => (
               <UserCard
-                key={item.shipmentId}
-                item={item}
+                key={user.id}
+                user={user}
                 index={i}
                 onAction={handleAction}
               />

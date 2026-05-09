@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { prisma } from "@/lib/prisma";
 
 interface JwtPayload {
     id: number;
@@ -19,7 +20,12 @@ export async function GET(req: NextRequest) {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET);
         const { payload } = await jwtVerify(token, secret) as { payload: JwtPayload };
 
-        return NextResponse.json({ id: payload.id, name: payload.name });
+        const isVerified = await prisma.userProfile.findFirst({
+        where: { userId: Number(payload.id)},
+        select: { isVerified: true },
+    })
+
+        return NextResponse.json({ id: payload.id, name: payload.name, isVerified });
     } catch  {
         return NextResponse.json({ message: "Token tidak valid" }, { status: 401 });
     }

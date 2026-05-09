@@ -12,11 +12,18 @@ const Poin = {
 
 async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
   try {
-    const { shipmentId } = await req.json();
+    const { shipmentId, action } = await req.json();
 
     if (!shipmentId) {
       return NextResponse.json(
         { message: "Shipment ID dibutuhkan" },
+        { status: 400 },
+      );
+    }
+
+    if (!action) {
+      return NextResponse.json(
+        { message: "Action dibutuhkan" },
         { status: 400 },
       );
     }
@@ -51,21 +58,33 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
     const tambahPoin = Poin[isShipmenttExist.item.quality];
 
     // ==== update shipment, dan poin user secara bersamaan ====
-    await prisma.$transaction([
-      prisma.shipment.update({
-        where: { id: Number(shipmentId) },
-        data: {
-          status: "Delivered",
-          deliveredDate: new Date(),
-          adminId: Number(decoded.id),
-        },
-      }),
-      // ==== Tambah poin user berdasarkan kualitas yang sudah ditentukan diatas (tambahPoin) ====
-      prisma.user.update({
-        where: { id: Number(isShipmenttExist.item.userId) },
-        data: { poin: { increment: tambahPoin } },
-      }),
-    ]);
+    if (action === "approve") {
+      await prisma.$transaction([
+        prisma.shipment.update({
+          where: { id: Number(shipmentId) },
+          data: {
+            status: "Delivered",
+            deliveredDate: new Date(),
+            adminId: Number(decoded.id),
+          },
+        }),
+        // ==== Tambah poin user berdasarkan kualitas yang sudah ditentukan diatas (tambahPoin) ====
+        prisma.user.update({
+          where: { id: Number(isShipmenttExist.item.userId) },
+          data: { poin: { increment: tambahPoin } },
+        }),
+      ]);
+    } else if (action === "reject") {
+      await prisma.$transaction([
+        prisma.shipment.delete({
+          where: { id: Number(shipmentId)}
+        }),
+        prisma.item.update({
+          where: { id: Number(isShipmenttExist.itemId)},
+          data: { status: "Tersedia"}
+        })
+      ])
+    }
     return NextResponse.json(
       {
         message: "Barang berhasil dikonfirmasi diterima",
