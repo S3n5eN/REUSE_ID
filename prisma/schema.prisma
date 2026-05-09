@@ -157,7 +157,6 @@ enum ItemQuality {
 enum ShipmentStatus {
   Pending
   Approved
-  Rejected
   Delivered
 }
 

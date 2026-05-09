@@ -24,15 +24,24 @@ export default function KonfirmasiPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          itemId: Number(itemId), // ✅ penting
+          itemId: Number(itemId), 
         }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ lanjut ke isi data diri
-        router.push("/dashboard/form/isiDataDiri");
+        // ✅ Tangkap shipmentId dari response backend
+        // (Asumsi backend kamu merespons dengan: { message: "...", shipmentId: 123 })
+        const newShipmentId = data.shipmentId || data.data?.id; 
+
+        if (!newShipmentId) {
+          alert("Gagal mendapatkan ID pengiriman dari server. Pastikan backend mengembalikan shipmentId.");
+          return;
+        }
+
+        // ✅ Lanjut ke form pengiriman dengan membawa itemId DAN shipmentId di URL
+        router.push(`/dashboard/form/pilihPengiriman?itemId=${itemId}&shipmentId=${newShipmentId}`);
       } else {
         alert(data.message);
       }
@@ -116,4 +125,4 @@ export default function KonfirmasiPage() {
       </div>
     </div>
   );
-}	
+}

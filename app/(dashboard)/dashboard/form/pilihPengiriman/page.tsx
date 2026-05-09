@@ -1,7 +1,16 @@
 "use client";
+
 import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function FormPilihPengiriman() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // ✅ Tangkap variabel dari URL yang dikirim oleh halaman Konfirmasi
+  const shipmentId = searchParams.get("shipmentId");
+  const itemId = searchParams.get("itemId");
+
   const [form, setForm] = useState({
     jenisPengiriman: "",
     alamat: "",
@@ -16,6 +25,13 @@ export default function FormPilihPengiriman() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validasi jika user masuk ke halaman ini tanpa membawa ID yang benar
+    if (!shipmentId) {
+      setErrorMsg("ID Pengiriman tidak ditemukan. Silakan ulangi proses dari halaman sebelumnya.");
+      return;
+    }
+
     setLoading(true);
     setSuccessMsg("");
     setErrorMsg("");
@@ -30,6 +46,9 @@ export default function FormPilihPengiriman() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          // ✅ Masukkan shipmentId ke payload yang dikirim ke backend
+          shipmentId: Number(shipmentId),
+          itemId: Number(itemId), 
           jenisPengiriman: form.jenisPengiriman,
           alamat: form.jenisPengiriman === "delivery" ? form.alamat : undefined,
         }),
@@ -40,11 +59,14 @@ export default function FormPilihPengiriman() {
       if (res.ok) {
         setSuccessMsg("Jenis pengiriman berhasil dipilih!");
         setForm({ jenisPengiriman: "", alamat: "" });
+        
+        // Opsional: Redirect ke halaman dashboard atau history jika sudah berhasil
+        // setTimeout(() => router.push("/dashboard"), 1500);
       } else {
-        setErrorMsg(data.message || "Terjadi kesalahan.");
+        setErrorMsg(data.message || "Terjadi kesalahan pada server.");
       }
     } catch (err) {
-      setErrorMsg("Gagal terhubung ke server.");
+      setErrorMsg("Gagal terhubung ke server. Periksa koneksi internetmu.");
     } finally {
       setLoading(false);
     }
@@ -94,15 +116,15 @@ export default function FormPilihPengiriman() {
           {/* Alamat — hanya muncul jika delivery */}
           {form.jenisPengiriman === "delivery" && (
             <div className="flex items-start gap-4">
-              <label className={labelClass}>Alamat</label>
+              <label className={labelClass}>Alamat Lengkap</label>
               <span className="pt-2 text-gray-500">:</span>
               <input
                 type="text"
                 name="alamat"
-                placeholder="Masukkan alamat lengkap"
+                placeholder="Masukkan alamat lengkap tujuan pengiriman"
                 value={form.alamat}
                 onChange={handleChange}
-                required
+                required={form.jenisPengiriman === "delivery"}
                 className={inputClass}
               />
             </div>
@@ -112,13 +134,14 @@ export default function FormPilihPengiriman() {
           <div className="flex justify-between items-center pt-6 mt-4 border-t border-gray-100">
             <button
               type="button"
+              onClick={() => router.back()}
               className="px-12 py-3 bg-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-300 transition tracking-widest uppercase"
             >
               Kembali
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !shipmentId}
               className="px-12 py-3 bg-teal-500 text-white rounded-xl text-sm font-bold hover:bg-teal-600 transition tracking-widest uppercase disabled:opacity-60"
             >
               {loading ? "Menyimpan..." : "Simpan"}

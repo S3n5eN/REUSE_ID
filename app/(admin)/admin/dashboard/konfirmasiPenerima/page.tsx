@@ -49,13 +49,13 @@ export default function KonfirmasiPenerimaPage() {
   }, []);
 
   // ── aksi-reaksi dari kode asli, tidak diubah ──
-  const handleConfirm = async (shipmentId: number) => {
+  const handleConfirm = async (shipmentId: number, action: string) => {
     try {
       setLoading(true);
       const res = await fetch("/api/Admin/konfirmasiTerima", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId }),
+        body: JSON.stringify({ shipmentId, action }),
       });
 
       const data = await res.json();
@@ -76,13 +76,13 @@ export default function KonfirmasiPenerimaPage() {
     }
   };
 
-  const handleReject = async (shipmentId: number) => {
+  const handleReject = async (shipmentId: number, action: string) => {
     try {
       setLoading(true);
-      const res = await fetch("/api/rejectShipment", {
+      const res = await fetch("/api/Admin/konfirmasiTerima", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId }),
+        body: JSON.stringify({ shipmentId, action }),
       });
 
       const data = await res.json();
@@ -354,7 +354,7 @@ export default function KonfirmasiPenerimaPage() {
                         <div className="flex gap-3">
                           <button
                             disabled={loading}
-                            onClick={() => handleReject(s.id)}
+                            onClick={() => handleReject(s.id, "reject")}
                             className="flex items-center gap-1.5 px-4 py-2 border border-red-400 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition disabled:opacity-50"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -364,7 +364,7 @@ export default function KonfirmasiPenerimaPage() {
                           </button>
                           <button
                             disabled={loading}
-                            onClick={() => handleConfirm(s.id)}
+                            onClick={() => handleConfirm(s.id, "approve")}
                             className="flex items-center gap-1.5 px-5 py-2 bg-teal-700 text-white rounded-lg text-sm font-medium hover:bg-teal-800 transition disabled:opacity-50"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

@@ -26,10 +26,13 @@ export default function RegisterPage() {
     // Validasi nama
     if (!username.trim()) {
       setNameError("Nama tidak boleh kosong");
+      return;
     } else if (!/^[A-Za-z\s]+$/.test(username)) {
       setNameError("Nama hanya boleh huruf alfabet (A-Z)");
+      return;
     } else if (username.length < 4) {
       setNameError("Nama minimal terdiri dari 4 karakter");
+      return;
     } else {
       setNameError("");
     }
