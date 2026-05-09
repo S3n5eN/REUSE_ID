@@ -412,7 +412,7 @@ export default function DashboardPage() {
     }}
   >
     <div
-      className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden"
+      className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Gambar */}
@@ -420,7 +420,7 @@ export default function DashboardPage() {
         <img
           src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
           alt={beritaList[beritaIndex].title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
         {/* Counter */}
         <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
