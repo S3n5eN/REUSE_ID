@@ -17,7 +17,7 @@ type Item = {
   status: string;
   placeId: number;
   place: {
-    name:string;
+    name: string;
   };
 };
 
@@ -29,13 +29,22 @@ export default function DashboardPage() {
   const [selectedKategori, setSelectedKategori] = useState("");
   const [search, setSearch] = useState("");
 
+  // STATUS VERIFIKASI USER
+  // ubah jadi true kalau user sudah verified
+  const [isVerified, setIsVerified] = useState(false);
+
   const router = useRouter();
 
   const getPenggunaName = async () => {
     try {
       const res = await fetch("/api/Pengguna");
       const data = await res.json();
+
       setPenggunaName(data.name);
+
+      // AMBIL STATUS VERIFIED DARI API
+      // pastikan backend punya field isVerified
+      setIsVerified(data.isVerified ?? false);
     } catch (error) {
       console.error("Error fetching pengguna name:", error);
     }
@@ -43,6 +52,7 @@ export default function DashboardPage() {
 
   const getItems = async () => {
     setFetchingItems(true);
+
     try {
       const res = await fetch("/api/Barang/getItem");
       const data = await res.json();
@@ -56,18 +66,29 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("/api/logout", { method: "POST" });
+      const res = await fetch("/api/logout", {
+        method: "POST",
+      });
+
       if (res.ok) router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
+
   const filteredItems = items.filter((item) => {
-  const matchKategori = selectedKategori ? item.category === selectedKategori : true;
-  const matchSearch = search ? item.name.toLowerCase().includes(search.toLowerCase()) : true;
-  const matchStatus = item.status === "Tersedia";
-  return matchKategori && matchSearch && matchStatus;
-});
+    const matchKategori = selectedKategori
+      ? item.category === selectedKategori
+      : true;
+
+    const matchSearch = search
+      ? item.name.toLowerCase().includes(search.toLowerCase())
+      : true;
+
+    const matchStatus = item.status === "Tersedia";
+
+    return matchKategori && matchSearch && matchStatus;
+  });
 
   useEffect(() => {
     getPenggunaName();
@@ -79,43 +100,80 @@ export default function DashboardPage() {
       {/* NAVBAR */}
       <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-[#fafafa] shadow-sm">
         <div className="flex items-center justify-center relative h-10 w-32">
-          <Image src={Logo} alt="Logo ReuseID" className="object-contain" />
+          <Image
+            src={Logo}
+            alt="Logo ReuseID"
+            className="object-contain"
+          />
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700 items-center">
-          <a href="#" className="hover:text-teal-600 transition-colors">Cara Donasi</a>
-          <a href="#" className="hover:text-teal-600 transition-colors">Penyaluran</a>
-          <a href="#" className="hover:text-teal-600 transition-colors">Tentang Kami</a>
+          <a
+            href="#"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Cara Donasi
+          </a>
+
+          <a
+            href="#"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Penyaluran
+          </a>
+
+          <a
+            href="#"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Tentang Kami
+          </a>
+
           <button className="bg-teal-600 text-white px-3 py-1 rounded hover:bg-teal-700 transition-colors">
-            <Link href="dashboard/form/tambahBarang">Donasi</Link>
+            <Link href="dashboard/form/tambahBarang">
+              Donasi
+            </Link>
           </button>
         </nav>
 
-       <div className="flex items-center gap-3">
-  <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
-    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
-    </svg>
-    <input
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      placeholder="Search here..."
-      className="text-sm focus:outline-none bg-transparent w-36"
-    />
-  </div>
-  <div
-    onClick={() => setIsOpen(!isOpen)}
-    className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
-  >
-    {penggunaName.charAt(0)}
-    {isOpen && (
-      <ProfileDropdown
-        namapengguna={penggunaName}
-        onLogout={handleLogout}
-      />
-    )}
-  </div>
-</div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
+            <svg
+              className="w-3.5 h-3.5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"
+              />
+            </svg>
+
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search here..."
+              className="text-sm focus:outline-none bg-transparent w-36"
+            />
+          </div>
+
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
+          >
+            {penggunaName.charAt(0)}
+
+            {isOpen && (
+              <ProfileDropdown
+                namapengguna={penggunaName}
+                onLogout={handleLogout}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* HERO */}
@@ -126,6 +184,7 @@ export default function DashboardPage() {
             alt="Donasi"
             className="w-full h-full object-cover"
           />
+
           <img
             src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800"
             alt="Komunitas"
@@ -134,11 +193,18 @@ export default function DashboardPage() {
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 to-teal-600/75 flex flex-col items-center justify-center text-white text-center px-10">
-          <h1 className="text-4xl md:text-6xl font-bold">DONASI</h1>
-          <h2 className="text-2xl md:text-4xl font-semibold">BARANG BEKAS</h2>
+          <h1 className="text-4xl md:text-6xl font-bold">
+            DONASI
+          </h1>
+
+          <h2 className="text-2xl md:text-4xl font-semibold">
+            BARANG BEKAS
+          </h2>
+
           <div className="mt-4 inline-block bg-orange-400 text-black px-4 py-2 rounded-full font-semibold">
             BERBAGI UNTUK SESAMA
           </div>
+
           <p className="mt-4 text-sm md:text-base">
             PAKAIAN • BUKU • MAINAN • PERALATAN
           </p>
@@ -147,63 +213,113 @@ export default function DashboardPage() {
 
       {/* CONTENT */}
       <div className="p-6">
-       <div className="flex items-center justify-between mb-4">
-  <h2 className="text-lg font-bold text-gray-800">Rekomendasi Barang:</h2>
-  <div className="flex items-center gap-2">
-    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-    </svg>
-    <select
-      value={selectedKategori}
-      onChange={(e) => setSelectedKategori(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
-    >
-      <option value="">Semua Kategori</option>
-      <option value="Pakaian">Pakaian</option>
-      <option value="Elektronik">Elektronik</option>
-      <option value="Perabot">Perabot</option>
-      <option value="Mainan">Mainan</option>
-      <option value="Lainnya">Lainnya</option>
-    </select>
-  </div>
-</div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800">
+            Rekomendasi Barang:
+          </h2>
+
+          <div className="flex items-center gap-2">
+            <svg
+              className="w-4 h-4 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
+              />
+            </svg>
+
+            <select
+              value={selectedKategori}
+              onChange={(e) =>
+                setSelectedKategori(e.target.value)
+              }
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
+            >
+              <option value="">Semua Kategori</option>
+              <option value="Pakaian">Pakaian</option>
+              <option value="Elektronik">Elektronik</option>
+              <option value="Perabot">Perabot</option>
+              <option value="Mainan">Mainan</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+        </div>
 
         {fetchingItems ? (
-          <p className="text-sm text-gray-400">Memuat barang...</p>
+          <p className="text-sm text-gray-400">
+            Memuat barang...
+          </p>
         ) : filteredItems.length === 0 ? (
-          <p className="text-sm text-gray-400">Belum ada barang tersedia.</p>
+          <p className="text-sm text-gray-400">
+            Belum ada barang tersedia.
+          </p>
         ) : (
           <div className="grid grid-cols-6 gap-3">
-  {filteredItems.map((item) => (
-    <div
-      key={item.id}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 flex flex-col"
-    >
-      <div className="w-full aspect-square overflow-hidden rounded-md">
-        <Image
-          src={`/api/Barang/getImage/${item.id}`}
-          alt={item.name}
-          className="w-full h-full object-cover"
-          width={300}
-          height={300}
-        />
-      </div>
-      <h3 className="font-semibold mt-2 text-gray-800 text-sm truncate">{item.name}</h3>
-      <p className="text-xs text-gray-500">{item.category}</p>
-      <p className="text-xs text-gray-500">{item.status}</p>
+            {filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 flex flex-col"
+              >
+                <div className="w-full aspect-square overflow-hidden rounded-md">
+                  <Image
+                    src={`/api/Barang/getImage/${item.id}`}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    width={300}
+                    height={300}
+                  />
+                </div>
 
-      <button className="mt-2 w-full bg-teal-600 text-white py-1 rounded-lg text-xs hover:bg-teal-700 transition-colors">
-        Hubungi Pemilik
-      </button>
+                <h3 className="font-semibold mt-2 text-gray-800 text-sm truncate">
+                  {item.name}
+                </h3>
 
-                <div className="mt-2 flex justify-center">
+                <p className="text-xs text-gray-500">
+                  {item.category}
+                </p>
 
-                  <Link
-                   href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(`/api/Barang/getImage/${item.id}`)}`}
-                    className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
-                  >
-                    Ajukan
-                  </Link>
+                <p className="text-xs text-gray-500">
+                  {item.status}
+                </p>
+
+                <button className="mt-2 w-full bg-teal-600 text-white py-1 rounded-lg text-xs hover:bg-teal-700 transition-colors">
+                  Hubungi Pemilik
+                </button>
+
+                {/* BUTTON AJUKAN */}
+                <div className="mt-2 flex flex-col items-center">
+                  {isVerified ? (
+                    <Link
+                      href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(
+                        item.name
+                      )}&lokasi=${encodeURIComponent(
+                        item.placeId
+                      )}&img=${encodeURIComponent(
+                        `/api/Barang/getImage/${item.id}`
+                      )}`}
+                      className="bg-green-500 text-white px-5 py-1.5 rounded-lg text-sm hover:bg-green-600 transition-colors"
+                    >
+                      Ajukan
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        disabled
+                        className="bg-gray-400 text-white px-5 py-1.5 rounded-lg text-sm cursor-not-allowed"
+                      >
+                        Ajukan
+                      </button>
+
+                      <p className="text-[10px] text-red-500 mt-1 text-center">
+                        Akun belum terverifikasi
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

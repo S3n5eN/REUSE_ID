@@ -53,6 +53,12 @@ export default function FormDataDiri() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validasi NIK harus 16 digit
+    if (!/^\d{16}$/.test(form.nik)) {
+      setErrorMsg("NIK harus terdiri dari 16 digit");
+      return;
+    }
+
     // Validasi usia minimal 17 tahun
     if (Number(form.usia) < 17) {
       setErrorMsg("Usia minimal 17 tahun");
@@ -109,9 +115,8 @@ export default function FormDataDiri() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-10">
-
       <div className="relative bg-white w-full max-w-6xl p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
+        
         {/* Title */}
         <h2 className="text-center text-sm font-semibold tracking-widest uppercase text-gray-700 mb-8">
           Data Diri Penerima
@@ -174,6 +179,10 @@ export default function FormDataDiri() {
               placeholder="NIK"
               onChange={handleChange}
               className={inputClass}
+              maxLength={16}
+              minLength={16}
+              pattern="\d{16}"
+              title="NIK harus terdiri dari 16 digit"
               required
             />
 
@@ -243,8 +252,9 @@ export default function FormDataDiri() {
               type="submit"
               className="px-8 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
             >
-              Ambil
+              Submit
             </button>
+
           </div>
 
         </form>

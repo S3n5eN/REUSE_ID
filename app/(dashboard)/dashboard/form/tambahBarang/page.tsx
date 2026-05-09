@@ -1,6 +1,15 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const PlaceSelectorMap = dynamic(
+  () => import("@/components/placeSelector"),
+  {
+    ssr: false,
+  }
+);
 
 export default function FormInformasiBarang() {
   const router = useRouter();
@@ -12,106 +21,179 @@ export default function FormInformasiBarang() {
     placeId: "",
   });
 
+  const [selectedPlace, setSelectedPlace] = useState<number | null>(null);
+
   const [customCategory, setCustomCategory] = useState("");
-  const [lokasiList, setLokasiList] = useState([]);
-  const [foto, setFoto] = useState(null);
+
+  const [lokasiList, setLokasiList] = useState<any[]>([]);
+
+  const [foto, setFoto] = useState<File | null>(null);
+
   const [preview, setPreview] = useState("");
+
   const [fileError, setFileError] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch lokasi
+  // FETCH LOKASI
   useEffect(() => {
     const fetchLokasi = async () => {
       try {
-        const res = await fetch("/api/LokasiPengumpulan/getPlace");
+        const res = await fetch(
+          "/api/LokasiPengumpulan/getPlace"
+        );
+
         const data = await res.json();
+
         setLokasiList(data);
       } catch (err) {
-        console.error("Gagal fetch lokasi:", err);
+        console.error(
+          "Gagal fetch lokasi:",
+          err
+        );
       }
     };
 
     fetchLokasi();
   }, []);
 
-  // Handle input
-  const handleChange = (e) => {
+  // HANDLE INPUT
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement |
+      HTMLTextAreaElement |
+      HTMLSelectElement
+    >
+  ) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
 
-  // Handle upload file
-  const handleFile = (e) => {
-    const file = e.target.files[0];
+  // HANDLE SELECT PLACE DARI MAP
+  const handleSelectPlace = (
+    placeId: number
+  ) => {
+    setSelectedPlace(placeId);
+
+    setForm({
+      ...form,
+      placeId: String(placeId),
+    });
+  };
+
+  // HANDLE FILE
+  const handleFile = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
-    const allowed = ["image/jpeg", "image/jpg", "image/png"];
+    const allowed = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+    ];
 
-    // Validasi format
+    // VALIDASI FORMAT
     if (!allowed.includes(file.type)) {
-      setFileError("Format file harus PNG, JPG, atau JPEG");
+      setFileError(
+        "Format file harus PNG, JPG, atau JPEG"
+      );
+
       setFoto(null);
+
       setPreview("");
 
       e.target.value = "";
+
       return;
     }
 
-    // Validasi ukuran maksimal 2MB
+    // VALIDASI SIZE
     if (file.size > 2 * 1024 * 1024) {
-      setFileError("Ukuran file maksimal 2 MB");
+      setFileError(
+        "Ukuran file maksimal 2 MB"
+      );
+
       setFoto(null);
+
       setPreview("");
 
       e.target.value = "";
+
       return;
     }
 
-    // Jika valid
+    // VALID
     setFileError("");
+
     setFoto(file);
 
-    // Preview gambar
-    const imageUrl = URL.createObjectURL(file);
+    const imageUrl =
+      URL.createObjectURL(file);
+
     setPreview(imageUrl);
   };
 
-  // Handle submit
-  const handleSubmit = async (e) => {
+  // HANDLE SUBMIT
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
-    // Validasi foto
+    // VALIDASI FOTO
     if (!foto) {
-      setErrorMsg("Foto wajib diupload dan harus valid");
+      setErrorMsg(
+        "Foto wajib diupload dan harus valid"
+      );
+
       return;
     }
 
-    // Validasi lokasi
+    // VALIDASI LOKASI
     if (!form.placeId) {
-      setErrorMsg("Lokasi wajib dipilih");
+      setErrorMsg(
+        "Lokasi wajib dipilih"
+      );
+
       return;
     }
 
-    // Validasi kategori lainnya
-    if (form.category === "Lainnya" && !customCategory) {
-      setErrorMsg("Kategori lainnya wajib diisi");
+    // VALIDASI KATEGORI CUSTOM
+    if (
+      form.category === "Lainnya" &&
+      !customCategory
+    ) {
+      setErrorMsg(
+        "Kategori lainnya wajib diisi"
+      );
+
       return;
     }
 
     setLoading(true);
+
     setErrorMsg("");
 
     try {
       const formData = new FormData();
 
-      formData.append("name", form.name);
-      formData.append("desc", form.desc);
+      formData.append(
+        "name",
+        form.name
+      );
 
-      // Jika pilih lainnya
+      formData.append(
+        "desc",
+        form.desc
+      );
+
+      // KATEGORI
       formData.append(
         "category",
         form.category === "Lainnya"
@@ -119,29 +201,44 @@ export default function FormInformasiBarang() {
           : form.category
       );
 
-      formData.append("placeId", form.placeId);
-      formData.append("foto", foto);
+      formData.append(
+        "placeId",
+        form.placeId
+      );
 
-      const res = await fetch("/api/Barang/simpanBarang", {
-        method: "POST",
-        body: formData,
-      });
+      formData.append(
+        "foto",
+        foto
+      );
+
+      const res = await fetch(
+        "/api/Barang/simpanBarang",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const data = await res.json();
 
       if (res.ok) {
         router.replace("/dashboard");
       } else {
-        setErrorMsg(data.message || "Terjadi kesalahan.");
+        setErrorMsg(
+          data.message ||
+            "Terjadi kesalahan."
+        );
       }
     } catch (err) {
-      setErrorMsg("Gagal terhubung ke server.");
+      setErrorMsg(
+        "Gagal terhubung ke server."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Styling
+  // STYLE
   const inputClass =
     "w-full border border-gray-200 bg-gray-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition";
 
@@ -152,25 +249,32 @@ export default function FormInformasiBarang() {
     <div className="flex flex-col min-h-screen bg-gray-50 p-10">
       <div className="bg-white w-full p-10 rounded-2xl shadow-sm border border-gray-100">
 
-        {/* Judul */}
+        {/* JUDUL */}
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-8">
           Informasi Barang
         </h1>
 
-        {/* Error */}
+        {/* ERROR */}
         {errorMsg && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-300 text-red-600 text-sm rounded-lg">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-5"
+        >
 
-          {/* Nama Barang */}
+          {/* NAMA BARANG */}
           <div className="flex items-start gap-4">
-            <label className={labelClass}>Nama barang</label>
+            <label className={labelClass}>
+              Nama barang
+            </label>
 
-            <span className="pt-2 text-gray-500">:</span>
+            <span className="pt-2 text-gray-500">
+              :
+            </span>
 
             <input
               type="text"
@@ -182,11 +286,15 @@ export default function FormInformasiBarang() {
             />
           </div>
 
-          {/* Kategori */}
+          {/* KATEGORI */}
           <div className="flex items-start gap-4">
-            <label className={labelClass}>Kategori</label>
+            <label className={labelClass}>
+              Kategori
+            </label>
 
-            <span className="pt-2 text-gray-500">:</span>
+            <span className="pt-2 text-gray-500">
+              :
+            </span>
 
             <div className="w-full flex flex-col gap-3">
 
@@ -197,22 +305,44 @@ export default function FormInformasiBarang() {
                 required
                 className={inputClass}
               >
-                <option value="">Pilih Kategori</option>
-                <option value="Pakaian">Pakaian</option>
-                <option value="Elektronik">Elektronik</option>
-                <option value="Perabot">Perabot</option>
-                <option value="Mainan">Mainan</option>
-                <option value="Lainnya">Lainnya</option>
+                <option value="">
+                  Pilih Kategori
+                </option>
+
+                <option value="Pakaian">
+                  Pakaian
+                </option>
+
+                <option value="Elektronik">
+                  Elektronik
+                </option>
+
+                <option value="Perabot">
+                  Perabot
+                </option>
+
+                <option value="Mainan">
+                  Mainan
+                </option>
+
+                <option value="Lainnya">
+                  Lainnya
+                </option>
               </select>
 
-              {/* Input kategori custom */}
-              {form.category === "Lainnya" && (
+              {/* INPUT CUSTOM */}
+              {form.category ===
+                "Lainnya" && (
                 <input
                   type="text"
                   placeholder="Masukkan kategori lainnya"
-                  value={customCategory}
+                  value={
+                    customCategory
+                  }
                   onChange={(e) =>
-                    setCustomCategory(e.target.value)
+                    setCustomCategory(
+                      e.target.value
+                    )
                   }
                   className={inputClass}
                 />
@@ -220,11 +350,15 @@ export default function FormInformasiBarang() {
             </div>
           </div>
 
-          {/* Deskripsi */}
+          {/* DESKRIPSI */}
           <div className="flex items-start gap-4">
-            <label className={labelClass}>Deskripsi</label>
+            <label className={labelClass}>
+              Deskripsi
+            </label>
 
-            <span className="pt-2 text-gray-500">:</span>
+            <span className="pt-2 text-gray-500">
+              :
+            </span>
 
             <textarea
               name="desc"
@@ -232,34 +366,85 @@ export default function FormInformasiBarang() {
               onChange={handleChange}
               rows={4}
               required
-              className={inputClass + " resize-none"}
+              className={
+                inputClass +
+                " resize-none"
+              }
             />
           </div>
 
-          {/* Lokasi */}
+          {/* LOKASI */}
           <div className="flex items-start gap-4">
-            <label className={labelClass}>Lokasi</label>
+            <label className={labelClass}>
+              Lokasi
+            </label>
 
-            <span className="pt-2 text-gray-500">:</span>
+            <span className="pt-2 text-gray-500">
+              :
+            </span>
 
-            <select
-              name="placeId"
-              value={form.placeId}
-              onChange={handleChange}
-              required
-              className={inputClass}
-            >
-              <option value="">Pilih Lokasi</option>
+            <div className="w-full flex flex-col gap-4">
 
-              {lokasiList.map((lokasi) => (
-                <option key={lokasi.id} value={lokasi.id}>
-                  {lokasi.name}
+              {/* DROPDOWN */}
+              <select
+                name="placeId"
+                value={form.placeId}
+                onChange={(e) => {
+                  handleChange(e);
+
+                  setSelectedPlace(
+                    Number(
+                      e.target.value
+                    )
+                  );
+                }}
+                required
+                className={inputClass}
+              >
+                <option value="">
+                  Pilih Lokasi
                 </option>
-              ))}
-            </select>
+
+                {lokasiList.map(
+                  (lokasi) => (
+                    <option
+                      key={lokasi.id}
+                      value={
+                        lokasi.id
+                      }
+                    >
+                      {lokasi.name}
+                    </option>
+                  )
+                )}
+              </select>
+
+              {/* MAP */}
+              <div className="overflow-hidden rounded-xl border border-gray-200">
+                <PlaceSelectorMap
+                  places={
+                    lokasiList
+                  }
+                  onSelectPlace={
+                    handleSelectPlace
+                  }
+                />
+              </div>
+
+              {/* INFO */}
+              {selectedPlace && (
+                <div className="text-sm text-teal-600 font-medium">
+                  Lokasi
+                  terpilih ID:{" "}
+                  {
+                    selectedPlace
+                  }
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Upload Foto */}
+          {/* UPLOAD FOTO */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Gambar Produk
@@ -281,19 +466,21 @@ export default function FormInformasiBarang() {
               cursor-pointer"
             />
 
-            {/* Info file */}
+            {/* INFO */}
             <p className="text-xs text-gray-500 mt-1">
-              Maksimal ukuran file 2 MB (PNG, JPG, JPEG)
+              Maksimal ukuran file
+              2 MB (PNG, JPG,
+              JPEG)
             </p>
 
-            {/* Error file */}
+            {/* ERROR */}
             {fileError && (
               <p className="text-xs text-red-500 mt-1">
                 {fileError}
               </p>
             )}
 
-            {/* Preview gambar */}
+            {/* PREVIEW */}
             {preview && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">
@@ -309,25 +496,31 @@ export default function FormInformasiBarang() {
             )}
           </div>
 
-          {/* Tombol */}
+          {/* TOMBOL */}
           <div className="flex justify-between items-center pt-6 mt-4 border-t">
 
-            {/* Kembali */}
+            {/* KEMBALI */}
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() =>
+                router.push(
+                  "/dashboard"
+                )
+              }
               className="px-12 py-3 bg-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-300"
             >
               KEMBALI
             </button>
 
-            {/* Simpan */}
+            {/* SIMPAN */}
             <button
               type="submit"
               disabled={loading}
               className="px-12 py-3 bg-teal-500 text-white rounded-xl text-sm font-bold hover:bg-teal-600 disabled:opacity-60"
             >
-              {loading ? "Menyimpan..." : "SIMPAN"}
+              {loading
+                ? "Menyimpan..."
+                : "SIMPAN"}
             </button>
           </div>
         </form>
