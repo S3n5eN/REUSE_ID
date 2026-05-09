@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
+const LocationPickerMap = dynamic(
+  () => import("@/components/locationPickerMap"),
+  { ssr: false }
+);
+
 const MapView = dynamic(
   () => import("@/components/MapView"),
   { ssr: false }
@@ -572,20 +577,22 @@ export default function DaftarLokasiPage() {
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Latitude</label>
-            <input type="number" name="latitude" placeholder="-6.914744" value={form.latitude} onChange={handleChange}
-              step="any"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Longitude</label>
-            <input type="number" name="longitude" placeholder="107.609810" value={form.longitude} onChange={handleChange}
-              step="any"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
-          </div>
-        </div>
+        <div>
+  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+    Pilih Lokasi
+  </label>
+  <div className="rounded-xl overflow-hidden border border-gray-200">
+    <LocationPickerMap
+      onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
+      initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
+    />
+  </div>
+  {form.latitude && form.longitude && (
+    <p className="text-xs text-teal-600 mt-1">
+      Lat: {parseFloat(form.latitude).toFixed(6)} | Lng: {parseFloat(form.longitude).toFixed(6)}
+    </p>
+  )}
+</div>
 
       </div>
 
@@ -647,20 +654,22 @@ export default function DaftarLokasiPage() {
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Latitude</label>
-            <input type="number" name="latitude" placeholder="-6.914744" value={form.latitude} onChange={handleChange}
-              step="any"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Longitude</label>
-            <input type="number" name="longitude" placeholder="107.609810" value={form.longitude} onChange={handleChange}
-              step="any"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
-          </div>
-        </div>
+        <div>
+  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+    Pilih Lokasi
+  </label>
+  <div className="rounded-xl overflow-hidden border border-gray-200">
+    <LocationPickerMap
+      onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
+      initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
+    />
+  </div>
+  {form.latitude && form.longitude && (
+    <p className="text-xs text-teal-600 mt-1">
+      Lat: {parseFloat(form.latitude).toFixed(6)} | Lng: {parseFloat(form.longitude).toFixed(6)}
+    </p>
+  )}
+</div>
 
       </div>
 
