@@ -8,6 +8,10 @@ async function getItemApproved(req: Request) {
       where: {
         status: "Approved",
         type: "Donation",
+
+        item: {
+          status: "Tersedia"
+        }
       },
       include: {
         item: {
