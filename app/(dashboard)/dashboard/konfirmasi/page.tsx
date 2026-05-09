@@ -116,4 +116,4 @@ export default function KonfirmasiPage() {
       </div>
     </div>
   );
-}
+}	

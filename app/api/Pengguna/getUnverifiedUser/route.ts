@@ -7,7 +7,7 @@ async function getUnverifiedUser() {
     const unverifiedUsers = await prisma.userProfile.findMany({
       where: { isVerified: false },
       include: {
-        shipment: { where: { receivedAt: null, type: "claim" }, select: { id: true}, take: 1}, 
+        shipment: { where: { status: "Pending", type: "claim" }, select: { id: true}, take: 1}, 
       },
       
     });

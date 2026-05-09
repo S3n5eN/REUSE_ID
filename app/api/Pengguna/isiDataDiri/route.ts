@@ -1,4 +1,4 @@
-import { Gender } from "@/generated/prisma";
+import {  userProfile_gender } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { pengguna } from "@/types/pengguna";
@@ -7,7 +7,9 @@ import { NextResponse, NextRequest } from "next/server";
 // ==== Ini Method Isi Data Diri Pengguna ====
 async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
   try {
-    const body: Pick<pengguna, "dataDiri"> = await req.json();
+    const body: Pick<pengguna, "dataDiri"> &{
+      itemId: number;
+    } = await req.json();
 
     // ==== Disini ga ada pengecekan untuk pekerjaan, menurut saya pekerjaan tidak penting dalam kegiatan donasi, jadi opsional aja ====
     if (
@@ -40,7 +42,7 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
         namaLengkap: body.dataDiri.namaLengkap,
         usia: body.dataDiri.usia,
         phone: body.dataDiri.nomorTelpon,
-        gender: body.dataDiri.gender as Gender,
+        gender: body.dataDiri.gender as userProfile_gender,
         address: body.dataDiri.alamat,
         identityId: body.dataDiri.NIK,
         pekerjaan: body.dataDiri.pekerjaan ?? undefined,
@@ -51,7 +53,7 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
         userId: Number(decoded.id),
         namaLengkap: body.dataDiri.namaLengkap,
         usia: body.dataDiri.usia,
-        gender: body.dataDiri.gender as Gender,
+        gender: body.dataDiri.gender as userProfile_gender,
         phone: body.dataDiri.nomorTelpon,
         address: body.dataDiri.alamat,
         identityId: body.dataDiri.NIK,
@@ -76,4 +78,4 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
 
 export async function POST(req: NextRequest) {
   return (await protect(isiDataDiri, ["user"]))(req);
-}
+} 

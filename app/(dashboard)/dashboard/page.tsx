@@ -76,6 +76,71 @@ export default function DashboardPage() {
     }
   };
 
+  const handleProfile = async () => {
+
+  try {
+
+    const res = await fetch(
+      "/api/Pengguna/profile",
+      {
+
+        method: "GET",
+
+        headers: {
+
+          Authorization:
+            `Bearer ${localStorage.getItem("token")}`
+        }
+      }
+    );
+
+    const data = await res.json();
+
+    // ==========================
+    // BELUM ISI DATA DIRI
+    // ==========================
+
+    if (!data.hasProfile) {
+
+      router.push(
+        "/dashboard/form/isiDataDiri"
+      );
+
+      return;
+    }
+
+    // ==========================
+    // BELUM VERIFIED
+    // ==========================
+
+    if (
+      data.hasProfile &&
+      !data.isVerified
+    ) {
+
+      alert(
+        "Data diri sedang diverifikasi admin"
+      );
+
+      return;
+    }
+
+    // ==========================
+    // VERIFIED
+    // ==========================
+
+    router.push(
+      "/dashboard/profile"
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("Terjadi kesalahan");
+  }
+};
+
   const filteredItems = items.filter((item) => {
     const matchKategori = selectedKategori
       ? item.category === selectedKategori
@@ -136,44 +201,32 @@ export default function DashboardPage() {
           </button>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
-            <svg
-              className="w-3.5 h-3.5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"
-              />
-            </svg>
-
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search here..."
-              className="text-sm focus:outline-none bg-transparent w-36"
-            />
-          </div>
-
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
-          >
-            {penggunaName.charAt(0)}
-
-            {isOpen && (
-              <ProfileDropdown
-                namapengguna={penggunaName}
-                onLogout={handleLogout}
-              />
-            )}
-          </div>
-        </div>
+       <div className="flex items-center gap-3">
+  <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
+    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+    </svg>
+    <input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Search here..."
+      className="text-sm focus:outline-none bg-transparent w-36"
+    />
+  </div>
+  <div
+    onClick={() => setIsOpen(!isOpen)}
+    className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
+  >
+    {penggunaName.charAt(0)}
+    {isOpen && (
+      <ProfileDropdown
+        namapengguna={penggunaName}
+        onLogout={handleLogout}
+        onProfile={handleProfile}
+      />
+    )}
+  </div>
+</div>
       </div>
 
       {/* HERO */}
