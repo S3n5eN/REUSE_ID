@@ -95,7 +95,8 @@ function Toast({ message, type, onClose }: ToastProps) {
 interface UserCardProps {
   item: PendingItem;
   index: number;
-  onAction: (shipmentId: number, action: "Approve" | "Reject") => Promise<void>;
+  // Perubahan 1: Tambahkan userId di parameter onAction
+  onAction: (shipmentId: number, userId: number, action: "Approve" | "Reject") => Promise<void>;
 }
 
 function UserCard({ item, index, onAction }: UserCardProps) {
@@ -108,7 +109,8 @@ function UserCard({ item, index, onAction }: UserCardProps) {
   const handleAction = (action: "Approve" | "Reject") => {
     setActionType(action);
     startTransition(async () => {
-      await onAction(item.shipmentId, action);
+      // Perubahan 2: Kirim item.userProfile.id ke function parent
+      await onAction(item.shipmentId, item.userProfile.id, action);
       setActionType(null);
     });
   };
@@ -314,17 +316,16 @@ export default function VerifikasiPenerimaPage() {
         const { data } = await res.json();
         const formattedData: PendingItem[] = [];
 
-        // Karena API getUnverifiedUser ini return userProfile include dengan shipment, maka akan ada Array shipment di dalam Array userProfile, maka perlu dijelajahi dulu
         data.forEach((userProfile: any) => {
           if (userProfile.shipment && userProfile.shipment.length > 0) {
             userProfile.shipment.forEach((shipment: any) => {
               formattedData.push({
                 shipmentId: shipment.id,
                 userProfile: userProfile
-              })
-            })
+              });
+            });
           }
-        })
+        });
         
         setItems(formattedData);
       } catch (error) {
@@ -333,36 +334,42 @@ export default function VerifikasiPenerimaPage() {
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     fetchDataUnverifidUsers();
-  }, [])
+  }, []);
 
   const filtered = items.filter((item) =>
     item.userProfile.namaLengkap.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Perubahan 3: Menerima userId dari parameter
   const handleAction = async (
     shipmentId: number,
+    userId: number,
     action: "Approve" | "Reject"
   ) => {
     try {
       const res = await fetch("/api/Admin/verifikasiDataPenerima", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId, action }),
+        body: JSON.stringify({ userId, action }), // Kirim userId
       });
 
       if (!res.ok) throw new Error("Gagal memverifikasi data penerima");
-      setItems((prev) => prev.filter((item) => item.shipmentId !== shipmentId));
+      
+      // Hapus data dari view. Disini saya set filter berdasarkan userId, 
+      // jadi kalau 1 user punya banyak shipment, semuanya hilang dari list pending karena user sudah diverifikasi.
+      setItems((prev) => prev.filter((item) => item.userProfile.id !== userId));
+      setToast({ message: `Data berhasil di-${action.toLowerCase()}`, type: "success" });
     } catch {
       setToast({ message: "Terjadi kesalahan, coba lagi", type: "error" });
     }
   };
 
   return (
-    <div className="min-h-screen  bg-slate-50 font-[family-name:var(--font-plus-jakarta)]">
-      <div className=" px-4 py-8 sm:px-6">
+    <div className="min-h-screen bg-slate-50 font-[family-name:var(--font-plus-jakarta)]">
+      <div className="px-4 py-8 sm:px-6">
 
         {/* ── Page Header ─────────────────────────────────────────────────── */}
         <div className="mb-8 ">

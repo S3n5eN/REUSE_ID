@@ -34,7 +34,7 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
     }
 
     // ==== pakai upsert biar kalau udah diupdate, kalau belum ada maka ada ====
-    const profile = await prisma.userProfile.upsert({
+    await prisma.userProfile.upsert({
       where: { userId: Number(decoded.id) },
       update: {
         namaLengkap: body.dataDiri.namaLengkap,
@@ -58,19 +58,6 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
         pekerjaan: body.dataDiri.pekerjaan ?? undefined,
         longitude: body.dataDiri.longitude,
         latitude: body.dataDiri.latitude,
-      },
-    });
-
-    // ==== Update shipment pending yang belum ada userProfileId ====
-    await prisma.shipment.updateMany({
-      where: {
-        userId: Number(decoded.id),
-        type: "claim",
-        status: "Pending",
-        userProfileId: null,
-      },
-      data: {
-        userProfileId: profile.id,
       },
     });
 
