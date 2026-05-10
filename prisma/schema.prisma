@@ -18,6 +18,7 @@ model user {
   item        item[]
   shipment    shipment[]
   userProfile userProfile?
+  newsRead    newsRead[]
 }
 
 model admin {
@@ -114,8 +115,22 @@ model news {
   isPublished Boolean  @default(false)
   adminId     Int
   admin       admin    @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
+  newsRead    newsRead[]
 
   @@index([adminId], map: "News_adminId_fkey")
+}
+
+model newsRead {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  newsId    Int
+  readAt    DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id])
+  news      news     @relation(fields: [newsId], references: [id])
+
+  @@unique([userId, newsId])
+  @@index([userId])
+  @@index([newsId])
 }
 
 model userProfile {
