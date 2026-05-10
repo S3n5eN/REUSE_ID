@@ -28,7 +28,8 @@ async function getNotifikasi(req: NextRequest, decoded: { id: string }) {
     }));
 
     return NextResponse.json(result);
-  } catch {
+  } catch(err) {
+    console.error("ERROR getNotifikasi:", err);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
