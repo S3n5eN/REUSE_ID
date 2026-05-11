@@ -283,28 +283,35 @@ const handleBacaNotif = async (newsId: number) => {
   {showNotif && (
     <div
       className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+      style={{ height: "calc(450px)" }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-4 py-3 border-b border-gray-100">
         <h3 className="font-semibold text-gray-800 text-sm">Notifikasi</h3>
       </div>
 
-      <div className="max-h-80 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto h-full">
         {notifikasi.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-6">Tidak ada notifikasi</p>
         ) : (
           notifikasi.map((n) => (
             <div
               key={n.id}
-              onClick={() => handleBacaNotif(n.id)}
+              onClick={() => {
+              handleBacaNotif(n.id);
+            router.push(`/dashboard/berita/${n.id}`);
+            }}
               className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition border-b border-gray-50
                 ${!n.isRead ? "bg-yellow-50 hover:bg-yellow-100" : "hover:bg-gray-50"}`}
             >
               <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.isRead ? "bg-yellow-400" : "bg-gray-200"}`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-sm truncate ${!n.isRead ? "font-semibold text-gray-800" : "text-gray-600"}`}>
-                  {n.title}
-                </p>
+               <p className={`text-sm truncate ${!n.isRead ? "font-semibold text-gray-800" : "text-gray-600"}`}>
+              {n.title}
+              </p>
+              {n.caption && (
+             <p className="text-xs text-gray-400 mt-0.5 truncate">{n.caption}</p>
+              )}
                 <p className="text-xs text-gray-400 mt-0.5">
                   {new Date(n.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
                 </p>
@@ -316,7 +323,7 @@ const handleBacaNotif = async (newsId: number) => {
     </div>
   )}
 </div>
-  
+
 
   <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

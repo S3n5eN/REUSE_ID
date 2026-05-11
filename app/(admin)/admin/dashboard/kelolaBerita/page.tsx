@@ -62,6 +62,7 @@ export default function KelolaBeritaPage() {
   const [foto, setFoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [caption, setCaption] = useState("");
 
   const items = activeTab === "pending" ? pendingBerita : publishedBerita;
 
@@ -108,6 +109,8 @@ export default function KelolaBeritaPage() {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("foto", foto);
+      formData.append("caption", caption);
+      
 
       const res = await fetch("/api/Admin/kelolaBerita", {
         method: "POST",
@@ -119,6 +122,7 @@ export default function KelolaBeritaPage() {
       setTitle("");
       setFoto(null);
       setPreview(null);
+      setCaption("");
       setShowAddForm(false);
       await fetchBerita();
     } catch {
@@ -299,6 +303,16 @@ export default function KelolaBeritaPage() {
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition"
                 />
               </div>
+              <div>
+  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Caption</label>
+  <textarea
+    value={caption}
+    onChange={(e) => setCaption(e.target.value)}
+    placeholder="Deskripsi singkat berita..."
+    rows={3}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition resize-none"
+  />
+</div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Foto</label>

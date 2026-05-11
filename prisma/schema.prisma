@@ -125,6 +125,7 @@ model certificate {
 model news {
   id          Int      @id @default(autoincrement())
   title       String
+  caption     String?    @db.Text
   imageData   Bytes
   imageType   String
   createdAt   DateTime @default(now())

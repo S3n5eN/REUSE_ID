@@ -12,6 +12,7 @@ async function getNotifikasi(req: NextRequest, decoded: { id: string }) {
       select: {
         id: true,
         title: true,
+        caption:true,
         createdAt: true,
         newsRead: {
           where: { userId },
@@ -23,6 +24,7 @@ async function getNotifikasi(req: NextRequest, decoded: { id: string }) {
     const result = news.map((n) => ({
       id: n.id,
       title: n.title,
+      caption: n.caption,
       createdAt: n.createdAt,
       isRead: n.newsRead.length > 0,
     }));

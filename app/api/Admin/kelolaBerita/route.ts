@@ -19,6 +19,7 @@ async function getBerita(req: NextRequest) {
       select: {
         id: true,
         title: true,
+        caption:true,
         imageType: true,
         createdAt: true,
         isPublished: true,
@@ -37,6 +38,7 @@ async function tambahBerita(req: NextRequest, decoded: { id: string }) {
     const formData = await req.formData();
     const title = formData.get("title") as string;
     const foto = formData.get("foto") as File;
+    const caption = formData.get("caption") as string;
 
     if (!title || !foto) {
       return NextResponse.json({ message: "Data tidak lengkap" }, { status: 400 });
@@ -63,6 +65,7 @@ async function tambahBerita(req: NextRequest, decoded: { id: string }) {
     await prisma.news.create({
       data: {
         title,
+        caption: caption || null,
         imageData: webpBuffer,
         imageType: "image/webp",
         adminId: Number(decoded.id),
