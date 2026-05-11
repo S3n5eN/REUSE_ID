@@ -45,6 +45,7 @@ model place {
   longitude      Float?
   admin          admin[]
   item           item[]
+  rak            rak[]
 }
 
 model item {
@@ -57,15 +58,30 @@ model item {
   placeId     Int
   imageData   Bytes?
   imageType   String?
+  rakId       Int?
   status      ItemStatus   @default(PendingApproval)
   quality     ItemQuality?
   weight      Float?
   place       place        @relation(fields: [placeId], references: [id], map: "Item_placeId_fkey")
   user        user         @relation(fields: [userId], references: [id], map: "Item_userId_fkey")
+  rak         rak?         @relation(fields: [rakId], references: [id], map: "Item_rakId_fkey")
   shipment    shipment[]
 
   @@index([userId], map: "Item_userId_fkey")
   @@index([placeId], map: "Item_placeId_fkey")
+  @@index([rakId], map: "Item_rakId_fkey")
+}
+
+model rak {
+  id    Int @id @default(autoincrement())
+  nomor String
+  kapasitasMax Int
+  kapasitasSekarang Int @default(0)
+  placeId Int
+  place place @relation(fields: [placeId], references: [id], map: "rak_placeId_fkey")
+  item item[]
+
+  @@index([placeId], map: "rak_placeId_fkey")
 }
 
 model shipment {

@@ -74,6 +74,12 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
           data: { poin: { increment: tambahPoin } },
         }),
       ]);
+      return NextResponse.json(
+      {
+        message: "Barang berhasil dikonfirmasi diterima",
+        poinDiberikan: tambahPoin,
+      },
+      { status: 200 })
     } else if (action === "reject") {
       await prisma.$transaction([
         prisma.shipment.delete({
@@ -84,14 +90,9 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
           data: { status: "Tersedia"}
         })
       ])
+      return NextResponse.json({message: "Barang ditolak"}, { status: 200 })
     }
-    return NextResponse.json(
-      {
-        message: "Barang berhasil dikonfirmasi diterima",
-        poinDiberikan: tambahPoin,
-      },
-      { status: 200 },
-    );
+    
   } catch (error) {
     console.error("Error konfirmasi terima:", error);
     return NextResponse.json(
