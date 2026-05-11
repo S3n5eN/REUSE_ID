@@ -1,106 +1,144 @@
+import { userProfile_gender } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
-async function getProfile(
-  req: NextRequest,
-  decoded: { id: string }
-) {
+interface ProfileData {
+  namaLengkap: string;
+  usia: number ;  
+  gender: userProfile_gender;
+  pekerjaan: string;
+  phone: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+}
 
+async function getProfile(req: NextRequest, decoded: { id: string }) {
   try {
-
     const userId = Number(decoded.id);
 
-    const profile =
-      await prisma.userProfile.findFirst({
-
-        where: {
-          userId: userId
-        }
-      });
-
-    // ==========================
-    // BELUM ISI DATA DIRI
-    // ==========================
+    const profile = await prisma.userProfile.findFirst({
+      where: { userId: userId },
+      include: {
+        user: true
+      }
+    });
 
     if (!profile) {
-
       return NextResponse.json({
-
         hasProfile: false,
-
         isVerified: false,
-
-        message:
-          "Silahkan isi data diri terlebih dahulu"
-
+        message: "Silahkan isi data diri terlebih dahulu"
       });
     }
-
-    // ==========================
-    // BELUM DIVERIFIKASI
-    // ==========================
 
     if (!profile.isVerified) {
-
       return NextResponse.json({
-
         hasProfile: true,
-
         isVerified: false,
-
-        message:
-          "Data diri sedang diverifikasi admin"
-
+        message: "Data diri sedang diverifikasi admin",
+        data: {
+          ...profile, // Tambahkan data meski belum verified
+          email: profile.user.email,
+        }
       });
     }
 
-    // ==========================
-    // SUDAH VERIFIED
-    // ==========================
-
     return NextResponse.json({
-
       hasProfile: true,
-
       isVerified: true,
-
-      data: profile,
-
-      message:
-        "Berhasil mengambil profile"
-
+      message: "Berhasil mengambil profile",
+      data: {
+        ...profile,
+        email: profile.user.email,
+      },
     });
 
   } catch (error: any) {
-
-    console.error(
-      "ERROR GET PROFILE:",
-      error
-    );
-
+    console.error("ERROR GET PROFILE:", error);
     return NextResponse.json(
-
-      {
-        message:
-          "Gagal mengambil profile"
-      },
-
-      {
-        status: 500
-      }
+      { message: "Gagal mengambil profile" },
+      { status: 500 }
     );
   }
 }
 
-export async function GET(
-  req: NextRequest
-) {
+async function updateProfile(req: NextRequest, decoded: { id: string }) {
+  try {
+    const userId = Number(decoded.id);
+    const body: ProfileData = await req.json();
 
-  return (
-    await protect(
-      getProfile,
-      ["user"]
-    )
-  )(req);
+    // Validasi data
+    if (!body.namaLengkap?.trim() || !body.address?.trim()) {
+      return NextResponse.json(
+        { message: "Nama dan alamat wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    // Cek apakah profile sudah ada
+    const existingProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+
+    if (existingProfile) {
+      // Update existing profile
+      const updatedProfile = await prisma.userProfile.update({
+        where: { id: existingProfile.id },
+        data: {
+          namaLengkap: body.namaLengkap.trim(),
+          usia: Number (body.usia),
+          gender: body.gender,
+          pekerjaan: body.pekerjaan?.trim() || null,
+          phone: body.phone.trim(), 
+          address: body.address.trim(),
+          latitude: body.latitude || null,
+          longitude: body.longitude || null,
+        }
+      });
+      
+      return NextResponse.json({
+        success: true,
+        message: "Profile berhasil diupdate",
+        data: updatedProfile
+      });
+    } else {
+      // Create new profile
+      const newProfile = await prisma.userProfile.create({
+        data: {
+          userId: userId,
+          namaLengkap: body.namaLengkap.trim(),
+          usia: Number (body.usia),
+          gender: body.gender,
+          pekerjaan: body.pekerjaan?.trim() || null,
+          phone: body.phone.trim(),
+          address: body.address.trim(),
+          latitude: body.latitude || null,
+          longitude: body.longitude || null,
+          isVerified: false // Default belum verified
+        }
+      });
+      
+      return NextResponse.json({
+        success: true,
+        message: "Profile berhasil dibuat dan menunggu verifikasi",
+        data: newProfile
+      });
+    }
+  } catch (error: any) {
+    console.error("ERROR UPDATE PROFILE:", error);
+    return NextResponse.json(
+      { message: "Gagal menyimpan profile" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  return (await protect(getProfile, ["user"]))(req);
+}
+
+export async function PUT(req: NextRequest) {
+  return (await protect(updateProfile, ["user"]))(req);
 }

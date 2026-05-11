@@ -167,6 +167,8 @@ model userProfile {
   longitude   Float?
   shipment    shipment[]
   user        user               @relation(fields: [userId], references: [id], map: "UserProfile_userId_fkey")
+  profileImage Bytes?
+  profileImageType String?
 
   @@index([userId], map: "UserProfile_userId_fkey")
 }
