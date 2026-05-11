@@ -159,7 +159,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2 text-gray-600 hover:text-black cursor-pointer"
+                    className="absolute right-3 top-3 text-gray-600 hover:text-black cursor-pointer"
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
