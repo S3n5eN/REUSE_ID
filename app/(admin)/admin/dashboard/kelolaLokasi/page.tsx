@@ -533,8 +533,11 @@ export default function DaftarLokasiPage() {
       {/* Form Popup Tambah Lokasi */}
       {showForm && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setShowForm(false); setError(""); }}>
-    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-      <h2 className="text-lg font-bold text-gray-800 mb-6">Tambah Lokasi</h2>
+    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+
+
+      <h2 className="text-lg text-center font-bold text-gray-800 mb-6">Tambah Lokasi</h2>
+      <div className="grid grid-cols-2 gap-6">
       <div className="space-y-4">
 
         <div>
@@ -576,12 +579,13 @@ export default function DaftarLokasiPage() {
           <input type="time" name="jamTutup" value={form.jamTutup} onChange={handleChange}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
         </div>
+         </div>
 
         <div>
   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
     Pilih Lokasi
   </label>
-  <div className="rounded-xl overflow-hidden border border-gray-200">
+ <div className="rounded-xl overflow-hidden border border-gray-200 h-full" style={{ minHeight: "320px" }}>
     <LocationPickerMap
       onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
       initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
@@ -593,8 +597,7 @@ export default function DaftarLokasiPage() {
     </p>
   )}
 </div>
-
-      </div>
+</div>
 
       {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
       <div className="flex gap-3 mt-6">
@@ -610,10 +613,14 @@ export default function DaftarLokasiPage() {
       {/* Form Popup Edit Lokasi */}
      {editPlace && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setEditPlace(null); setError(""); }}>
-    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-      <h2 className="text-lg font-bold text-gray-800 mb-6">Edit Lokasi</h2>
-      <div className="space-y-4">
+    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg text-center font-bold text-gray-800 mb-6">Edit Lokasi</h2>
 
+      <div className="grid grid-cols-2 gap-6">
+      
+    
+  
+        <div className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Nama Lokasi</label>
           <input type="text" name="name" placeholder="Gudang Bandung" value={form.name} onChange={handleChange}
@@ -653,12 +660,13 @@ export default function DaftarLokasiPage() {
           <input type="time" name="jamTutup" value={form.jamTutup} onChange={handleChange}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
         </div>
+        </div>
 
         <div>
   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
     Pilih Lokasi
   </label>
-  <div className="rounded-xl overflow-hidden border border-gray-200">
+  <div className="rounded-xl overflow-hidden border border-gray-200 h-full" style={{ minHeight: "320px" }}>
     <LocationPickerMap
       onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
       initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
@@ -670,10 +678,8 @@ export default function DaftarLokasiPage() {
     </p>
   )}
 </div>
-
-      </div>
-
-      {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
+</div>
+   {error && <p className="text-red-500 text-xs text-center mt-4">{error}</p>}
       <div className="flex gap-3 mt-6">
         <button onClick={() => { setEditPlace(null); setError(""); }} className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm">Batal</button>
         <button onClick={handleEdit} disabled={loading} className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50">
@@ -681,8 +687,13 @@ export default function DaftarLokasiPage() {
         </button>
       </div>
     </div>
-  </div>
+</div>
+
+     
+    
+  
 )}
+
 
       {/* Konfirmasi Delete */}
       {showDeleteConfirm && (

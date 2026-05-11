@@ -263,10 +263,6 @@ const handleBacaNotif = async (newsId: number) => {
         </nav>
 
        <div className="flex items-center gap-3">
-  <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
-    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
-    </svg>
     {/* Notifikasi */}
 <div className="relative">
   <button
@@ -320,7 +316,15 @@ const handleBacaNotif = async (newsId: number) => {
     </div>
   )}
 </div>
+  
 
+  <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
+    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+    </svg>
+
+    
+    
     <input
       value={search}
       onChange={(e) => setSearch(e.target.value)}
