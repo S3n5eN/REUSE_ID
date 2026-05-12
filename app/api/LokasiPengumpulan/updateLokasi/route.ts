@@ -1,17 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
+import { lokasiPengumpulan } from "@/types/lokasiPengumpulan";
 import { NextRequest, NextResponse } from "next/server";
 
 async function updateLokasi(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body: Omit<lokasiPengumpulan, "keyLocation"> = await req.json();
 
     if (!body.id || !body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam || body.latitude === undefined || body.latitude === null || body.longitude === undefined || body.longitude === null) {
       return NextResponse.json({ message: "Semua field harus diisi" }, { status: 400 });
     }
 
     const isExist = await prisma.place.findFirst({
-      where: { id: body.id },
+      where: { id: Number(body.id) },
     });
 
     if (!isExist) {
@@ -21,7 +22,7 @@ async function updateLokasi(req: NextRequest) {
     const isDuplicate = await prisma.place.findFirst({
       where: {
         name: body.locationName,
-        NOT: { id: body.id },
+        NOT: { id: Number(body.id) },
       },
     });
 
@@ -30,7 +31,7 @@ async function updateLokasi(req: NextRequest) {
     }
 
     await prisma.place.update({
-      where: { id: body.id },
+      where: { id: Number(body.id) },
       data: {
         name: body.locationName,
         address: body.address,

@@ -4,6 +4,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function getDashboard(req: NextRequest) {
   try {
+    const placeId = req.cookies.get("placeId")?.value;
+
+    if (!placeId) {
+      return NextResponse.json(
+        { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
+        { status: 400 },
+      );
+    }
 
     const [
       totalItem,
@@ -21,14 +29,16 @@ async function getDashboard(req: NextRequest) {
       // ITEM PENDING APPROVAL
       prisma.item.count({
         where: {
-          status: "PendingApproval"
+          status: "PendingApproval",
+          placeId: Number(placeId)
         }
       }),
 
       // ITEM TERSEDIA
       prisma.item.count({
         where: {
-          status: "Tersedia"
+          status: "Tersedia",
+          placeId: Number(placeId)
         }
       }),
 
@@ -45,7 +55,8 @@ async function getDashboard(req: NextRequest) {
       // TABEL PENDING
       prisma.item.findMany({
         where: {
-          status: "PendingApproval"
+          status: "PendingApproval",
+          placeId: Number(placeId)
         },
 
         include: {
@@ -67,7 +78,7 @@ async function getDashboard(req: NextRequest) {
       prisma.shipment.groupBy({
         by: ["status"],
         
-        where: {type: "claim"},
+        where: {type: "claim", item: {placeId: Number(placeId)}},
 
         _count: {
           status: true,

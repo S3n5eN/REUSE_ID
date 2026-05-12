@@ -294,7 +294,7 @@ const handleBacaNotif = async (newsId: number) => {
         {notifikasi.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-6">Tidak ada notifikasi</p>
         ) : (
-          notifikasi.map((n) => (
+          (notifikasi).map((n) => (
             <div
               key={n.id}
               onClick={() => {

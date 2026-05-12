@@ -2,13 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { lokasiPengumpulan } from "@/types/lokasiPengumpulan";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcrypt";
 
 async function tambahLokasi(req: NextRequest){
     try {
         const body: lokasiPengumpulan = await req.json();
-        console.log("Body diterima:", body);
         // ==== Cek apakah semua data yang diminta sudah terisi ====
-        if (!body.locationName || !body.address || !body.managerName || !body.managerPhone || !body.operationalJam || !body.latitude || !body.longitude) {
+        if (!body.locationName || !body.address || !body.managerName || !body.keyLocation || !body.managerPhone || !body.operationalJam || !body.latitude || !body.longitude) {
             return NextResponse.json({ message: "Semua field harus diisi" }, { status: 400 });
         }
 
@@ -20,11 +20,14 @@ async function tambahLokasi(req: NextRequest){
             return NextResponse.json({ message: "Nama lokasi pengumpulan sudah ada" }, { status: 400 });
         }
 
+        const hashKey = await bcrypt.hash(body.keyLocation, 10);
+
         await prisma.place.create({
             data: {
                 name: body.locationName,
                 address: body.address,
                 managerName: body.managerName,
+                keyLocation: hashKey,
                 managerPhone: body.managerPhone,
                 operationalJam: body.operationalJam,
                 latitude: body.latitude,

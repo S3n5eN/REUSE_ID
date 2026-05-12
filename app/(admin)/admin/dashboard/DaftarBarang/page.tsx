@@ -19,6 +19,13 @@ type Item = {
   place?: {id: number; name: string };
 };
 
+type Rak = {
+  id: number;
+  nomor: string;
+  kapasitasMax: number;
+  kapasitasSekarang: number;
+};
+
 type QualityValue = "SangatBaik" | "Baik" | "CukupBaik" | "Layak" | "CukupLayak";
 
 const QUALITY_OPTIONS: { value: QualityValue; label: string }[] = [
@@ -83,18 +90,21 @@ function SkeletonCard() {
 
 function ItemCard({
   item,
+  raks,
   onApprove,
   onReject,
   loading,
   index,
 }: {
   item: Item;
-  onApprove: (id: number, quality: QualityValue) => void;
+  raks: Rak[];
+  onApprove: (id: number, quality: QualityValue, rakId: number) => void;
   onReject: (id: number) => void;
   loading: boolean;
   index: number;
 }) {
   const [selectedQuality, setSelectedQuality] = useState<QualityValue | "">("");
+  const [selectedRak, setSelectedRak] = useState<number | "">("");
   const [exiting, setExiting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -104,9 +114,9 @@ function ItemCard({
   }, [index]);
 
   const handleApprove = () => {
-    if (!selectedQuality) return;
+    if (!selectedQuality || !selectedRak) return;
     setExiting(true);
-    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue), 350);
+    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number), 350);
   };
 
   const handleReject = () => {
@@ -184,7 +194,7 @@ function ItemCard({
         {/* Actions */}
         <div className="flex items-center gap-2 flex-wrap mt-0.5">
           <select
-            className="text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] cursor-pointer flex-1 min-w-[160px] max-w-[230px] outline-none focus:border-[#1D9E75] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] cursor-pointer flex-1 min-w-[140px] max-w-[200px] outline-none focus:border-[#1D9E75] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             value={selectedQuality}
             onChange={(e) =>
               setSelectedQuality(e.target.value as QualityValue | "")
@@ -192,7 +202,7 @@ function ItemCard({
             disabled={loading}
           >
             <option value="" disabled>
-              Pilih kualitas untuk verifikasi
+              Pilih kualitas
             </option>
             {QUALITY_OPTIONS.map((q) => (
               <option key={q.value} value={q.value}>
@@ -201,8 +211,26 @@ function ItemCard({
             ))}
           </select>
 
-          {/* Approve — shown only when quality selected */}
-          {selectedQuality && (
+          <select
+            className="text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] cursor-pointer flex-1 min-w-[140px] max-w-[200px] outline-none focus:border-[#1D9E75] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            value={selectedRak}
+            onChange={(e) =>
+              setSelectedRak(Number(e.target.value))
+            }
+            disabled={loading}
+          >
+            <option value="" disabled>
+              Pilih Rak
+            </option>
+            {raks.map((r) => (
+              <option key={r.id} value={r.id} disabled={r.kapasitasSekarang >= r.kapasitasMax}>
+                Rak {r.nomor} ({r.kapasitasSekarang}/{r.kapasitasMax})
+              </option>
+            ))}
+          </select>
+
+          {/* Approve — shown only when quality and rak selected */}
+          {selectedQuality && selectedRak && (
             <button
               onClick={handleApprove}
               disabled={loading}
@@ -276,39 +304,71 @@ export default function DaftarBarangPendingPage() {
   const [pendingItems, setPendingItems] = useState<Item[]>([]);
   const [approvedItems, setApprovedItems] = useState<Item[]>([]);
   const [places, setPlaces] = useState<{ id: number; name: string }[]>([]);
+  const [raks, setRaks] = useState<Rak[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const items = (activeTab === "pending" ? pendingItems : approvedItems)
-    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
-    .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);  
+// Tambahkan fallback [] agar tidak error saat data belum siap
+const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? []))
+  .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
+  .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);
 
   const fetchItems = async () => {
   setFetchLoading(true);
   try {
-    const [pendingRes, approvedRes,placesRes] = await Promise.all([
+    const [pendingRes, approvedRes, placesRes, rakRes] = await Promise.all([
       fetch("/api/Barang/getItemPending"),
       fetch("/api/Barang/getItemApprove"),
-      fetch("/api/LokasiPengumpulan/getPlace")
+      fetch("/api/LokasiPengumpulan/getPlace"),
+      fetch("/api/Admin/kelolaRak")
     ]);
 
-    const pendingText = await pendingRes.text();
-    const approvedText = await approvedRes.text();
-    const placesText = await placesRes.text();
+    // Fungsi pembantu agar tidak repetitif dan aman
+    const safeParse = async (res) => {
+      try {
+        const text = await res.text();
+        if (!res.ok) {
+          console.error(`API Error (${res.status}):`, text);
+          return [];
+        }
+        const data = JSON.parse(text);
+        return Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.error("Parse Error:", e);
+        return [];
+      }
+    };
 
-    try { setPendingItems(JSON.parse(pendingText)); } catch { setPendingItems([]); }
-    try { setApprovedItems(JSON.parse(approvedText)); } catch { setApprovedItems([]); }
-    try {
-      const placesList = JSON.parse(placesText);
-      setPlaces(Array.isArray(placesList) ? placesList : []);
-    } catch { setPlaces([]); }  
+    // Eksekusi parse untuk masing-masing response
+    const pendingData = await safeParse(pendingRes);
+    const approvedData = await safeParse(approvedRes);
+    const placesData = await safeParse(placesRes);
+
+    let rakData = [];
+    if (rakRes.ok) {
+      const parsedRak = await rakRes.json();
+      rakData = parsedRak.data || [];
+    }
+
+    // Set ke state menggunakan variabel asli
+    setPendingItems(pendingData);
+    setApprovedItems(approvedData);
+    setPlaces(placesData);
+    setRaks(rakData);
+
+  } catch (error) {
+    console.error("Network/Unexpected Error:", error);
+    setPendingItems([]);
+    setApprovedItems([]);
+    setPlaces([]);
+    setRaks([]);
   } finally {
     setFetchLoading(false);
   }
-  };
+};
   useEffect(() => {
     fetchItems();
   }, []);
@@ -318,13 +378,13 @@ export default function DaftarBarangPendingPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleApprove = async (shipmentId: number, quality: QualityValue) => {
+  const handleApprove = async (shipmentId: number, quality: QualityValue, rakId: number) => {
     try {
       setLoading(true);
       const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId, action: "Approve", quality }),
+        body: JSON.stringify({ shipmentId, action: "Approve", quality, rakId }),
       });
       const text = await res.text();
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
@@ -462,15 +522,16 @@ export default function DaftarBarangPendingPage() {
 
         {/* ── Item list ── */}
 {!fetchLoading && items.map((item, i) => (
-  activeTab === "pending" ? (
-    <ItemCard
-      key={item.id}
-      item={item}
-      index={i}
-      onApprove={handleApprove}
-      onReject={handleReject}
-      loading={loading}
-    />
+          activeTab === "pending" ? (
+            <ItemCard
+              key={item.id}
+              item={item}
+              raks={raks}
+              index={i}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              loading={loading}
+            />
   ) : (
     <div
       key={item.id}

@@ -10,7 +10,7 @@ const LocationPickerMap = dynamic(
   () => import("@/components/locationPickerMap"),
   {
     ssr: false,
-  }
+  },
 );
 
 export default function FormDataDiri() {
@@ -116,7 +116,6 @@ export default function FormDataDiri() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-10">
       <div className="relative bg-white w-full max-w-6xl p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        
         {/* Title */}
         <h2 className="text-center text-sm font-semibold tracking-widest uppercase text-gray-700 mb-8">
           Data Diri Penerima
@@ -130,9 +129,7 @@ export default function FormDataDiri() {
         )}
 
         <form onSubmit={handleSubmit} className="relative z-10">
-
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-
             {/* Nama Lengkap */}
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-gray-500 mb-1">
@@ -231,12 +228,10 @@ export default function FormDataDiri() {
                 </p>
               )}
             </div>
-
           </div>
 
           {/* Buttons */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t">
-
             {/* Button Kembali */}
             <Link href="/dashboard">
               <button
@@ -254,9 +249,7 @@ export default function FormDataDiri() {
             >
               Submit
             </button>
-
           </div>
-
         </form>
       </div>
     </div>

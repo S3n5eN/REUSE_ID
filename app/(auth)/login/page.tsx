@@ -125,7 +125,7 @@ export default function LoginPage() {
 
       setTimeout(() => {
         if (data.role === "admin") {
-          router.push("/admin/dashboard");
+          router.push("/admin/keyGate");
         } else {
           router.push("/dashboard");
         }

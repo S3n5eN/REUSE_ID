@@ -20,7 +20,7 @@ async function getMyBarang(req: NextRequest, decoded: { id: string }) {
     let response;
     if (action === "Semua") {
       response = await prisma.shipment.findMany({
-        where: { userId: Number(decoded.id) },
+        where: { userId: Number(decoded.id), type: "claim" },
         include: {
           item: { include: { user: true } },
         },

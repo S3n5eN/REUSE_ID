@@ -3,13 +3,25 @@ import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
 
-async function getPenerimaApprove(decoded: { id: number }) {
+async function getPenerimaApprove(req: NextRequest, decoded: { id: number }) {
     try {
+        const placeId = req.cookies.get("placeId")?.value;
+
+        if (!placeId) {
+            return NextResponse.json(
+                { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
+                { status: 400 },
+            );
+        }
+
         const response = await prisma.shipment.findMany({
             where: {
                 claimType: { not: null },
                 status: "Approved",
-                type: "claim"
+                type: "claim",
+                item: {
+                    placeId: Number(placeId),
+                }
             },
             include: {
                 userProfile: true,

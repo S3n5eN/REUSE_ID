@@ -1,23 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 async function TambahRak(req: NextRequest, decoded: { id: string }) {
   try {
     // ==== arrRak ini buat kumpulan Rak dalam bentuk array, ini biar Frontend bisa kirim banyak rak sekaligus, jadi cuman butuh 1 request aja ====
-    const { arrRak, placeId } = await req.json();
+    const { arrRak } = await req.json();
+    const placeIdStr = req.cookies.get("placeId")?.value;
 
-    if (!arrRak || !placeId) {
+    if (!arrRak || !placeIdStr) {
       return new Response(
         JSON.stringify({ message: "Rak dan Place ID harus diisi" }),
         { status: 400 },
       );
     }
+    const placeId = Number(placeIdStr);
 
     await prisma.rak.createMany({
-      data: arrRak.map((rak: { nomorRak: string; maxKapasitas: number }) => ({
+      data: arrRak.map((rak: { nomorRak: string; kapasitasMax: number }) => ({
         nomor: rak.nomorRak,
-        maxKapasitas: rak.maxKapasitas,
+        kapasitasMax: Number(rak.kapasitasMax),
         placeId: placeId,
       })),
     });
@@ -36,8 +39,7 @@ async function TambahRak(req: NextRequest, decoded: { id: string }) {
 
 async function getAllRak(req: NextRequest, decoded: { id: string }) {
   try {
-    const { searchParams } = new URL(req.url);
-    const placeId = searchParams.get("placeId");
+    const placeId = req.cookies.get("placeId")?.value;
 
     if (!placeId) {
       return NextResponse.json(
@@ -48,10 +50,18 @@ async function getAllRak(req: NextRequest, decoded: { id: string }) {
 
     const koleksiRak = await prisma.rak.findMany({
       where: { placeId: Number(placeId) },
+      include: {
+        item: true,
+      },
+    });
+
+    const placeInfo = await prisma.place.findUnique({
+      where: { id: Number(placeId) },
+      select: { name: true, address: true, managerName: true },
     });
 
     return NextResponse.json(
-      { message: "Rak berhasil diambil", data: koleksiRak },
+      { message: "Rak berhasil diambil", data: koleksiRak, place: placeInfo },
       { status: 200 },
     );
   } catch {
@@ -79,13 +89,15 @@ async function deleteRak(req: NextRequest, decoded: { id: string }) {
     }
 
     const rakTerisi = await prisma.rak.findMany({
-      where: { id: { in: rakIds }, kapasitasSekarang: { gt: 0} },
-    })
+      where: { id: { in: rakIds }, kapasitasSekarang: { gt: 0 } },
+    });
 
     if (rakTerisi.length > 0) {
-      const idRakTerisi = rakTerisi.map(rak => rak.id).join(", ");
+      const idRakTerisi = rakTerisi.map((rak) => rak.id).join(", ");
       return NextResponse.json(
-        { message: `Tidak dapat menghapus Rak dengan ID ${idRakTerisi} karena masih terisi` },
+        {
+          message: `Tidak dapat menghapus Rak dengan ID ${idRakTerisi} karena masih terisi`,
+        },
         { status: 400 },
       );
     }

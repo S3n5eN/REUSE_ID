@@ -75,24 +75,24 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
         }),
       ]);
       return NextResponse.json(
-      {
-        message: "Barang berhasil dikonfirmasi diterima",
-        poinDiberikan: tambahPoin,
-      },
-      { status: 200 })
+        {
+          message: "Barang berhasil dikonfirmasi diterima",
+          poinDiberikan: tambahPoin,
+        },
+        { status: 200 },
+      );
     } else if (action === "reject") {
       await prisma.$transaction([
         prisma.shipment.delete({
-          where: { id: Number(shipmentId)}
+          where: { id: Number(shipmentId) },
         }),
         prisma.item.update({
-          where: { id: Number(isShipmenttExist.itemId)},
-          data: { status: "Tersedia"}
-        })
-      ])
-      return NextResponse.json({message: "Barang ditolak"}, { status: 200 })
+          where: { id: Number(isShipmenttExist.itemId) },
+          data: { status: "Tersedia" },
+        }),
+      ]);
+      return NextResponse.json({ message: "Barang ditolak" }, { status: 200 });
     }
-    
   } catch (error) {
     console.error("Error konfirmasi terima:", error);
     return NextResponse.json(

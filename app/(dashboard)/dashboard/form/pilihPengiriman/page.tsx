@@ -69,6 +69,9 @@ export default function FormPilihPengiriman() {
       setErrorMsg("Gagal terhubung ke server. Periksa koneksi internetmu.");
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        router.push("/dashboard"); 
+      }, 3000)
     }
   };
 

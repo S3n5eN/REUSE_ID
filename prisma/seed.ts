@@ -4,7 +4,7 @@ import "dotenv/config";
 
 export async function main() {
   // ==== Place ====
-  const place = await prisma.place.upsert({
+  const place1 = await prisma.place.upsert({
     where: { id: 1 },
     update: {},
     create: {
@@ -12,11 +12,49 @@ export async function main() {
       address: "Jl. Sudirman No. 1, Bandung",
       managerName: "Budi Santoso",
       managerPhone: "08123456789",
+      keyLocation: await bcrypt.hash("GDGBDG", 10),
       operationalJam: "08:00 - 17:00",
       latitude: -6.9175,
       longitude: 107.6191,
     },
   });
+
+  const place2 = await prisma.place.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      name: "Gudang Jakarta",
+      address: "Jl. Sudirman No. 2, Jakarta",
+      managerName: "Siti Aminah",
+      managerPhone: "08123456789",
+      keyLocation: await bcrypt.hash("GDKBJKT", 10),
+      operationalJam: "08:00 - 17:00",
+      latitude: -6.2088,
+      longitude: 106.8456,
+    },
+  });
+
+  // ==== Rak Gudang Bandung ====
+await prisma.rak.createMany({
+  data: [
+    { nomor: "A1", kapasitasMax: 20, placeId: place1.id },
+    { nomor: "A2", kapasitasMax: 15, placeId: place1.id },
+    { nomor: "B1", kapasitasMax: 30, placeId: place1.id },
+    { nomor: "B2", kapasitasMax: 10, placeId: place1.id },
+    { nomor: "C1", kapasitasMax: 25, placeId: place1.id },
+  ]
+});
+
+// ==== Rak Gudang Jakarta ====
+await prisma.rak.createMany({
+  data: [
+    { nomor: "A1", kapasitasMax: 50, placeId: place2.id },
+    { nomor: "A2", kapasitasMax: 35, placeId: place2.id },
+    { nomor: "B1", kapasitasMax: 20, placeId: place2.id },
+    { nomor: "B2", kapasitasMax: 40, placeId: place2.id },
+    { nomor: "C1", kapasitasMax: 15, placeId: place2.id },
+  ]
+});
 
   // ==== Admin ====
   const admin = await prisma.admin.upsert({
@@ -26,8 +64,17 @@ export async function main() {
       name: "adminOne",
       email: "adminone@gmail.com",
       password: await bcrypt.hash("Password123", 10),
-      place: { connect: { id: place.id } },
     },
+  });
+
+  await prisma.place.update({
+    where: { id: place1.id },
+    data: { admin: { connect: { id: admin.id } } },
+  });
+
+  await prisma.place.update({
+    where: { id: place2.id },
+    data: { admin: { connect: { id: admin.id } } },
   });
 
   // ==== User Donatur ====
@@ -78,7 +125,7 @@ export async function main() {
       imageData: "",
       imageType: "image/webp",
       userId: donatur.id,
-      placeId: place.id,
+      placeId: place1.id,
       status: "PendingApproval",
     },
   });
@@ -101,7 +148,7 @@ export async function main() {
       imageData: "",
       imageType: "image/webp",
       userId: donatur.id,
-      placeId: place.id,
+      placeId: place2.id,
       status: "Tersedia",
       quality: "Baik",
     },
@@ -127,7 +174,7 @@ export async function main() {
       imageData: "",
       imageType: "image/webp",
       userId: donatur.id,
-      placeId: place.id,
+      placeId: place2.id,
       status: "Diambil",
       quality: "CukupBaik",
     },
@@ -166,7 +213,7 @@ export async function main() {
       imageData: "",
       imageType: "image/webp",
       userId: donatur.id,
-      placeId: place.id,
+      placeId: place1.id,
       status: "Diambil",
       quality: "SangatBaik",
     },

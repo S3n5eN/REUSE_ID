@@ -26,12 +26,9 @@ model admin {
   name     String
   email    String     @unique(map: "Admin_email_key")
   password String
-  placeId  Int?
-  place    place?     @relation(fields: [placeId], references: [id], map: "Admin_placeId_fkey")
+  place    place[]
   news     news[]
   shipment shipment[]
-
-  @@index([placeId], map: "Admin_placeId_fkey")
 }
 
 model place {
@@ -41,6 +38,7 @@ model place {
   managerName    String
   managerPhone   String
   operationalJam String
+  keyLocation    String
   latitude       Float?
   longitude      Float?
   admin          admin[]

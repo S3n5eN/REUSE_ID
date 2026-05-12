@@ -13,7 +13,9 @@ import {
   X,
   MapPin,
   UserPen,
-  Newspaper
+  Newspaper,
+  Warehouse,
+  ShelvingUnit
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/public/Logo/Logo.svg";
@@ -68,9 +70,22 @@ const menuItems: MenuItem[] = [
   },
   {
     id: "kelola-lokasi",
-    label: "Kelola Lokasi",
+    label: "Gudang",
     icon: <MapPin size={18} />,
-    to: "/admin/dashboard/kelolaLokasi",
+    children: [
+      {
+        id: "daftar-lokasi",
+        label: "Kelola Gudang",
+        icon: <Warehouse size={15} />,
+        to: "/admin/dashboard/kelolaLokasi",
+      },
+      {
+        id: "daftar-rak",
+        label: "Kelola Rak",
+        icon: <ShelvingUnit size={15} />,
+        to: "/admin/dashboard/kelolaRak",
+      }
+    ]
   }, {
     id: "kelola-Berita",
     label: "Kelola Berita",

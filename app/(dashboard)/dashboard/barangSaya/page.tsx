@@ -7,12 +7,7 @@ import Link from "next/link";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ShipmentStatus = "Pending" | "Approved" | "Rejected" | "Delivered";
-type ItemQuality =
-  | "SangatBaik"
-  | "Baik"
-  | "CukupBaik"
-  | "Layak"
-  | "CukupLayak";
+type ItemQuality = "SangatBaik" | "Baik" | "CukupBaik" | "Layak" | "CukupLayak";
 
 interface Place {
   id: number;
@@ -93,7 +88,10 @@ const QUALITY_LABEL: Record<ItemQuality, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getStatusBadge(status: ShipmentStatus): { label: string; cls: string } {
+function getStatusBadge(status: ShipmentStatus): {
+  label: string;
+  cls: string;
+} {
   return {
     Pending: { label: "Pilih Pengiriman", cls: "bg-amber-50 text-amber-700" },
     Approved: { label: "Disetujui", cls: "bg-teal-50 text-teal-700" },
@@ -104,7 +102,7 @@ function getStatusBadge(status: ShipmentStatus): { label: string; cls: string } 
 
 function getCtaConfig(
   status: ShipmentStatus,
-  claimType?: string | null
+  claimType?: string | null,
 ): { label: string; cls: string } {
   if (status === "Delivered") {
     return { label: "Selesai Diterima", cls: "bg-teal-700 text-white" };
@@ -113,7 +111,10 @@ function getCtaConfig(
     return { label: "Sedang Diantar", cls: "bg-teal-700 text-white" };
   }
   if (status === "Approved" && claimType === "pickup") {
-    return { label: "Menunggu diambil", cls: "border border-teal-600 text-teal-700 bg-white" };
+    return {
+      label: "Menunggu diambil",
+      cls: "border border-teal-600 text-teal-700 bg-white",
+    };
   }
   if (status === "Pending") {
     return { label: "Pilih Jenis Pengiriman", cls: "bg-teal-700 text-white" };
@@ -126,20 +127,22 @@ function getClaimTypeDisplay(claimType?: string | null): {
   isUnset: boolean;
 } {
   if (!claimType) return { label: "Belum Ditentukan", isUnset: true };
-  if (claimType === "delivery") return { label: "Kurir Eksternal", isUnset: false };
-  if (claimType === "pickup") return { label: "Pick-up Relawan", isUnset: false };
+  if (claimType === "delivery")
+    return { label: "Kurir Eksternal", isUnset: false };
+  if (claimType === "pickup")
+    return { label: "Pick-up Relawan", isUnset: false };
   return { label: claimType, isUnset: false };
 }
 
 function filterByTab(shipments: Shipment[], tab: TabKey): Shipment[] {
   if (tab === "Perjalanan") {
     return shipments.filter(
-      (s) => s.status === "Approved" && s.claimType === "delivery"
+      (s) => s.status === "Approved" && s.claimType === "delivery",
     );
   }
   if (tab === "AmbilSendiri") {
     return shipments.filter(
-      (s) => s.status === "Approved" && s.claimType === "pickup"
+      (s) => s.status === "Approved" && s.claimType === "pickup",
     );
   }
   return shipments;
@@ -264,7 +267,9 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="text-sm text-slate-600">{item.place.name}</span>
+                <span className="text-sm text-slate-600">
+                  {item.place.name}
+                </span>
               </div>
             )}
 
@@ -291,8 +296,22 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <rect x="1" y="3" width="15" height="13" rx="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8h4l3 5v4h-7V8z" />
+                  <rect
+                    x="1"
+                    y="3"
+                    width="15"
+                    height="13"
+                    rx="2"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 8h4l3 5v4h-7V8z"
+                  />
                   <circle cx="5.5" cy="18.5" r="1.5" strokeWidth={2} />
                   <circle cx="18.5" cy="18.5" r="1.5" strokeWidth={2} />
                 </svg>
@@ -385,11 +404,20 @@ export default function BarangSayaPage() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (!res.ok) { router.replace("/login"); return; }
-        const data = await res.json();
-        if (!data.user?.id) { router.replace("/login"); return; }
-        setUserId(data.user.id);
+        const res = await fetch("/api/Pengguna", { 
+          headers: { "Content-Type": "application/json" },
+        });
+         const data = await res.json();
+        if (!res.ok) {
+          router.replace("/login");
+          return;
+        }
+       
+        if (!data.id) {
+          router.replace("/login");
+          return;
+        }
+        setUserId(data.id);
       } catch {
         router.replace("/login");
       }
@@ -406,8 +434,8 @@ export default function BarangSayaPage() {
       setError(null);
       try {
         const action = TAB_TO_ACTION[activeTab];
-        const res = await fetch(`/api/barang-saya?action=${action}`, {
-          credentials: "include",
+        const res = await fetch(`/api/Barang/getMyBarang?action=${action}`, {
+            headers: { "Content-Type": "application/json" },
         });
         if (!res.ok) {
           const body = await res.json();
@@ -433,11 +461,9 @@ export default function BarangSayaPage() {
 
   return (
     <main className="min-h-screen bg-[#F4F6F5] font-sans">
-
       {/* ── Header ── */}
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 pt-6 pb-0">
-
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 mb-5">
             <Link
@@ -486,7 +512,9 @@ export default function BarangSayaPage() {
                   />
                 </svg>
                 <div>
-                  <p className="font-bold text-lg leading-none">{totalBarang} Barang</p>
+                  <p className="font-bold text-lg leading-none">
+                    {totalBarang} Barang
+                  </p>
                   <p className="text-[10px] uppercase tracking-widest opacity-75 mt-0.5">
                     Total Kontribusi
                   </p>
@@ -505,9 +533,10 @@ export default function BarangSayaPage() {
                   onClick={() => setActiveTab(key)}
                   className={`
                     px-5 pb-3 pt-1 text-sm font-medium whitespace-nowrap border-b-2 transition-all
-                    ${isActive
-                      ? "border-teal-600 text-teal-700"
-                      : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ${
+                      isActive
+                        ? "border-teal-600 text-teal-700"
+                        : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                     }
                   `}
                 >
@@ -521,12 +550,13 @@ export default function BarangSayaPage() {
 
       {/* ── Body ── */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-
         {/* Error state */}
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="text-5xl mb-4">⚠️</span>
-            <p className="text-slate-700 font-semibold mb-1">Terjadi Kesalahan</p>
+            <p className="text-slate-700 font-semibold mb-1">
+              Terjadi Kesalahan
+            </p>
             <p className="text-slate-400 text-sm mb-5">{error}</p>
             <button
               onClick={() => {
@@ -544,12 +574,13 @@ export default function BarangSayaPage() {
         {/* Grid */}
         {!error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {loading
-              ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-              : displayed.length === 0
-              ? <EmptyState tab={activeTab} />
-              : displayed.map((s) => <ShipmentCard key={s.id} shipment={s} />)
-            }
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+            ) : displayed.length === 0 ? (
+              <EmptyState tab={activeTab} />
+            ) : (
+              displayed.map((s) => <ShipmentCard key={s.id} shipment={s} />)
+            )}
           </div>
         )}
       </div>

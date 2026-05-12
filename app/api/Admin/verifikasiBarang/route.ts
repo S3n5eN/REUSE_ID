@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
   try {
-    const { shipmentId, quality, action } = await req.json();
+    const { shipmentId, quality, action, rakId } = await req.json();
 
     if (!shipmentId || !action) {
       return NextResponse.json(
@@ -44,6 +44,17 @@ async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
         );
       }
 
+      const rak = await prisma.rak.findUnique({
+        where: { id: Number(rakId) },
+      });
+
+      if (rak?.kapasitasSekarang === rak?.kapasitasMax) {
+        return NextResponse.json(
+          { message: "Rak sudah penuh, pilih rak lain" },
+          { status: 400 },
+        );
+      }
+      
       const shipment = await prisma.shipment.update({
         where: { id: Number(shipmentId) },
         data: {
@@ -58,8 +69,16 @@ async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
         data: {
           status: "Tersedia",
           quality: quality as ItemQuality,
+          rakId: Number(rakId),
         },
       });
+
+      await prisma.rak.update({
+        where: { id: Number(rakId) },
+        data: {
+          kapasitasSekarang: { increment: 1 },
+        }
+      })
 
       return NextResponse.json(
         { message: "Barang berhasil diverifikasi" },
@@ -68,19 +87,12 @@ async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
     }
 
     if (action === "Reject") {
-      await prisma.shipment.update({
+      await prisma.shipment.delete({
         where: {id: Number(shipmentId)},
-        data: {
-          status: "Rejected",
-          adminId: Number(decoded.id),
-        }
       })
 
-      await prisma.item.update({
+      await prisma.item.delete({
         where: { id: isPending.itemId},
-        data: {
-          status: "Ditolak",
-        }
       })
       return NextResponse.json({message: "Barang ditolak"}, {status: 200});
     }

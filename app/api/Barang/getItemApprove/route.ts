@@ -2,15 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 import { protect } from "@/lib/protect";
 
-async function getItemApproved(req: Request) {
+async function getItemApproved(req: NextRequest) {
   try {
+    const placeId = req.cookies.get("placeId")?.value;
+
+    if (!placeId) {
+      return NextResponse.json(
+        { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
+        { status: 400 },
+      );
+    }
+
     const shipments = await prisma.shipment.findMany({
       where: {
         status: "Approved",
         type: "Donation",
 
         item: {
-          status: "Tersedia"
+          status: "Tersedia",
+          placeId: Number(placeId),
         }
       },
       include: {

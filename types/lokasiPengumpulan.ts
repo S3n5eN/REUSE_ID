@@ -3,6 +3,7 @@ export interface lokasiPengumpulan{
     locationName:string;
     address:string;
     managerName:string;
+    keyLocation:string;
     managerPhone:string;
     operationalJam:string;
     latitude: number;
