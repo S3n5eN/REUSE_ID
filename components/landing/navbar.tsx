@@ -45,7 +45,7 @@ export default function Navbar() {
           href="/register"
           className="border border-[#1A1A18] px-4 py-1.5 text-sm font-medium hover:bg-[#1A1A18] hover:text-[#F5F2EB] transition-colors"
         >
-          Daftar Gratis
+          Daftar
         </Link>
       </div>
     </div>

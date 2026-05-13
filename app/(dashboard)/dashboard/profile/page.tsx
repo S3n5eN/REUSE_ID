@@ -17,33 +17,78 @@ interface FormData {
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const ChevronLeftIcon = () => (
-  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+  <svg
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    viewBox="0 0 24 24"
+  >
     <polyline points="15 18 9 12 15 6" />
   </svg>
 );
 const CheckIcon = () => (
-  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+  <svg
+    width="13"
+    height="13"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    viewBox="0 0 24 24"
+  >
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 const ShieldIcon = () => (
-  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+  <svg
+    width="12"
+    height="12"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    viewBox="0 0 24 24"
+  >
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 const ClockIcon = () => (
-  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 15" />
+  <svg
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <polyline points="12 7 12 12 15 15" />
   </svg>
 );
 const LockIcon = () => (
-  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+  <svg
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
   </svg>
 );
 const UserIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-    <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+  <svg
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
   </svg>
 );
 const StarIcon = ({ size = 16 }: { size?: number }) => (
@@ -52,13 +97,27 @@ const StarIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 const MapPinIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+  <svg
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
     <circle cx="12" cy="10" r="3" />
   </svg>
 );
 const GiftIcon = () => (
-  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+  <svg
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
     <polyline points="20 12 20 22 4 22 4 12" />
     <rect x="2" y="7" width="20" height="5" />
     <line x1="12" y1="22" x2="12" y2="7" />
@@ -67,9 +126,18 @@ const GiftIcon = () => (
   </svg>
 );
 const DocIcon = () => (
-  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" viewBox="0 0 24 24">
+  <svg
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.7"
+    viewBox="0 0 24 24"
+  >
     <rect x="5" y="2" width="14" height="20" rx="2" />
-    <line x1="9" y1="7" x2="15" y2="7" /><line x1="9" y1="11" x2="15" y2="11" /><line x1="9" y1="15" x2="12" y2="15" />
+    <line x1="9" y1="7" x2="15" y2="7" />
+    <line x1="9" y1="11" x2="15" y2="11" />
+    <line x1="9" y1="15" x2="12" y2="15" />
   </svg>
 );
 
@@ -350,8 +418,14 @@ const STYLES = `
 `;
 
 // ── Leaflet Map ───────────────────────────────────────────────────────────────
-function LeafletMap({ lat, lng, onLocationSelect }: {
-  latitude: number; longitude: number; onLocationSelect: (latitude: number, longitude: number) => void;
+function LeafletMap({
+  lat,
+  lng,
+  onLocationSelect,
+}: {
+  latitude: number;
+  longitude: number;
+  onLocationSelect: (latitude: number, longitude: number) => void;
 }) {
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
@@ -375,15 +449,21 @@ function LeafletMap({ lat, lng, onLocationSelect }: {
       mapRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap", maxZoom: 19,
+        attribution: "© OpenStreetMap",
+        maxZoom: 19,
       }).addTo(map);
 
       const customIcon = L.divIcon({
         html: `<div style="width:28px;height:28px;background:#0d7a6e;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35);"></div>`,
-        iconSize: [28, 28], iconAnchor: [14, 28], className: "",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        className: "",
       });
 
-      const marker = L.marker([lat, lng], { icon: customIcon, draggable: true }).addTo(map);
+      const marker = L.marker([lat, lng], {
+        icon: customIcon,
+        draggable: true,
+      }).addTo(map);
       markerRef.current = marker;
 
       marker.on("dragend", (e: any) => {
@@ -406,7 +486,10 @@ function LeafletMap({ lat, lng, onLocationSelect }: {
     }
 
     return () => {
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
@@ -428,9 +511,13 @@ function LeafletMap({ lat, lng, onLocationSelect }: {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
   const router = useRouter();
-  const [activeMenu, setActiveMenu] = useState<"profil" | "riwayat" | "keamanan">("profil");
-  const [profileImage, setProfileImage] = useState("/api/Pengguna/photoProfile")
-  const fileInputRef = useRef <HTMLInputElement>(null)
+  const [activeMenu, setActiveMenu] = useState<
+    "profil" | "riwayat" | "keamanan"
+  >("profil");
+  const [profileImage, setProfileImage] = useState(
+    "/api/Pengguna/photoProfile",
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [penggunaName, setPenggunaName] = useState("Glen");
   const [isVerified, setIsVerified] = useState(true);
@@ -445,15 +532,30 @@ export default function ProfilePage() {
     pekerjaan: "",
     phone: "",
     address: "",
-    latitude: -6.9175, 
+    latitude: -6.9175,
     longitude: 107.6191,
   });
   const [originalForm, setOriginalForm] = useState<FormData>(form);
 
   const poinHistory = [
-    { desc: "Donasi Baju Bekas", date: "10 Mei 2026", val: +150, dot: "#0d7a6e" },
-    { desc: "Donasi Elektronik", date: "2 Mei 2026", val: +200, dot: "#0d7a6e" },
-    { desc: "Tukar Reward Voucher", date: "28 Apr 2026", val: -300, dot: "#ef4444" },
+    {
+      desc: "Donasi Baju Bekas",
+      date: "10 Mei 2026",
+      val: +150,
+      dot: "#0d7a6e",
+    },
+    {
+      desc: "Donasi Elektronik",
+      date: "2 Mei 2026",
+      val: +200,
+      dot: "#0d7a6e",
+    },
+    {
+      desc: "Tukar Reward Voucher",
+      date: "28 Apr 2026",
+      val: -300,
+      dot: "#ef4444",
+    },
     { desc: "Donasi Furnitur", date: "20 Apr 2026", val: +250, dot: "#0d7a6e" },
   ];
   const rewards = [
@@ -478,7 +580,9 @@ export default function ProfilePage() {
       const data = await res.json();
       setPenggunaName(data.namalengkap || data.profile?.nama || "—");
       setIsVerified(data.isVerified ?? false);
-      if (data.hasProfileImage){setProfileImage("/api/Pengguna/photoProfile");}
+      if (data.hasProfileImage) {
+        setProfileImage("/api/Pengguna/photoProfile");
+      }
       setJumlahDonasi(data.totalDonasi ?? 0);
       setMyPoin(data.poin ?? 0);
     } catch (error) {
@@ -530,7 +634,7 @@ export default function ProfilePage() {
         usia: "",
         gender: "Laki-laki",
         pekerjaan: "",
-        phone: "", 
+        phone: "",
         address: "",
         latitude: -6.9175,
         longitude: 107.6191,
@@ -540,7 +644,11 @@ export default function ProfilePage() {
 
   // ── API 3: PUT simpan profil ────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!form.namaLengkap.trim() || !form.email.trim() || !form.address.trim()) {
+    if (
+      !form.namaLengkap.trim() ||
+      !form.email.trim() ||
+      !form.address.trim()
+    ) {
       alert("Nama, email, dan alamat wajib diisi!");
       return;
     }
@@ -560,7 +668,9 @@ export default function ProfilePage() {
       if (res.ok && response.success) {
         setOriginalForm(form);
         if (!response.data?.isVerified) {
-          alert("Profile berhasil disimpan! Data sedang menunggu verifikasi admin.");
+          alert(
+            "Profile berhasil disimpan! Data sedang menunggu verifikasi admin.",
+          );
         } else {
           alert("Perubahan berhasil disimpan!");
         }
@@ -576,92 +686,84 @@ export default function ProfilePage() {
   };
 
   const handleCancel = () => setForm(originalForm);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleLocationSelect = (latitude: number, longitude: number) => setForm(p => ({ ...p, latitude, longitude }));
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleLocationSelect = (latitude: number, longitude: number) =>
+    setForm((p) => ({ ...p, latitude, longitude }));
 
-  const handleUploadPhoto = async (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    formData.append("foto", file);
+      formData.append("foto", file);
 
-    const res = await fetch(
-      "/api/Pengguna/photoProfile",
-      {
+      const res = await fetch("/api/Pengguna/photoProfile", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            "token"
-          )}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: formData,
+      });
+
+      const response = await res.json();
+
+      if (res.ok) {
+        alert("Foto profile berhasil diupload");
+
+        setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`);
+      } else {
+        alert(response.message);
       }
-    );
+    } catch (error) {
+      console.log(error);
 
-    const response = await res.json();
-
-    if (res.ok) {
-      alert("Foto profile berhasil diupload");
-
-      setProfileImage(
-        `/api/Pengguna/photoProfile?t=${Date.now()}`
-      );
-    } else {
-      alert(response.message);
+      alert("Terjadi kesalahan");
     }
-  } catch (error) {
-    console.log(error);
+  };
 
-    alert("Terjadi kesalahan");
-  }
-};
+  const handleDeletePhoto = async () => {
+    const confirmDelete = confirm("Yakin ingin menghapus foto profile?");
 
-const handleDeletePhoto = async () => {
-  const confirmDelete = confirm(
-    "Yakin ingin menghapus foto profile?"
-  );
+    if (!confirmDelete) return;
 
-  if (!confirmDelete) return;
-
-  try {
-    const res = await fetch(
-      "/api/Pengguna/photoProfile",
-      {
+    try {
+      const res = await fetch("/api/Pengguna/photoProfile", {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            "token"
-          )}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
+      });
+
+      const response = await res.json();
+
+      if (res.ok) {
+        alert("Foto berhasil dihapus");
+
+        setProfileImage(
+          "https://i.pinimg.com/236x/56/2e/be/562ebed9cd49b9a09baa35eddfe86b00.jpg",
+        );
+      } else {
+        alert(response.message);
       }
-    );
+    } catch (error) {
+      console.log(error);
 
-    const response = await res.json();
-
-    if (res.ok) {
-      alert("Foto berhasil dihapus");
-
-      setProfileImage(
-        "https://i.pinimg.com/236x/56/2e/be/562ebed9cd49b9a09baa35eddfe86b00.jpg"
-      );
-    } else {
-      alert(response.message);
+      alert("Terjadi kesalahan");
     }
-  } catch (error) {
-    console.log(error);
+  };
 
-    alert("Terjadi kesalahan");
-  }
-};
-
-  useEffect(() => { getPenggunaName(); getProfilData(); setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`) }, []);
+  useEffect(() => {
+    getPenggunaName();
+    getProfilData();
+    setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`);
+  }, []);
 
   return (
     <div className="rui-container">
@@ -678,26 +780,50 @@ const handleDeletePhoto = async () => {
         <aside className="rui-sidebar">
           <div className="rui-profile-card">
             <div className="rui-avatar-wrap">
-              <img src={profileImage} alt={penggunaName} onError={(e) => {
-                e.currentTarget.src = "https://i.pravatar.cc/104?img=68";}} />
-              <div className="rui-avatar-badge"><CheckIcon /></div>
-            </div>
-            <input type="file" accept="image/*" ref={fileInputRef} style={{display: "none"}} onChange={handleUploadPhoto}/>
-            <div style={{display: "flex", justifyContent: "center", gap: "8px", marginTop: "10px"}}>
-              <button onClick={() => fileInputRef.current?.click()} style={{
-                background: "#0d7a6e",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "12px",
+              <img
+                src={profileImage}
+                alt={penggunaName}
+                onError={(e) => {
+                  e.currentTarget.src = "https://i.pravatar.cc/104?img=68";
                 }}
-                > Ganti Foto
-              </button> 
+              />
+              <div className="rui-avatar-badge">
+                <CheckIcon />
+              </div>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleUploadPhoto}
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "8px",
+                marginTop: "10px",
+              }}
+            >
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: "#0d7a6e",
+                  color: "white",
+                  border: "none",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                }}
+              >
+                {" "}
+                Ganti Foto
+              </button>
 
-              <button 
+              <button
                 onClick={handleDeletePhoto}
                 style={{
                   background: "#ef4444",
@@ -709,28 +835,39 @@ const handleDeletePhoto = async () => {
                   fontWeight: 600,
                   fontSize: "12px",
                 }}
-                > Hapus  
+              >
+                {" "}
+                Hapus
               </button>
             </div>
             <div className="rui-profile-name">{penggunaName || "—"}</div>
             <div className="rui-profile-since">Donatur Aktif sejak 2023</div>
-            {isVerified
-              ? <div className="rui-badge-verified"><ShieldIcon /> AKUN TERVERIFIKASI</div>
-              : <div className="rui-badge-pending">⏳ MENUNGGU VERIFIKASI</div>}
+            {isVerified ? (
+              <div className="rui-badge-verified">
+                <ShieldIcon /> AKUN TERVERIFIKASI
+              </div>
+            ) : (
+              <div className="rui-badge-pending">⏳ MENUNGGU VERIFIKASI</div>
+            )}
           </div>
 
           {/* My Poin */}
           <div className="rui-poin-card">
             <div className="rui-poin-label">⭐ My Poin</div>
-            <div className="rui-poin-value">{myPoin.toLocaleString("id-ID")}</div>
+            <div className="rui-poin-value">
+              {myPoin.toLocaleString("id-ID")}
+            </div>
             <div className="rui-poin-sub">poin terkumpul</div>
             <div className="rui-poin-badges">
-              <div className="rui-poin-badge"><GiftIcon /> Donatur Aktif</div>
+              <div className="rui-poin-badge">
+                <GiftIcon /> Donatur Aktif
+              </div>
               <div className="rui-poin-badge">🔥 {jumlahDonasi}x Donasi</div>
             </div>
             <div className="rui-poin-progress-wrap">
               <div className="rui-poin-progress-label">
-                <span>Level Silver</span><span>2.000 → Gold</span>
+                <span>Level Silver</span>
+                <span>2.000 → Gold</span>
               </div>
               <div className="rui-poin-progress-bar">
                 <div className="rui-poin-progress-fill" />
@@ -739,7 +876,9 @@ const handleDeletePhoto = async () => {
           </div>
 
           <div className="rui-stat-card">
-            <div className="rui-stat-icon"><DocIcon /></div>
+            <div className="rui-stat-icon">
+              <DocIcon />
+            </div>
             <div>
               <div className="rui-stat-val">{jumlahDonasi}</div>
               <div className="rui-stat-lbl">Total Donasi</div>
@@ -748,15 +887,32 @@ const handleDeletePhoto = async () => {
 
           <div>
             <div className="rui-menu-title">Menu Akun</div>
-            {([
-              { key: "profil", label: "Edit Profil", icon: <UserIcon size={15} /> },
-              { key: "riwayat", label: "Riwayat Donasi", icon: <ClockIcon /> },
-              { key: "keamanan", label: "Pengaturan Keamanan", icon: <LockIcon /> },
-            ] as const).map(m => (
-              <button key={m.key}
+            {(
+              [
+                {
+                  key: "profil",
+                  label: "Edit Profil",
+                  icon: <UserIcon size={15} />,
+                },
+                {
+                  key: "riwayat",
+                  label: "Riwayat Donasi",
+                  icon: <ClockIcon />,
+                },
+                {
+                  key: "keamanan",
+                  label: "Pengaturan Keamanan",
+                  icon: <LockIcon />,
+                },
+              ] as const
+            ).map((m) => (
+              <button
+                key={m.key}
                 className={`rui-menu-item ${activeMenu === m.key ? "active" : ""}`}
-                onClick={() => setActiveMenu(m.key)}>
-                {m.icon}{m.label}
+                onClick={() => setActiveMenu(m.key)}
+              >
+                {m.icon}
+                {m.label}
               </button>
             ))}
           </div>
@@ -769,48 +925,100 @@ const handleDeletePhoto = async () => {
             <div className="rui-form-header">
               <div className="rui-form-header-text">
                 <h2>Informasi Pribadi</h2>
-                <p>Perbarui data diri Anda untuk memudahkan proses penjemputan barang.</p>
+                <p>
+                  Perbarui data diri Anda untuk memudahkan proses penjemputan
+                  barang.
+                </p>
               </div>
-              <div className="rui-form-header-icon"><DocIcon /></div>
+              <div className="rui-form-header-icon">
+                <DocIcon />
+              </div>
             </div>
             <div className="rui-form-grid">
               <div className="rui-field">
                 <label>Nama Lengkap</label>
-                <input className="rui-input" type="text" name="namaLengkap" value={form.namaLengkap} onChange={handleChange} />
+                <input
+                  className="rui-input"
+                  type="text"
+                  name="namaLengkap"
+                  value={form.namaLengkap}
+                  onChange={handleChange}
+                />
               </div>
               <div className="rui-field">
                 <label>Alamat Email</label>
-                <input className="rui-input" type="email" name="email" value={form.email} onChange={handleChange} />
+                <input
+                  className="rui-input"
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                />
               </div>
               <div className="rui-field">
                 <label>Usia</label>
-                <input className="rui-input" type="text" name="usia" value={form.usia} onChange={handleChange} />
+                <input
+                  className="rui-input"
+                  type="text"
+                  name="usia"
+                  value={form.usia}
+                  onChange={handleChange}
+                />
               </div>
               <div className="rui-field">
                 <label>Jenis Kelamin</label>
-                <select className="rui-select" name="gender" value={form.gender} onChange={handleChange}>
-                  <option>Laki-laki</option><option>Perempuan</option>
+                <select
+                  className="rui-select"
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleChange}
+                >
+                  <option>Laki-laki</option>
+                  <option>Perempuan</option>
                 </select>
               </div>
               <div className="rui-field">
                 <label>Pekerjaan</label>
-                <input className="rui-input" type="text" name="pekerjaan" value={form.pekerjaan} onChange={handleChange} />
+                <input
+                  className="rui-input"
+                  type="text"
+                  name="pekerjaan"
+                  value={form.pekerjaan}
+                  onChange={handleChange}
+                />
               </div>
               <div className="rui-field">
                 <label>Nomor Telepon</label>
                 <div className="rui-phone-row">
                   <div className="rui-phone-prefix">+62</div>
-                  <input className="rui-input rui-phone-input" type="tel" name="phine" value={form.phone} onChange={handleChange} />
+                  <input
+                    className="rui-input rui-phone-input"
+                    type="tel"
+                    name="phine"
+                    value={form.phone}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
               <div className="rui-field full">
                 <label>Alamat Rumah</label>
-                <textarea className="rui-textarea" name="address" value={form.address} onChange={handleChange} />
+                <textarea
+                  className="rui-textarea"
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
+                />
               </div>
             </div>
             <div className="rui-form-actions">
-              <button className="rui-btn-cancel" onClick={handleCancel}>Batalkan</button>
-              <button className="rui-btn-save" onClick={handleSave} disabled={isSaving}>
+              <button className="rui-btn-cancel" onClick={handleCancel}>
+                Batalkan
+              </button>
+              <button
+                className="rui-btn-save"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
                 {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </div>
@@ -819,10 +1027,14 @@ const handleDeletePhoto = async () => {
           {/* Map */}
           <div className="rui-map-card">
             <div className="rui-map-header">
-              <div className="rui-map-header-icon"><MapPinIcon size={16} /></div>
+              <div className="rui-map-header-icon">
+                <MapPinIcon size={16} />
+              </div>
               <div>
                 <h3>Lokasi Alamat</h3>
-                <p>Klik peta atau geser pin untuk menentukan lokasi rumah Anda</p>
+                <p>
+                  Klik peta atau geser pin untuk menentukan lokasi rumah Anda
+                </p>
               </div>
             </div>
             <LeafletMap
@@ -832,10 +1044,12 @@ const handleDeletePhoto = async () => {
             />
             <div className="rui-map-coords">
               <div className="rui-coord-pill">
-                <MapPinIcon size={10} /> Lat: <span>{(form.latitude ?? -6.9175).toFixed(5)}</span>
+                <MapPinIcon size={10} /> Lat:{" "}
+                <span>{(form.latitude ?? -6.9175).toFixed(5)}</span>
               </div>
               <div className="rui-coord-pill">
-                <MapPinIcon size={10} /> Lng: <span>{(form.longitude ?? 107.6191).toFixed(5)}</span>
+                <MapPinIcon size={10} /> Lng:{" "}
+                <span>{(form.longitude ?? 107.6191).toFixed(5)}</span>
               </div>
             </div>
           </div>
@@ -843,7 +1057,9 @@ const handleDeletePhoto = async () => {
           {/* My Poin Detail */}
           <div className="rui-poin-detail-card">
             <div className="rui-poin-detail-header">
-              <div className="rui-poin-detail-icon"><StarIcon size={17} /></div>
+              <div className="rui-poin-detail-icon">
+                <StarIcon size={17} />
+              </div>
               <div>
                 <h3>Riwayat & Reward Poin</h3>
                 <p>Tukarkan poin Anda dengan hadiah menarik</p>
@@ -853,14 +1069,20 @@ const handleDeletePhoto = async () => {
               {poinHistory.map((item, i) => (
                 <div className="rui-poin-item" key={i}>
                   <div className="rui-poin-item-left">
-                    <div className="rui-poin-item-dot" style={{ background: item.dot }} />
+                    <div
+                      className="rui-poin-item-dot"
+                      style={{ background: item.dot }}
+                    />
                     <div>
                       <div className="rui-poin-item-desc">{item.desc}</div>
                       <div className="rui-poin-item-date">{item.date}</div>
                     </div>
                   </div>
-                  <div className={`rui-poin-item-val ${item.val > 0 ? "pos" : "neg"}`}>
-                    {item.val > 0 ? "+" : ""}{item.val} poin
+                  <div
+                    className={`rui-poin-item-val ${item.val > 0 ? "pos" : "neg"}`}
+                  >
+                    {item.val > 0 ? "+" : ""}
+                    {item.val} poin
                   </div>
                 </div>
               ))}

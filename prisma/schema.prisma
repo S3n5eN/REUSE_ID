@@ -171,6 +171,14 @@ model userProfile {
   @@index([userId], map: "UserProfile_userId_fkey")
 }
 
+model passwordReset {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 enum ItemStatus {
   PendingApproval
   Tersedia

@@ -329,7 +329,7 @@ export default function LoginPage() {
 
                   <div className="flex justify-end mt-1">
                     <Link
-                      href="/forgot-password"
+                      href="/forgotPassword"
                       className="text-xs text-[#007582] hover:underline"
                     >
                       Lupa Password?
