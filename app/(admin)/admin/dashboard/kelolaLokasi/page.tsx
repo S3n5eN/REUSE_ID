@@ -42,6 +42,8 @@ export default function DaftarLokasiPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [placeId,setPlaceId] = useState<number | null>(null);
+  const [isGeneral,setIsGeneral] = useState(false);
   const [error, setError] = useState("");
   const [placeItems, setPlaceItems] = useState<PlaceItem[]>([]);
   const [fetchingItems, setFetchingItems] = useState(false);
@@ -53,10 +55,11 @@ export default function DaftarLokasiPage() {
     address: "",
     managerName: "",
     managerPhone: "",
-    jamBuka: "",
+    jamBuka: "",  
     jamTutup: "",
     latitude: "",
     longitude: "",
+    keyLocation:"",
   });
 
   const fetchPlaces = async () => {
@@ -70,6 +73,17 @@ export default function DaftarLokasiPage() {
       setPlaces([]);
     } finally {
       setFetching(false);
+    }
+  };
+
+  const fetchPlaceId = async () => {
+    try{
+      const res = await fetch("/api/Admin/getPlaceId");
+      const data = await res.json();
+      setPlaceId(data.placeId);
+      setIsGeneral(data.isGeneral);
+    } catch (err){
+      console.error("Gagal fetch placeId:",err);
     }
   };
 
@@ -88,6 +102,7 @@ export default function DaftarLokasiPage() {
 
   useEffect(() => {
     fetchPlaces();
+    fetchPlaceId();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,10 +110,14 @@ export default function DaftarLokasiPage() {
   };
 
   const handleTambah = async () => {
-  if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.jamBuka || !form.jamTutup || !form.latitude || !form.longitude) {
-    setError("Semua field harus diisi");
-    return;
-  }
+  if (!form.name || !form.address || !form.managerName || !form.managerPhone || !form.jamBuka || !form.jamTutup || !form.keyLocation) {
+  setError("Semua field harus diisi");
+  return;
+}
+if (!form.latitude || !form.longitude) {
+  setError("Pilih lokasi pada peta terlebih dahulu");
+  return;
+}
 
   if (isNaN(parseFloat(form.latitude)) || isNaN(parseFloat(form.longitude))) {
     setError("Latitude dan longitude harus berupa angka");
@@ -119,6 +138,8 @@ export default function DaftarLokasiPage() {
         operationalJam: `${form.jamBuka} - ${form.jamTutup}`,
         latitude: parseFloat(form.latitude),
         longitude: parseFloat(form.longitude),
+        keyLocation: form.keyLocation,
+
       }),
     });
     const data = await res.json();
@@ -127,7 +148,7 @@ export default function DaftarLokasiPage() {
       return;
     }
     await fetchPlaces();
-    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "" });
+    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "" ,keyLocation:""});
     setShowForm(false);
   } catch (err) {
     setError("Terjadi kesalahan, coba lagi");
@@ -161,6 +182,7 @@ export default function DaftarLokasiPage() {
         operationalJam: `${form.jamBuka} - ${form.jamTutup}`,
         latitude: parseFloat(form.latitude),
         longitude: parseFloat(form.longitude),
+        keyLocation: form.keyLocation,
       }),
     });
     const data = await res.json();
@@ -170,7 +192,7 @@ export default function DaftarLokasiPage() {
     }
     await fetchPlaces();
     setEditPlace(null);
-    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "" });
+    setForm({ name: "", address: "", managerName: "", managerPhone: "", jamBuka: "", jamTutup: "", latitude: "", longitude: "",keyLocation: "" });
   } catch (err) {
     setError("Terjadi kesalahan, coba lagi");
   } finally {
@@ -261,6 +283,7 @@ export default function DaftarLokasiPage() {
     jamTutup: jamTutup || "",
     latitude: place.latitude.toString(),
     longitude: place.longitude.toString(),
+    keyLocation: "",
   });
   setError("");
 };
@@ -447,24 +470,28 @@ export default function DaftarLokasiPage() {
               <button onClick={exitDeleteMode} className="px-4 py-2 text-sm border border-gray-300 text-gray-600 rounded-full hover:bg-gray-100 transition">
                 Batal
               </button>
-              <button
-                onClick={() => selectedIds.length > 0 && setShowDeleteConfirm(true)}
-                disabled={selectedIds.length === 0}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition disabled:opacity-40"
-              >
-                Hapus ({selectedIds.length})
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => setDeleteMode(true)} className="w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition" title="Hapus Lokasi">
-                🗑️
-              </button>
-              <button onClick={() => { setShowForm(true); setError(""); }} className="w-9 h-9 bg-teal-600 text-white rounded-full flex items-center justify-center hover:bg-teal-700 transition text-xl font-bold" title="Tambah Lokasi">
-                +
-              </button>
-            </>
-          )}
+                  <button
+      onClick={() => selectedIds.length > 0 && setShowDeleteConfirm(true)}
+      disabled={selectedIds.length === 0}
+      className="px-4 py-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition disabled:opacity-40"
+    >
+      Hapus ({selectedIds.length})
+    </button>
+  </>
+) : (
+  <>
+    {isGeneral && (
+      <>
+        <button onClick={() => setDeleteMode(true)} className="w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition" title="Hapus Lokasi">
+          🗑️
+        </button>
+        <button onClick={() => { setShowForm(true); setError(""); }} className="w-9 h-9 bg-teal-600 text-white rounded-full flex items-center justify-center hover:bg-teal-700 transition text-xl font-bold" title="Tambah Lokasi">
+          +
+        </button>
+      </>
+    )}
+  </>
+)}
         </div>
       </div>
 
@@ -475,8 +502,9 @@ export default function DaftarLokasiPage() {
         <p className="text-sm text-gray-400">Belum ada lokasi. Tambah lokasi baru dengan tombol +</p>
       ) : (
         <div className="flex flex-col gap-3 flex-1">
-          {places.map((place) => {
-            const isSelected = selectedIds.includes(place.id);
+          
+         {(isGeneral ? places : places.filter((p) => p.id === placeId)).map((place) => {
+          const isSelected = selectedIds.includes(place.id);
             return (
               <div
                 key={place.id}
@@ -512,7 +540,7 @@ export default function DaftarLokasiPage() {
                       </div>
                     </div>
                   </div>
-                  {!deleteMode && (
+                  {!deleteMode && (isGeneral || place.id === placeId) && (
                     <button
                       onClick={(e) => { e.stopPropagation(); openEdit(place); }}
                       className="text-gray-400 hover:text-teal-600 transition p-1 rounded-lg hover:bg-teal-50"
@@ -587,6 +615,7 @@ export default function DaftarLokasiPage() {
   </label>
  <div className="rounded-xl overflow-hidden border border-gray-200 h-full" style={{ minHeight: "320px" }}>
     <LocationPickerMap
+      key="tambah-map"
       onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
       initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
     />
@@ -596,6 +625,11 @@ export default function DaftarLokasiPage() {
       Lat: {parseFloat(form.latitude).toFixed(6)} | Lng: {parseFloat(form.longitude).toFixed(6)}
     </p>
   )}
+</div>
+<div>
+  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Passkey Gudang</label>
+  <input type="password" name="keyLocation" placeholder="Passkey untuk admin gudang ini" value={form.keyLocation} onChange={handleChange}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition" />
 </div>
 </div>
 
@@ -668,6 +702,7 @@ export default function DaftarLokasiPage() {
   </label>
   <div className="rounded-xl overflow-hidden border border-gray-200 h-full" style={{ minHeight: "320px" }}>
     <LocationPickerMap
+      key="edit-map"
       onLocationSelect={(lat, lng) => setForm({ ...form, latitude: lat.toString(), longitude: lng.toString() })}
       initialLocation={form.latitude && form.longitude ? [parseFloat(form.latitude), parseFloat(form.longitude)] : null}
     />

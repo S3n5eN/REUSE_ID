@@ -5,13 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
 async function getDashboard(req: NextRequest) {
   try {
     const placeId = req.cookies.get("placeId")?.value;
+    const isGeneral = !placeId || placeId === "";
 
-    if (!placeId) {
-      return NextResponse.json(
-        { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
-        { status: 400 },
-      );
-    }
+    // if (!placeId) {
+    //   return NextResponse.json(
+    //     { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
+    //     { status: 400 },
+    //   );
+    // }
 
     const [
       totalItem,
@@ -30,7 +31,7 @@ async function getDashboard(req: NextRequest) {
       prisma.item.count({
         where: {
           status: "PendingApproval",
-          placeId: Number(placeId)
+          ...(isGeneral ? {} : {placeId: Number(placeId)}),
         }
       }),
 
@@ -38,7 +39,7 @@ async function getDashboard(req: NextRequest) {
       prisma.item.count({
         where: {
           status: "Tersedia",
-          placeId: Number(placeId)
+          ...(isGeneral ? {} :{placeId: Number(placeId)}),
         }
       }),
 
@@ -56,7 +57,7 @@ async function getDashboard(req: NextRequest) {
       prisma.item.findMany({
         where: {
           status: "PendingApproval",
-          placeId: Number(placeId)
+          ...(isGeneral ? {} : { placeId: Number(placeId) }),
         },
 
         include: {
@@ -78,11 +79,12 @@ async function getDashboard(req: NextRequest) {
       prisma.shipment.groupBy({
         by: ["status"],
         
-        where: {type: "claim", item: {placeId: Number(placeId)}},
+        where: {type: "claim",...(isGeneral ? {} : { item: {placeId: Number(placeId)} }),
+      },
 
-        _count: {
-          status: true,
-        }
+        _count: 
+          {status: true}
+        
       })
     ]);
 
