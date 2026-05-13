@@ -538,6 +538,66 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Popup Berita */}
+{showBerita && beritaList.length > 0 && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    onClick={() => {
+      if (beritaIndex < beritaList.length - 1) {
+        setBeritaIndex(beritaIndex + 1);
+      } else {
+        setShowBerita(false);
+      }
+    }}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="relative w-full h-96">
+        <img
+          src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
+          alt={beritaList[beritaIndex].title}
+          className="w-full h-full object-contain"
+        />
+        <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+          {beritaIndex + 1} / {beritaList.length}
+        </div>
+      </div>
+
+      <div className="p-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">{beritaList[beritaIndex].title}</h2>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowBerita(false)}
+            className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm"
+          >
+            Tutup
+          </button>
+          {beritaIndex < beritaList.length - 1 ? (
+            <button
+              onClick={() => setBeritaIndex(beritaIndex + 1)}
+              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold flex items-center justify-center gap-2"
+            >
+              Berikutnya
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowBerita(false)}
+              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold"
+            >
+              Selesai
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       {/* CHATBOT */}
       <ReuseBot />
     </div>
