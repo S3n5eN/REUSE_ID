@@ -180,7 +180,7 @@ function ItemImage({
     <div className="relative w-full aspect-[16/10] rounded-t-2xl overflow-hidden bg-slate-100">
       {imgSrc ? (
         <img
-          src={imgSrc}
+          src={`/api/Barang/getImage/${item.id}`}
           alt={item.name}
           className="w-full h-full object-cover"
         />
@@ -204,7 +204,7 @@ function ItemImage({
 // ─── Shipment Card ────────────────────────────────────────────────────────────
 
 function ShipmentCard({ shipment }: { shipment: Shipment }) {
-  const { item, status, claimType } = shipment;
+  const { item, status, claimType, id, itemId } = shipment;
   const badge = getStatusBadge(status);
   const cta = getCtaConfig(status, claimType);
   const claimDisplay = getClaimTypeDisplay(claimType);
@@ -317,9 +317,8 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
                 </svg>
               )}
               <span
-                className={`text-sm ${
-                  claimDisplay.isUnset ? "text-red-500" : "text-slate-600"
-                }`}
+                className={`text-sm ${claimDisplay.isUnset ? "text-red-500" : "text-slate-600"
+                  }`}
               >
                 {claimDisplay.label}
               </span>
@@ -331,11 +330,20 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
         <div className="flex-1" />
 
         {/* CTA */}
-        <button
-          className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
-        >
-          {cta.label}
-        </button>
+        {status === "Pending" ? (
+          <Link
+            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}`}
+            className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
+          >
+            {cta.label}
+          </Link>
+        ) : (
+          <div
+            className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center border border-teal-200 bg-teal-50 text-teal-700`}
+          >
+            {cta.label}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -404,15 +412,15 @@ export default function BarangSayaPage() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const res = await fetch("/api/Pengguna", { 
+        const res = await fetch("/api/Pengguna", {
           headers: { "Content-Type": "application/json" },
         });
-         const data = await res.json();
+        const data = await res.json();
         if (!res.ok) {
           router.replace("/login");
           return;
         }
-       
+
         if (!data.id) {
           router.replace("/login");
           return;
@@ -435,7 +443,7 @@ export default function BarangSayaPage() {
       try {
         const action = TAB_TO_ACTION[activeTab];
         const res = await fetch(`/api/Barang/getMyBarang?action=${action}`, {
-            headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
         });
         if (!res.ok) {
           const body = await res.json();
@@ -533,10 +541,9 @@ export default function BarangSayaPage() {
                   onClick={() => setActiveTab(key)}
                   className={`
                     px-5 pb-3 pt-1 text-sm font-medium whitespace-nowrap border-b-2 transition-all
-                    ${
-                      isActive
-                        ? "border-teal-600 text-teal-700"
-                        : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ${isActive
+                      ? "border-teal-600 text-teal-700"
+                      : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                     }
                   `}
                 >

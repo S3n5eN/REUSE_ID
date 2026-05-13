@@ -15,8 +15,10 @@ type Item = {
   imageURL: string;
   status: string;
   quality?: string;
+  weight?: string;
   user?: { name: string };
-  place?: {id: number; name: string };
+  place?: { id: number; name: string };
+  rak?: { nomor: string };
 };
 
 type Rak = {
@@ -98,12 +100,13 @@ function ItemCard({
 }: {
   item: Item;
   raks: Rak[];
-  onApprove: (id: number, quality: QualityValue, rakId: number) => void;
+  onApprove: (id: number, quality: QualityValue, rakId: number, weight: string) => void;
   onReject: (id: number) => void;
   loading: boolean;
   index: number;
 }) {
   const [selectedQuality, setSelectedQuality] = useState<QualityValue | "">("");
+  const [weight, setWeight] = useState<string>("");
   const [selectedRak, setSelectedRak] = useState<number | "">("");
   const [exiting, setExiting] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -113,10 +116,13 @@ function ItemCard({
     return () => clearTimeout(t);
   }, [index]);
 
+
+
   const handleApprove = () => {
-    if (!selectedQuality || !selectedRak) return;
+    if (!selectedQuality || !selectedRak || weight === "" || parseFloat(weight) < 0) return;
     setExiting(true);
-    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number), 350);
+
+    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight));
   };
 
   const handleReject = () => {
@@ -181,6 +187,8 @@ function ItemCard({
             label="Kualitas"
             value={item.quality ?? "Belum diverifikasi"}
           />
+          <MetaField label="Berat Barang" value={item.weight ? `${item.weight} kg` : "—"} />
+          <MetaField label="Lokasi Rak" value={item.rak ? `Rak ${item.rak.nomor}` : "—"} />
         </div>
 
         {/* Description */}
@@ -193,6 +201,25 @@ function ItemCard({
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-wrap mt-0.5">
+          {/* Input Berat */}
+          <div className="relative flex-1 min-w-[100px] max-w-[120px]">
+            <input
+              type="number"
+              step="0.1"
+              min="0.0"
+              placeholder="Berat (kg)"
+              className="w-full text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] outline-none focus:border-[#1D9E75] transition-colors"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              disabled={loading}
+              onBlur={(e) => {
+                // Memastikan jika user input minus, otomatis jadi 0
+                if (parseFloat(e.target.value) < 0) setWeight("0");
+              }}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#1D9E75] font-bold">KG</span>
+          </div>
+
           <select
             className="text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] cursor-pointer flex-1 min-w-[140px] max-w-[200px] outline-none focus:border-[#1D9E75] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             value={selectedQuality}
@@ -311,68 +338,68 @@ export default function DaftarBarangPendingPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-// Tambahkan fallback [] agar tidak error saat data belum siap
-const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? []))
-  .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
-  .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);
+  // Tambahkan fallback [] agar tidak error saat data belum siap
+  const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? []))
+    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
+    .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);
 
   const fetchItems = async () => {
-  setFetchLoading(true);
-  try {
-    const [pendingRes, approvedRes, placesRes, rakRes] = await Promise.all([
-      fetch("/api/Barang/getItemPending"),
-      fetch("/api/Barang/getItemApprove"),
-      fetch("/api/LokasiPengumpulan/getPlace"),
-      fetch("/api/Admin/kelolaRak")
-    ]);
+    setFetchLoading(true);
+    try {
+      const [pendingRes, approvedRes, placesRes, rakRes] = await Promise.all([
+        fetch("/api/Barang/getItemPending"),
+        fetch("/api/Barang/getItemApprove"),
+        fetch("/api/LokasiPengumpulan/getPlace"),
+        fetch("/api/Admin/kelolaRak")
+      ]);
 
-    // Fungsi pembantu agar tidak repetitif dan aman
-    const safeParse = async (res) => {
-      try {
-        const text = await res.text();
-        if (!res.ok) {
-          console.error(`API Error (${res.status}):`, text);
+      // Fungsi pembantu agar tidak repetitif dan aman
+      const safeParse = async (res) => {
+        try {
+          const text = await res.text();
+          if (!res.ok) {
+            console.error(`API Error (${res.status}):`, text);
+            return [];
+          }
+          const data = JSON.parse(text);
+          return Array.isArray(data) ? data : [];
+        } catch (e) {
+          console.error("Parse Error:", e);
           return [];
         }
-        const data = JSON.parse(text);
-        return Array.isArray(data) ? data : [];
-      } catch (e) {
-        console.error("Parse Error:", e);
-        return [];
+      };
+
+      // Eksekusi parse untuk masing-masing response
+      const pendingData = await safeParse(pendingRes);
+      const approvedData = await safeParse(approvedRes);
+      const placesData = await safeParse(placesRes);
+
+      let rakData = [];
+      if (rakRes.ok) {
+        const parsedRak = await rakRes.json();
+        rakData = parsedRak.data || [];
       }
-    };
 
-    // Eksekusi parse untuk masing-masing response
-    const pendingData = await safeParse(pendingRes);
-    const approvedData = await safeParse(approvedRes);
-    const placesData = await safeParse(placesRes);
+      // Set ke state menggunakan variabel asli
+      setPendingItems(pendingData);
+      setApprovedItems(approvedData);
+      setPlaces(placesData);
+      setRaks(rakData);
 
-    let rakData = [];
-    if (rakRes.ok) {
-      const parsedRak = await rakRes.json();
-      rakData = parsedRak.data || [];
+    } catch (error) {
+      console.error("Network/Unexpected Error:", error);
+      setPendingItems([]);
+      setApprovedItems([]);
+      setPlaces([]);
+      setRaks([]);
+    } finally {
+      setFetchLoading(false);
     }
-
-    // Set ke state menggunakan variabel asli
-    setPendingItems(pendingData);
-    setApprovedItems(approvedData);
-    setPlaces(placesData);
-    setRaks(rakData);
-
-  } catch (error) {
-    console.error("Network/Unexpected Error:", error);
-    setPendingItems([]);
-    setApprovedItems([]);
-    setPlaces([]);
-    setRaks([]);
-  } finally {
-    setFetchLoading(false);
-  }
-};
+  };
   useEffect(() => {
     fetchItems();
   }, []);
-  
+
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -454,61 +481,61 @@ const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?
             </span>
           )}
         </div>
-{/* Tab + Search */}
-<div className="col-span-2 flex items-center justify-between gap-2 mb-4">
-  <div className="flex gap-2">
-    <button
-      onClick={() => setActiveTab("pending")}
-      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+        {/* Tab + Search */}
+        <div className="col-span-2 flex items-center justify-between gap-2 mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
         ${activeTab === "pending"
-          ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-          : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-        }`}
-    >
-      Pending
-      <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
-        {pendingItems.length}
-      </span>
-    </button>
+                  ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+                  : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+                }`}
+            >
+              Pending
+              <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                {pendingItems.length}
+              </span>
+            </button>
 
-    <button
-      onClick={() => setActiveTab("approved")}
-      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
+            <button
+              onClick={() => setActiveTab("approved")}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
         ${activeTab === "approved"
-          ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-          : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-        }`}
-    >
-      Tersedia
-      <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
-        {approvedItems.length}
-      </span>
-    </button>
-  </div>
+                  ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+                  : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+                }`}
+            >
+              Tersedia
+              <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                {approvedItems.length}
+              </span>
+            </button>
+          </div>
 
-  {/* Search — kanan */}
-  <div className="flex items-center gap-2">
-    <div className="flex items-center gap-2 border border-[#9FE1CB] rounded-lg px-3 py-1.5 bg-[#E1F5EE]">
-      <svg className="w-3.5 h-3.5 text-[#1D9E75]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
-      </svg>
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Cari nama barang..."
-        className="text-sm text-[#085041] bg-transparent outline-none w-48"
-      />
-    </div>
-    {search && (
-      <button
-        onClick={() => setSearch("")}
-        className="text-xs text-[#0F6E56] hover:text-[#04342C] transition-colors"
-      >
-        Reset
-      </button>
-    )}
-  </div>
-</div>
+          {/* Search — kanan */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 border border-[#9FE1CB] rounded-lg px-3 py-1.5 bg-[#E1F5EE]">
+              <svg className="w-3.5 h-3.5 text-[#1D9E75]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+              </svg>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari nama barang..."
+                className="text-sm text-[#085041] bg-transparent outline-none w-48"
+              />
+            </div>
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="text-xs text-[#0F6E56] hover:text-[#04342C] transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
         {/* ── Processing indicator ── */}
         {loading && (
           <div className="flex items-center gap-2 text-[12px] text-[#0F6E56] font-semibold mb-5">
@@ -521,7 +548,7 @@ const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?
         {fetchLoading && [1, 2, 3].map((n) => <SkeletonCard key={n} />)}
 
         {/* ── Item list ── */}
-{!fetchLoading && items.map((item, i) => (
+        {!fetchLoading && items.map((item, i) => (
           activeTab === "pending" ? (
             <ItemCard
               key={item.id}
@@ -532,37 +559,37 @@ const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?
               onReject={handleReject}
               loading={loading}
             />
-  ) : (
-    <div
-      key={item.id}
-      className="relative grid grid-cols-[180px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)] transition-all"
-    >
-      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
-      <div className="relative w-[180px] min-h-[160px] overflow-hidden shrink-0">
-        <img
-          src={`/api/Barang/getImage/${item.id}`}
-          alt={item.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="flex flex-col gap-2 p-[14px_16px_12px]">
-        <div className="flex items-start justify-between gap-2.5">
-          <h2 className="text-[15px] font-bold text-[#04342C] leading-tight">{item.name}</h2>
-          <span className="font-mono text-[9.5px] font-medium px-2.5 py-1 rounded-full bg-[#E1F5EE] text-[#0F6E56] border border-[#9FE1CB] whitespace-nowrap shrink-0">
-            {item.status}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-y-1 gap-x-4">
-          <MetaField label="Kategori" value={item.category} />
-          <MetaField label="Donatur" value={item.user?.name ?? "—"} />
-          <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
-          <MetaField label="Kualitas" value={item.quality ?? "—"} />
-        </div>
-        <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">{item.description}</p>
-      </div>
-    </div>
-  )
-))}
+          ) : (
+            <div
+              key={item.id}
+              className="relative grid grid-cols-[180px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)] transition-all"
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
+              <div className="relative w-[180px] min-h-[160px] overflow-hidden shrink-0">
+                <img
+                  src={`/api/Barang/getImage/${item.id}`}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col gap-2 p-[14px_16px_12px]">
+                <div className="flex items-start justify-between gap-2.5">
+                  <h2 className="text-[15px] font-bold text-[#04342C] leading-tight">{item.name}</h2>
+                  <span className="font-mono text-[9.5px] font-medium px-2.5 py-1 rounded-full bg-[#E1F5EE] text-[#0F6E56] border border-[#9FE1CB] whitespace-nowrap shrink-0">
+                    {item.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-y-1 gap-x-4">
+                  <MetaField label="Kategori" value={item.category} />
+                  <MetaField label="Donatur" value={item.user?.name ?? "—"} />
+                  <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
+                  <MetaField label="Kualitas" value={item.quality ?? "—"} />
+                </div>
+                <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">{item.description}</p>
+              </div>
+            </div>
+          )
+        ))}
 
         {/* ── Empty state ── */}
         {!fetchLoading && items.length === 0 && (
