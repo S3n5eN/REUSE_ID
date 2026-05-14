@@ -46,7 +46,7 @@ async function claimBarang(req: NextRequest, decoded: { id: string }) {
           type: "claim",
           userProfileId: userProfileId,
           isAutoApproved: userProfile.isVerified,
-          status:"Approved",
+          status: "Pending",
           adminId: null
         }
       })

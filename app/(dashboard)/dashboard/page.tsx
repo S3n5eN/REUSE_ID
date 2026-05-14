@@ -36,7 +36,9 @@ export default function DashboardPage() {
   const [fetchingItems, setFetchingItems] = useState(true);
   const [selectedKategori, setSelectedKategori] = useState("");
   const [search, setSearch] = useState("");
-  const [beritaList, setBeritaList] = useState<{ id: number; title: string }[]>([]);
+  const [beritaList, setBeritaList] = useState<{ id: number; title: string }[]>(
+    [],
+  );
   const [beritaIndex, setBeritaIndex] = useState(0);
   const [showBerita, setShowBerita] = useState(false);
   const [notifikasi, setNotifikasi] = useState<Notifikasi[]>([]);
@@ -138,7 +140,6 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/Pengguna/getBerita");
       const data = await res.json();
-
       if (Array.isArray(data) && data.length > 0) {
         setBeritaList(data);
         setShowBerita(true);
@@ -171,9 +172,7 @@ export default function DashboardPage() {
       });
 
       setNotifikasi((prev) =>
-        prev.map((n) =>
-          n.id === newsId ? { ...n, isRead: true } : n
-        )
+        prev.map((n) => (n.id === newsId ? { ...n, isRead: true } : n)),
       );
     } catch (err) {
       console.error("Gagal baca notifikasi:", err);
@@ -195,11 +194,7 @@ export default function DashboardPage() {
       {/* NAVBAR */}
       <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-[#fafafa] shadow-sm">
         <div className="flex items-center justify-center relative h-10 w-32">
-          <Image
-            src={Logo}
-            alt="Logo ReuseID"
-            className="object-contain"
-          />
+          <Image src={Logo} alt="Logo ReuseID" className="object-contain" />
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700 items-center">
@@ -216,14 +211,11 @@ export default function DashboardPage() {
           </a>
 
           <button className="bg-teal-600 text-white px-3 py-1 rounded hover:bg-teal-700 transition-colors">
-            <Link href="dashboard/form/tambahBarang">
-              Donasi
-            </Link>
+            <Link href="dashboard/form/tambahBarang">Donasi</Link>
           </button>
         </nav>
 
         <div className="flex items-center gap-3">
-
           {/* NOTIF */}
           <div className="relative">
             <button
@@ -246,7 +238,6 @@ export default function DashboardPage() {
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-
               {notifikasi.some((n) => !n.isRead) && (
                 <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-white" />
               )}
@@ -286,9 +277,7 @@ export default function DashboardPage() {
                       >
                         <div
                           className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                            !n.isRead
-                              ? "bg-yellow-400"
-                              : "bg-gray-200"
+                            !n.isRead ? "bg-yellow-400" : "bg-gray-200"
                           }`}
                         />
 
@@ -310,14 +299,11 @@ export default function DashboardPage() {
                           )}
 
                           <p className="text-xs text-gray-400 mt-0.5">
-                            {new Date(n.createdAt).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )}
+                            {new Date(n.createdAt).toLocaleDateString("id-ID", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
                           </p>
                         </div>
                       </div>
@@ -358,7 +344,6 @@ export default function DashboardPage() {
             className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
           >
             {penggunaName.charAt(0)}
-
             {isOpen && (
               <ProfileDropdown
                 namapengguna={penggunaName}
@@ -387,13 +372,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 to-teal-600/75 flex flex-col items-center justify-center text-white text-center px-10">
-          <h1 className="text-4xl md:text-6xl font-bold">
-            DONASI
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold">DONASI</h1>
 
-          <h2 className="text-2xl md:text-4xl font-semibold">
-            BARANG BEKAS
-          </h2>
+          <h2 className="text-2xl md:text-4xl font-semibold">BARANG BEKAS</h2>
 
           <div className="mt-4 inline-block bg-orange-400 text-black px-4 py-2 rounded-full font-semibold">
             BERBAGI UNTUK SESAMA
@@ -429,9 +410,7 @@ export default function DashboardPage() {
 
             <select
               value={selectedKategori}
-              onChange={(e) =>
-                setSelectedKategori(e.target.value)
-              }
+              onChange={(e) => setSelectedKategori(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
             >
               <option value="">Semua Kategori</option>
@@ -445,25 +424,18 @@ export default function DashboardPage() {
         </div>
 
         {fetchingItems ? (
-          <p className="text-sm text-gray-400">
-            Memuat barang...
-          </p>
+          <p className="text-sm text-gray-400">Memuat barang...</p>
         ) : filteredItems.length === 0 ? (
-          <p className="text-sm text-gray-400">
-            Belum ada barang tersedia.
-          </p>
+          <p className="text-sm text-gray-400">Belum ada barang tersedia.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-
             {filteredItems.map((item) => (
               <div
                 key={item.id}
                 className="group bg-gradient-to-b from-white to-[#f0fffb] rounded-[32px] p-4 shadow-[0_10px_30px_rgba(20,184,166,0.08)] hover:shadow-[0_20px_45px_rgba(20,184,166,0.18)] transition-all duration-300 border border-teal-100 flex flex-col"
               >
-
                 {/* IMAGE */}
                 <div className="relative rounded-[28px] overflow-hidden border border-teal-100 h-[280px]">
-
                   {/* CATEGORY */}
                   <div className="absolute top-4 left-4 z-10 bg-teal-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-md">
                     {item.category}
@@ -480,7 +452,6 @@ export default function DashboardPage() {
 
                 {/* CONTENT */}
                 <div className="mt-5 flex flex-col flex-1">
-
                   <p className="text-sm text-teal-600 font-semibold">
                     {item.category}
                   </p>
@@ -492,9 +463,7 @@ export default function DashboardPage() {
                   <div className="mt-3 flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
 
-                    <p className="text-sm text-gray-500">
-                      {item.status}
-                    </p>
+                    <p className="text-sm text-gray-500">{item.status}</p>
                   </div>
 
                   <p className="text-sm text-gray-400 mt-1">
@@ -506,11 +475,11 @@ export default function DashboardPage() {
                     {isVerified ? (
                       <Link
                         href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(
-                          item.name
+                          item.name,
                         )}&lokasi=${encodeURIComponent(
-                          item.placeId
+                          item.placeId,
                         )}&img=${encodeURIComponent(
-                          `/api/Barang/getImage/${item.id}`
+                          `/api/Barang/getImage/${item.id}`,
                         )}`}
                         className="w-full block text-center bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white py-3 rounded-full font-semibold transition-all duration-300"
                       >
@@ -539,64 +508,76 @@ export default function DashboardPage() {
       </div>
 
       {/* Popup Berita */}
-{showBerita && beritaList.length > 0 && (
-  <div
-    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    onClick={() => {
-      if (beritaIndex < beritaList.length - 1) {
-        setBeritaIndex(beritaIndex + 1);
-      } else {
-        setShowBerita(false);
-      }
-    }}
-  >
-    <div
-      className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="relative w-full h-96">
-        <img
-          src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
-          alt={beritaList[beritaIndex].title}
-          className="w-full h-full object-contain"
-        />
-        <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
-          {beritaIndex + 1} / {beritaList.length}
-        </div>
-      </div>
-
-      <div className="p-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">{beritaList[beritaIndex].title}</h2>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowBerita(false)}
-            className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm"
+      {showBerita && beritaList.length > 0 && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => {
+            if (beritaIndex < beritaList.length - 1) {
+              setBeritaIndex(beritaIndex + 1);
+            } else {
+              setShowBerita(false);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            Tutup
-          </button>
-          {beritaIndex < beritaList.length - 1 ? (
-            <button
-              onClick={() => setBeritaIndex(beritaIndex + 1)}
-              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold flex items-center justify-center gap-2"
-            >
-              Berikutnya
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowBerita(false)}
-              className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold"
-            >
-              Selesai
-            </button>
-          )}
+            <div className="relative w-full h-96">
+              <img
+                src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
+                alt={beritaList[beritaIndex].title}
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                {beritaIndex + 1} / {beritaList.length}
+              </div>
+            </div>
+
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">
+                {beritaList[beritaIndex].title}
+              </h2>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowBerita(false)}
+                  className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm"
+                >
+                  Tutup
+                </button>
+                {beritaIndex < beritaList.length - 1 ? (
+                  <button
+                    onClick={() => setBeritaIndex(beritaIndex + 1)}
+                    className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    Berikutnya
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowBerita(false)}
+                    className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold"
+                  >
+                    Selesai
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {/* CHATBOT */}
       <ReuseBot />

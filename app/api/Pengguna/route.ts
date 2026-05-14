@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
             today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
             const todayStr = today.toISOString().split('T')[0];
             
-            let checkDate = new Date(todayStr);
-            let firstDate = new Date(uniqueDates[0]);
+            const checkDate = new Date(todayStr);
+            const firstDate = new Date(uniqueDates[0]);
             
             const diffTime = Math.abs(checkDate.getTime() - firstDate.getTime());
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

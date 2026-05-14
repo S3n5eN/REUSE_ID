@@ -332,7 +332,7 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
         {/* CTA */}
         {status === "Pending" ? (
           <Link
-            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}`}
+            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}&placeId=${item.placeId}`}
             className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
           >
             {cta.label}

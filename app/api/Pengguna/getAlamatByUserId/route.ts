@@ -7,11 +7,11 @@ async function getAlamat(req: Request, payload: any) {
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
       include: {
-        profile: true
+        userProfile: true
       }
     });
 
-    if (!user || !user.profile) {
+    if (!user || !user.userProfile) {
       return NextResponse.json(
         { message: "Alamat tidak ditemukan" },
         { status: 404 }
@@ -19,7 +19,9 @@ async function getAlamat(req: Request, payload: any) {
     }
 
     return NextResponse.json({
-      address: user.profile.address
+      lat: user.userProfile.latitude,
+      lng: user.userProfile.longitude,
+      address: user.userProfile.address
     });
 
   } catch (error) {

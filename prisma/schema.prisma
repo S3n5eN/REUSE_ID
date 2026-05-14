@@ -100,6 +100,9 @@ model shipment {
   distance        Float?
   deliveryLat     Float?
   deliveryLng     Float?
+  paymentMethod   String?       // "QRIS" atau "ATM"
+  paymentStatus   PaymentStatus @default(Unpaid)
+
   admin           admin?         @relation(fields: [adminId], references: [id], map: "Shipment_adminId_fkey")
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
   user            user           @relation(fields: [userId], references: [id], map: "Shipment_userId_fkey")
@@ -203,4 +206,10 @@ enum ShipmentStatus {
 enum userProfile_gender {
   Pria
   Wanita
+}
+
+enum PaymentStatus {
+  Unpaid
+  Paid
+  Failed
 }
