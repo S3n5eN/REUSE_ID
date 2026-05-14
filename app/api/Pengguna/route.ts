@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 interface JwtPayload {
     id: number;
-    role: "admin" | "user";
+    role: "user";
     name: string;
 }
 

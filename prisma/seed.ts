@@ -3,9 +3,25 @@ import bcrypt from "bcrypt";
 import "dotenv/config";
 
 export async function main() {
+  // ==== Place Utama. Admin Pusat ====
+  await prisma.place.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      name: "Kantor Pusat",
+      address: "Jl. Sudirman No. 1, Jakarta",
+      managerName: "Admin Pusat",
+      managerPhone: "08123456789",
+      keyLocation: await bcrypt.hash("guapunyaduitguapunyakuasa", 10),
+      operationalJam: "08:00 - 17:00",
+      latitude: -6.2088,
+      longitude: 106.8456,
+    },
+  });
+
   // ==== Place ====
   const place1 = await prisma.place.upsert({
-    where: { id: 1 },
+    where: { id: 2 },
     update: {},
     create: {
       name: "Gudang Bandung",
@@ -20,7 +36,7 @@ export async function main() {
   });
 
   const place2 = await prisma.place.upsert({
-    where: { id: 2 },
+    where: { id: 3 },
     update: {},
     create: {
       name: "Gudang Jakarta",
@@ -35,26 +51,26 @@ export async function main() {
   });
 
   // ==== Rak Gudang Bandung ====
-await prisma.rak.createMany({
-  data: [
-    { nomor: "A1", kapasitasMax: 20, placeId: place1.id },
-    { nomor: "A2", kapasitasMax: 15, placeId: place1.id },
-    { nomor: "B1", kapasitasMax: 30, placeId: place1.id },
-    { nomor: "B2", kapasitasMax: 10, placeId: place1.id },
-    { nomor: "C1", kapasitasMax: 25, placeId: place1.id },
-  ]
-});
+  await prisma.rak.createMany({
+    data: [
+      { nomor: "A1", kapasitasMax: 20, placeId: place1.id },
+      { nomor: "A2", kapasitasMax: 15, placeId: place1.id },
+      { nomor: "B1", kapasitasMax: 30, placeId: place1.id },
+      { nomor: "B2", kapasitasMax: 10, placeId: place1.id },
+      { nomor: "C1", kapasitasMax: 25, placeId: place1.id },
+    ],
+  });
 
-// ==== Rak Gudang Jakarta ====
-await prisma.rak.createMany({
-  data: [
-    { nomor: "A1", kapasitasMax: 50, placeId: place2.id },
-    { nomor: "A2", kapasitasMax: 35, placeId: place2.id },
-    { nomor: "B1", kapasitasMax: 20, placeId: place2.id },
-    { nomor: "B2", kapasitasMax: 40, placeId: place2.id },
-    { nomor: "C1", kapasitasMax: 15, placeId: place2.id },
-  ]
-});
+  // ==== Rak Gudang Jakarta ====
+  await prisma.rak.createMany({
+    data: [
+      { nomor: "A1", kapasitasMax: 50, placeId: place2.id },
+      { nomor: "A2", kapasitasMax: 35, placeId: place2.id },
+      { nomor: "B1", kapasitasMax: 20, placeId: place2.id },
+      { nomor: "B2", kapasitasMax: 40, placeId: place2.id },
+      { nomor: "C1", kapasitasMax: 15, placeId: place2.id },
+    ],
+  });
 
   // ==== Admin ====
   const admin = await prisma.admin.upsert({

@@ -15,7 +15,7 @@ import {
   UserPen,
   Newspaper,
   Warehouse,
-  ShelvingUnit
+  ShelvingUnit,
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/public/Logo/Logo.svg";
@@ -84,14 +84,36 @@ const menuItems: MenuItem[] = [
         label: "Kelola Rak",
         icon: <ShelvingUnit size={15} />,
         to: "/admin/dashboard/kelolaRak",
-      }
-    ]
-  }, {
+      },
+    ],
+  },
+  {
     id: "kelola-Berita",
     label: "Kelola Berita",
     icon: <Newspaper size={18} />,
     to: "/admin/dashboard/kelolaBerita",
-  }
+  },
+];
+
+// ==== Menu khusus untuk admin pusat ==== //
+const menuPusat = [
+  "dashboard",
+  "kelola-lokasi",
+  "daftar-lokasi",
+  "kelola-Berita",
+];
+
+// ==== Menu khusus untuk admin daerah ==== //
+const menuDaerah = [
+  "dashboard",
+  "daftar-barang",
+  "penerima",
+  "verifikasi-penerima",
+  "konfirmasi-penerima",
+  "kelola-lokasi",
+  "kelola-Berita",
+  "daftar-lokasi",
+  "daftar-rak",
 ];
 
 export default function Sidebar() {
@@ -99,6 +121,7 @@ export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [adminName, setAdminName] = useState("");
+  const [adminType, setAdminType] = useState("");
 
   // ==== buat Logout ====
   const toggleLogout = async () => {
@@ -108,15 +131,35 @@ export default function Sidebar() {
 
   const takeInfoAdmin = async () => {
     try {
-        const res = await fetch("/api/Pengguna");
-        if (res.ok) {
-            const data = await res.json();
-            setAdminName(data.name);
-        }
+      const res = await fetch("/api/Admin");
+      if (res.ok) {
+        const data = await res.json();
+        setAdminName(data.name);
+        setAdminType(data.type);
+      }
     } catch (error) {
-        console.error("Gagal mengambil info admin:", error);
+      console.error("Gagal mengambil info admin:", error);
     }
-  }
+  };
+
+  // ==== Filter menu berdasarkan tipe admin ====
+  const filteredMenu = menuItems
+    .filter((item) => {
+      if (adminType === "PUSAT") return menuPusat.includes(item.id);
+      if (adminType === "DAERAH") return menuDaerah.includes(item.id);
+      return true;
+    })
+    .map((item) => {
+      if (!item.children) return item;
+
+      // Filter submenu berdasarkan tipe admin
+      const filteredChildren = item.children.filter((child) => {
+        if (adminType === "PUSAT") return menuPusat.includes(child.id);
+        if (adminType === "DAERAH") return menuDaerah.includes(child.id);
+        return true;
+      });
+      return { ...item, children: filteredChildren };
+    });
 
   useEffect(() => {
     takeInfoAdmin();
@@ -176,7 +219,9 @@ export default function Sidebar() {
       <aside className={`sb-sidebar ${!isOpen ? "sb-sidebar--closed" : ""}`}>
         {/* Tempat Logo ReuseID */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 shrink-0">
-          <div className={` ${isOpen ? "flex" : "hidden"} items-center gap-2.5 overflow-hidden`}>
+          <div
+            className={` ${isOpen ? "flex" : "hidden"} items-center gap-2.5 overflow-hidden`}
+          >
             <Image src={Logo} alt="Logo ReuseID" width={150} />
           </div>
           <button
@@ -203,7 +248,7 @@ export default function Sidebar() {
               {adminName}
             </p>
             <p className="text-[10px] font-semibold text-[#1a7a6e] tracking-widest uppercase mt-0.5 m-0">
-              Admin
+              {adminType}
             </p>
           </div>
         </div>
@@ -214,7 +259,7 @@ export default function Sidebar() {
             Menu Utama
           </p>
 
-          {menuItems.map((item) => (
+          {filteredMenu.map((item) => (
             <div key={item.id} className="sb-tooltip-wrap">
               <div
                 onClick={() => handleMenuClick(item)}
