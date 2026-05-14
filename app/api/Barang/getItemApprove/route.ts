@@ -28,14 +28,18 @@ async function getItemApproved(req: NextRequest) {
           include: {
             user: true,
             place: true,
+            rak: true,
           },
         },
       },
     });
+    
 
     const items = shipments.map((shipment) => ({
       shipmentId: shipment.id,
       ...shipment.item,
+      weight: shipment.item?.weight, 
+        rak: shipment.item?.rak,
     }));
 
     return NextResponse.json(items);

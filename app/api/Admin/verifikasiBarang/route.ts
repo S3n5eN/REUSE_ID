@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
   try {
-    const { shipmentId, quality, action, rakId } = await req.json();
+    const { shipmentId, quality, action, rakId, weight } = await req.json();
 
     if (!shipmentId || !action) {
       return NextResponse.json(
@@ -69,6 +69,7 @@ async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
         data: {
           status: "Tersedia",
           quality: quality as ItemQuality,
+          weight: parseFloat(weight),
           rakId: Number(rakId),
         },
       });

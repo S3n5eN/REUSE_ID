@@ -15,7 +15,7 @@ type Item = {
   imageURL: string;
   status: string;
   quality?: string;
-  weight?: string;
+  weight?: number;
   user?: { name: string };
   place?: { id: number; name: string };
   rak?: { nomor: string };
@@ -100,7 +100,7 @@ function ItemCard({
 }: {
   item: Item;
   raks: Rak[];
-  onApprove: (id: number, quality: QualityValue, rakId: number, weight: string) => void;
+  onApprove: (id: number, quality: QualityValue, rakId: number, weight: number) => void;
   onReject: (id: number) => void;
   loading: boolean;
   index: number;
@@ -119,10 +119,11 @@ function ItemCard({
 
 
   const handleApprove = () => {
-    if (!selectedQuality || !selectedRak || weight === "" || parseFloat(weight) < 0) return;
+    const numericWeight = parseFloat(weight);
+    if (!selectedQuality || !selectedRak || isNaN(numericWeight) || numericWeight < 0) return;
     setExiting(true);
 
-    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight));
+    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight)), 350);
   };
 
   const handleReject = () => {
@@ -204,17 +205,27 @@ function ItemCard({
           {/* Input Berat */}
           <div className="relative flex-1 min-w-[100px] max-w-[120px]">
             <input
-              type="number"
-              step="0.1"
-              min="0.0"
-              placeholder="Berat (kg)"
+              type="text"
+              inputMode="decimal"
+              placeholder="0.0"
               className="w-full text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] outline-none focus:border-[#1D9E75] transition-colors"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => {
+                // Hanya izinkan angka dan satu titik desimal
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                if ((val.match(/\./g) || []).length <= 1) {
+                  setWeight(val);
+                }
+              }}
               disabled={loading}
               onBlur={(e) => {
+                const parsed = parseFloat(weight);
                 // Memastikan jika user input minus, otomatis jadi 0
-                if (parseFloat(e.target.value) < 0) setWeight("0");
+                if (!isNaN(parsed) && parsed > 0) {
+                  setWeight(parsed.toFixed(1));
+                } else {
+                  setWeight(""); // Reset jika 0 atau tidak valid
+                }
               }}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#1D9E75] font-bold">KG</span>
@@ -257,7 +268,7 @@ function ItemCard({
           </select>
 
           {/* Approve — shown only when quality and rak selected */}
-          {selectedQuality && selectedRak && (
+          {selectedQuality && selectedRak && parseFloat(weight) > 0 && (
             <button
               onClick={handleApprove}
               disabled={loading}
@@ -405,13 +416,13 @@ export default function DaftarBarangPendingPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleApprove = async (shipmentId: number, quality: QualityValue, rakId: number) => {
+  const handleApprove = async (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
     try {
       setLoading(true);
       const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId, action: "Approve", quality, rakId }),
+        body: JSON.stringify({ shipmentId, action: "Approve", quality, rakId, weight }),
       });
       const text = await res.text();
       if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
@@ -584,6 +595,8 @@ export default function DaftarBarangPendingPage() {
                   <MetaField label="Donatur" value={item.user?.name ?? "—"} />
                   <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
                   <MetaField label="Kualitas" value={item.quality ?? "—"} />
+                  <MetaField label="BeratBarang" value={item.weight ? `${item.weight} kg` : "—"}/>
+                  <MetaField label="Lokasi Rak" value={item.rak?.nomor ? `Rak ${item.rak.nomor}` : "—"}/>
                 </div>
                 <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">{item.description}</p>
               </div>
