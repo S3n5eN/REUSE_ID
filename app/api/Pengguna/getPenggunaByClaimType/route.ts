@@ -13,8 +13,7 @@ async function getPenggunaByClaimType() {
       },
     });
     return NextResponse.json({message: "Berhasil mengambil pengguna berdasarkan tipe klaim", data: penggunaByClaimType }, { status: 200 });
-  } catch (error) {
-    console.error("Error mengambil pengguna berdasarkan tipe klaim:", error);
+  } catch {
     return NextResponse.json(
       { error: "Gagal mengambil pengguna berdasarkan tipe klaim" },
       { status: 500 },

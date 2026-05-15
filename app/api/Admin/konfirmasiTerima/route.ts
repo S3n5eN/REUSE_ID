@@ -73,6 +73,11 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
           where: { id: Number(isShipmenttExist.item.userId) },
           data: { poin: { increment: tambahPoin } },
         }),
+        // ==== update rak ====
+        prisma.rak.update({
+          where: { id: Number(isShipmenttExist.item.rakId) },
+          data: { kapasitasSekarang: { decrement: 1 } },
+        }),
       ]);
       return NextResponse.json(
         {
@@ -93,8 +98,7 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
       ]);
       return NextResponse.json({ message: "Barang ditolak" }, { status: 200 });
     }
-  } catch (error) {
-    console.error("Error konfirmasi terima:", error);
+  } catch {
     return NextResponse.json(
       { message: "Terjadi kesalahan saat konfirmasi terima" },
       { status: 500 },

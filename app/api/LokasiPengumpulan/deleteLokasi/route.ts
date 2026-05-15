@@ -65,7 +65,6 @@ async function deleteLokasi(req: NextRequest) {
     });
 
   } catch (error: any){
-    console.error("ERROR DELETE BULK:", error);
     if (error.code === "P2003") {
         return NextResponse.json(
          {

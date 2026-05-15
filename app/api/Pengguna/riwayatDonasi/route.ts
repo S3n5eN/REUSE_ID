@@ -54,8 +54,7 @@ async function getRiwayatDonasi(req: NextRequest, decoded: { id: string }) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("Error fetching riwayat donasi:", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Terjadi kesalahan pada server." },
       { status: 500 }

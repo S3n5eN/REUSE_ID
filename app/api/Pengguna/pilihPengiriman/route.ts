@@ -72,7 +72,8 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
             paymentMethod: jenisPengiriman === "delivery" ? paymentMethod : null,
             paymentStatus: jenisPengiriman === "delivery" ? "Unpaid" : "Paid",
             distance: distance,
-            shipmentCost: shipmentCost
+            shipmentCost: shipmentCost,
+            status: "Approved"
         }
     });
 
@@ -80,8 +81,7 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
       { message: "Jenis pengiriman berhasil dipilih", shipment: updateShipment },
       { status: 200 },
     );
-  } catch (error) {
-    console.error("Error memilih jenis pengiriman:", error);
+  } catch {
     return NextResponse.json(
       { message: "Terjadi kesalahan saat memilih jenis pengiriman" },
       { status: 500 },

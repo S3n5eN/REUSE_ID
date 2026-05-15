@@ -42,9 +42,7 @@ async function getItemById(req: Request) {
 
     return NextResponse.json(item);
 
-  } catch (error) {
-    console.error(error);
-
+  } catch {
     return NextResponse.json(
       { message: "Server Error" },
       { status: 500 }
@@ -52,6 +50,6 @@ async function getItemById(req: Request) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   return (await protect(getItemById, ["user"]))(req);
 }

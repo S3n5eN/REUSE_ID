@@ -87,9 +87,7 @@ async function uploadPhoto(
       success: true,
       message: "Foto profile berhasil diupload",
     });
-  } catch (error) {
-    console.log(error);
-
+  } catch {
     return NextResponse.json(
       { message: "Gagal upload foto" },
       { status: 500 }
@@ -141,9 +139,7 @@ async function getPhoto(
         "Cache-Control": "no-store",
       },
     });
-  } catch (error) {
-    console.log(error);
-
+  } catch {
     return new NextResponse(null, {
       status: 500,
     });
@@ -184,9 +180,7 @@ async function deletePhoto(
       success: true,
       message: "Foto profile berhasil dihapus",
     });
-  } catch (error) {
-    console.log(error);
-
+  } catch {
     return NextResponse.json(
       { message: "Gagal menghapus foto" },
       { status: 500 }

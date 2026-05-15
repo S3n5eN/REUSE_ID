@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { chatBotRateLimit } from "@/lib/rateLimit";
 
 // intruksi biar dia ga bahas diluar topik ReuseID
 const SYSTEM_PROMPT = `Kamu adalah ReuseBot, asisten virtual dari platform ReuseID — platform donasi dan redistribusi barang bekas layak pakai.
@@ -45,6 +46,14 @@ Gunakan bahasa Indonesia yang ramah, sopan, dan mudah dipahami. Jawab secara rin
 
 export async function POST(req: NextRequest) {
   try {
+    const indentifier = req.headers.get('x-identifier-for')?.split(',')[0] || 'unknown';
+    // ==== Batasi 10 chat 10 menit untuk setiap pengguna ====
+    const { success } = await chatBotRateLimit.limit(indentifier);
+
+    if (!success) {
+      return NextResponse.json({ error: `Terlalu banyak mencoba, silahkan coba lagi nanti` }, { status: 429 });
+    }
+
     const { messages } = await req.json();
 
     const apiKey = process.env.GEMINI_KEY;
@@ -78,8 +87,7 @@ export async function POST(req: NextRequest) {
     const reply = response.text || "Maaf, saya tidak bisa menjawab saat ini.";
 
     return NextResponse.json({ reply });
-  } catch (error) {
-    console.error("Chatbot error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Terjadi kesalahan pada server." },
       { status: 500 }

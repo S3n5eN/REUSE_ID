@@ -10,8 +10,7 @@ async function getUnverifiedUser() {
       
     });
     return NextResponse.json({message: "Berhasil mengambil pengguna yang belum diverifikasi", data: unverifiedUsers }, { status: 200 });
-  } catch (error) {
-    console.error("Error mengambil pengguna yang belum diverifikasi:", error);
+  } catch {
     return NextResponse.json(
       { error: "Gagal mengambil pengguna yang belum diverifikasi" },
       { status: 500 },

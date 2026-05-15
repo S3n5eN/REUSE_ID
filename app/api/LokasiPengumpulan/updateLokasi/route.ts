@@ -44,8 +44,7 @@ async function updateLokasi(req: NextRequest) {
     });
 
     return NextResponse.json({ message: "Lokasi berhasil diupdate" }, { status: 200 });
-  } catch (error) {
-    console.error("Error update lokasi:", error);
+  } catch {
     return NextResponse.json({ message: "Gagal mengupdate lokasi" }, { status: 500 });
   }
 }

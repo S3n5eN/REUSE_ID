@@ -20,8 +20,7 @@ async function ajukanSertifikat(req: NextRequest, decoded: { id: string}) {
       { message: "Sertifikat berhasil diajukan", bisaDiambil: true },
       { status: 200 },
     );
-  } catch (error) {
-    console.error("Error saat mengajukan sertifikat:", error);
+  } catch {
     return NextResponse.json(
       { message: "Terjadi kesalahan saat mengajukan sertifikat" },
       { status: 500 },

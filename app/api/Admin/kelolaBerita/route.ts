@@ -74,8 +74,7 @@ async function tambahBerita(req: NextRequest, decoded: { id: string }) {
     });
 
     return NextResponse.json({ message: "Berita berhasil ditambahkan" }, { status: 201 });
-  } catch (err) {
-    console.error("ERROR tambahBerita:", err);
+  } catch {
     return NextResponse.json({ message: "Gagal menambahkan berita" }, { status: 500 });
   }
 }

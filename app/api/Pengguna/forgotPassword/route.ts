@@ -1,9 +1,19 @@
 import { sendResetPasswordEmail } from "@/lib/mailer";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcrypt"
+import { authRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
     try {
+        const identifier = req.headers.get('x-identifier-for')?.split(',')[0] || 'unknown';
+        const { success } = await authRateLimit.limit(identifier);
+
+        if (!success) {
+            return NextResponse.json({ message: `Terlalu banyak mencoba, silahkan coba lagi nanti` }, { status: 429 });
+        }
+
+
         const { email } = await req.json();
 
         if (!email) {
@@ -19,7 +29,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Kami telah mengirim pesan ke alamat gmail mu, silahkan cek untuk mereset password" }, { status: 200 });
         }
 
-        const tokenReset = crypto.randomUUID();
+        const tokenReset = await bcrypt.hash(crypto.randomUUID(), 10);
 
         await prisma.passwordReset.create({
             data: {
@@ -32,8 +42,7 @@ export async function POST(req: NextRequest) {
         await sendResetPasswordEmail(email, tokenReset);
 
         return NextResponse.json({ message: "Email reset password berhasil dikirim" }, { status: 200 });
-    } catch (error) {
-        console.error("Forgot Password Error:", error);
-        return NextResponse.json({ message: "Gagal mengirim email reset password", error: String(error) }, { status: 500 });
+    } catch {
+        return NextResponse.json({ message: "Gagal mengirim email reset password" }, { status: 500 });
     }
 }

@@ -72,9 +72,7 @@ async function moveItem(req: NextRequest) {
       movedItemIds: itemIds
     });
 
-  } catch (error) {
-    console.error("ERROR MOVE ITEM:", error);
-
+  } catch {
     return NextResponse.json(
       { message: "Gagal memindahkan item" },
       { status: 500 }

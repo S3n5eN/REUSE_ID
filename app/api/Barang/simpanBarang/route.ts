@@ -82,7 +82,6 @@ async function simpanBarang(req: NextRequest, decoded: { id: string }) {
       { status: 201 },
     );
   } catch (error) {
-    console.log("Error menyimpan barang:", error);
     return NextResponse.json(
       { message: "Gagal menyimpan barang" },
       { status: 500 },

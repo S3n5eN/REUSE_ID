@@ -20,39 +20,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const checkExpired = await prisma.passwordReset.findFirst({
-      where: {
-        token,
-      },
-    });
+    // Alur yang lebih aman:
+    const deletedToken = await prisma.passwordReset
+      .delete({
+        where: { token: token },
+      })
+      .catch(() => null); // Tangkap error jika record tidak ditemukan
 
-    if (!checkExpired) {
+    if (!deletedToken) {
       return NextResponse.json(
-        { message: "Token tidak valid" },
+        { message: "Token tidak valid atau sudah digunakan" },
         { status: 400 },
       );
     }
 
-    if (checkExpired?.expiresAt < new Date(Date.now())) {
+    // Cek kedaluwarsa setelah data berhasil ditarik (dan dihapus dari DB)
+    if (deletedToken.expiresAt < new Date()) {
       return NextResponse.json(
         { message: "Token telah kedaluwarsa" },
         { status: 400 },
       );
     }
 
+    // Baru kemudian update password user
     await prisma.user.update({
-      where: {
-        email: checkExpired.email,
-      },
-      data: {
-        password: await bcrypt.hash(newPassword, 10),
-      },
-    });
-
-    await prisma.passwordReset.delete({
-      where: {
-        token,
-      },
+      where: { email: deletedToken.email },
+      data: { password: await bcrypt.hash(newPassword, 10) },
     });
 
     return NextResponse.json(

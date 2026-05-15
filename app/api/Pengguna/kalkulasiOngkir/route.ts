@@ -37,8 +37,7 @@ async function kalkulasiOngkir(req: NextRequest, decoded: { id: string }) {
             distance: distance, 
             ongkir: ongkir 
         }, { status: 200 });
-    } catch (error) {
-        console.error("Error kalkulasi ongkir:", error);
+    } catch {
         return NextResponse.json({ message: "Terjadi kesalahan saat mengkalkulasi ongkos kirim" }, { status: 500 });
     }
 }

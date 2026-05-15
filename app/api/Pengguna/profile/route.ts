@@ -55,8 +55,7 @@ async function getProfile(req: NextRequest, decoded: { id: string }) {
       },
     });
 
-  } catch (error: any) {
-    console.error("ERROR GET PROFILE:", error);
+  } catch {
     return NextResponse.json(
       { message: "Gagal mengambil profile" },
       { status: 500 }
@@ -126,8 +125,7 @@ async function updateProfile(req: NextRequest, decoded: { id: string }) {
         data: newProfile
       });
     }
-  } catch (error: any) {
-    console.error("ERROR UPDATE PROFILE:", error);
+  } catch {
     return NextResponse.json(
       { message: "Gagal menyimpan profile" },
       { status: 500 }

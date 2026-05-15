@@ -6,26 +6,21 @@ import { NextRequest } from "next/server";
 async function getItem(req: Request) {
   try {
     const items = await prisma.item.findMany({
-     include: {
+      include: {
         place: {
           select: {
-             name: true,
-      }
-    }
-  }
-});   
+            name: true,
+          },
+        },
+      },
+    });
 
     return NextResponse.json(items);
-
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: "Server Error" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
-  return (await protect(getItem, ["user"]))(req); 
+  return (await protect(getItem, ["user"]))(req);
 }

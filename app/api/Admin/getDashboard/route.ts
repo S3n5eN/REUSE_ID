@@ -105,9 +105,6 @@ async function getDashboard(req: NextRequest) {
     });
 
   } catch (error) {
-
-    console.error("ERROR DASHBOARD:", error);
-
     return NextResponse.json(
       {
         message: "Gagal mengambil dashboard"

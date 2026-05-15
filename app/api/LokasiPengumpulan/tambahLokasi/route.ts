@@ -35,8 +35,7 @@ async function tambahLokasi(req: NextRequest){
             }
         })
         return NextResponse.json({ message: "Lokasi pengumpulan berhasil ditambahkan" }, { status: 201 });
-    } catch (error) {
-        console.error("Error menambahkan lokasi pengumpulan:", error);
+    } catch {
         return NextResponse.json({ message: "Gagal menambahkan lokasi pengumpulan" }, { status: 500 });
     }
 }

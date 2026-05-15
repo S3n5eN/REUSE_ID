@@ -24,8 +24,7 @@ async function getAlamat(req: Request, payload: any) {
       address: user.userProfile.address
     });
 
-  } catch (error) {
-    console.error("ERROR GET ALAMAT:", error);
+  } catch {
     return NextResponse.json(
       { message: "Server Error" },
       { status: 500 }

@@ -2,10 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { pengguna } from "@/types/pengguna";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
+import { authRateLimit } from "@/lib/rateLimit";
 
 // ==== Ini Method Register Pengguna ====
 export async function POST(req: Request) {
     try {
+        const identifier = req.headers.get('x-indetifier-for')?.split(',')[0] || 'unknown';
+        const { success } = await authRateLimit.limit(identifier);
+
+        if (!success) {
+            return NextResponse.json({ message: `Terlalu banyak mencoba, silahkan coba lagi nanti` }, { status: 429 });
+        }
+
         const body: Pick<pengguna, "name" | "email" | "password"> = await req.json();
 
         if (!body.name || !body.email || !body.password) {

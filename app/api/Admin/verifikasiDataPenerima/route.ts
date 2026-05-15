@@ -48,8 +48,7 @@ async function verifikasiDataPenerima(
         { status: 200 },
       );
     }
-  } catch (error) {
-    console.error("Error verifikasi data penerima:", error);
+  } catch {
     return NextResponse.json(
       { message: "Terjadi kesalahan pada server" },
       { status: 500 },

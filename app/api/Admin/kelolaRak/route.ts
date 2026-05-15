@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 async function TambahRak(req: NextRequest, decoded: { id: string }) {

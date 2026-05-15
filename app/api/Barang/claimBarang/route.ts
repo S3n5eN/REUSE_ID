@@ -61,8 +61,7 @@ async function claimBarang(req: NextRequest, decoded: { id: string }) {
       },
       { status: 201 },
     );
-  } catch (error) {
-    console.error("Error saat mengklaim barang:", error);
+  } catch {
     return NextResponse.json(
       { message: "Terjadi kesalahan saat mengklaim barang" },
       { status: 500 },

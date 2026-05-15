@@ -97,8 +97,7 @@ async function verifikasiBarang(req: NextRequest, decoded: { id: string }) {
       })
       return NextResponse.json({message: "Barang ditolak"}, {status: 200});
     }
-  } catch (error) {
-    console.log("Error verifikasi barang:", error);
+  } catch {
     return NextResponse.json(
       { message: "Gagal verifikasi barang" },
       { status: 500 },

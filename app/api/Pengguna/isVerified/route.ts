@@ -22,9 +22,7 @@ async function isVerified(req: NextRequest, decoded: { id: string }) {
       data: check
     });
 
-  } catch (error: any) {
-    console.error("ERROR GET PROFILE:", error);
-
+  } catch {
     return NextResponse.json(
       { message: "Gagal mengambil profile" },
       { status: 500 }

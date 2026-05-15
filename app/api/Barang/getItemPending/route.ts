@@ -35,8 +35,7 @@ async function getItemPending(req: NextRequest, payload: { id: string }) {
     }));
 
     return NextResponse.json(items);
-  } catch (error) {
-    console.error(error);
+  } catch {
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

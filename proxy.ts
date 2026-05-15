@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim());
 
+const JWT_SECRET = process.env.JWT_SECRET;
 // ==== Route yang boleh diakses ====
 const Protected_routes: Record<string, string[]> = {
   "/admin/dashboard": ["admin"],
   "/api/admin": ["admin"],
   "/dashboard": ["user"],
-  "/api/user": ["user"],
 };
 
 interface JwtPayload {
@@ -17,7 +19,33 @@ interface JwtPayload {
   name: string;
 }
 
+const addCorsHeaders = (res: NextResponse, origin: string | null) => {
+  if (origin && allowedOrigins.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+  }
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
+  const origin = req.headers.get("origin");
+
+  if (req.method === "OPTIONS") {
+    if (origin && allowedOrigins.includes(origin)) {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": origin,
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization, Cookie",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+    return new NextResponse("CORS denied", { status: 403 });
+  }
+
   const { pathname } = req.nextUrl;
 
   // ==== Ambil token di cookie ====
@@ -77,7 +105,7 @@ export async function proxy(req: NextRequest) {
   requestHeaders.set("x-user-name", decoded.name);
   requestHeaders.set("x-user-role", decoded.role);
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return addCorsHeaders(NextResponse.next({ request: { headers: requestHeaders } }), origin);
 }
 
 export const config = {

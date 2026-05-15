@@ -3,6 +3,7 @@ import { pengguna } from "@/types/pengguna";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { SignJWT } from "jose";
+import { authRateLimit } from "@/lib/rateLimit";
 
 // ==== karena sekarang pake jose, pake perlu encoder karena jose butuh format Uint8Array untuk secret key ====
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -10,6 +11,13 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 // ==== Ini Method Login Pengguna & Admin ====
 export async function POST(req: Request) {
   try {
+    const indentifier = req.headers.get('x-indenifier-for')?.split(',')[0] || 'uknown';
+    const { success } = await authRateLimit.limit(indentifier);
+
+    if (!success) {
+      return NextResponse.json({ message: `Terlalu banyak mencoba, silahkan coba lagi nanti` }, { status: 429 });
+    }
+
     const body: Pick<pengguna, "email" | "password"> = await req.json();
 
     if (!body.email || !body.password) {
@@ -56,8 +64,7 @@ export async function POST(req: Request) {
     })
 
     return response;
-  } catch (error) {
-    console.error("Login error: ", error);
+  } catch {
     return NextResponse.json({message: "Server Error"}, {status: 500});
   }
 }

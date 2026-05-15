@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { protect } from "@/lib/protect";
 
-export async function GET(
+async function getImage(
     req: NextRequest, 
     { params }: { params: Promise<{ id: string }> } 
 ) {
@@ -23,8 +24,11 @@ export async function GET(
                 "Cache-Control": "public, max-age=31536000, immutable",
             },
         });
-    } catch (error) {
-        console.error("Error fetching image:", error);
+    } catch {
         return new NextResponse("Gagal mengambil gambar", { status: 500 });
     }
+}
+
+export async function GET(req: NextRequest)  {
+    return (await protect(getImage, ["admin", "user"]))(req);
 }

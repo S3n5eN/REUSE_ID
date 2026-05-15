@@ -34,8 +34,7 @@ async function getPenerimaApprove(req: NextRequest, decoded: { id: number }) {
         });
 
         return NextResponse.json({ message: "Berhasil mengambil data penerima approve", data: response }, { status: 200 })
-    } catch (error) {
-        console.error("Error fetching approved recipients:", error);
+    } catch {
         return NextResponse.json({ message: "Gagal mengambil data penerima approve" }, { status: 500 })
     }
 }

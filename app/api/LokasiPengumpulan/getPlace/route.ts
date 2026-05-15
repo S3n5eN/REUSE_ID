@@ -12,8 +12,7 @@ async function getPlace(req: NextRequest) {
     });
 
     return NextResponse.json(places);
-  } catch (error) {
-    console.error(error);
+  } catch {
     return NextResponse.json(
       { message: "Server Error" },
       { status: 500 }

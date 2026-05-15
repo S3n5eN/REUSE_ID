@@ -67,8 +67,7 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
       { message: "Berhasil Update datadiri pengguna" },
       { status: 201 },
     );
-  } catch (error) {
-    console.log(error);
+  } catch {
     return NextResponse.json(
       { message: "Gagal Update datadiri pengguna" },
       { status: 500 },
