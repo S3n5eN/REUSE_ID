@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 model user {
@@ -60,9 +60,9 @@ model item {
   status      ItemStatus   @default(PendingApproval)
   quality     ItemQuality?
   weight      Float?
-  place       place        @relation(fields: [placeId], references: [id], map: "Item_placeId_fkey")
-  user        user         @relation(fields: [userId], references: [id], map: "Item_userId_fkey")
-  rak         rak?         @relation(fields: [rakId], references: [id], map: "Item_rakId_fkey")
+  place       place        @relation(fields: [placeId], references: [id])
+  user        user         @relation(fields: [userId], references: [id])
+  rak         rak?         @relation(fields: [rakId], references: [id])
   shipment    shipment[]
 
   @@index([userId], map: "Item_userId_fkey")
@@ -76,10 +76,10 @@ model rak {
   kapasitasMax Int
   kapasitasSekarang Int @default(0)
   placeId Int
-  place place @relation(fields: [placeId], references: [id], map: "rak_placeId_fkey")
+  place place @relation(fields: [placeId], references: [id])
   item item[]
 
-  @@index([placeId], map: "rak_placeId_fkey")
+  @@index([placeId])
 }
 
 model shipment {
@@ -118,7 +118,7 @@ model certificate {
   id         Int      @id @default(autoincrement())
   receivedAt DateTime
   userId     Int
-  user       user     @relation(fields: [userId], references: [id], map: "Certificate_userId_fkey")
+  user       user     @relation(fields: [userId], references: [id])
 
   @@index([userId], map: "Certificate_userId_fkey")
 }
@@ -132,7 +132,7 @@ model news {
   createdAt   DateTime @default(now())
   isPublished Boolean  @default(false)
   adminId     Int
-  admin       admin    @relation(fields: [adminId], references: [id], map: "News_adminId_fkey")
+  admin       admin    @relation(fields: [adminId], references: [id])
   newsRead    newsRead[]
 
   @@index([adminId], map: "News_adminId_fkey")
@@ -167,7 +167,7 @@ model userProfile {
   latitude    Float?
   longitude   Float?
   shipment    shipment[]
-  user        user               @relation(fields: [userId], references: [id], map: "UserProfile_userId_fkey")
+  user        user               @relation(fields: [userId], references: [id])
   profileImage Bytes?
   profileImageType String?
 
