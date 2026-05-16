@@ -48,7 +48,7 @@ export default function FormPilihPengiriman() {
         }
 
         if (itemId) {
-          const resItem = await fetch(`/api/Barang/getItemByID?itemId=${itemId}`, { method: "POST" });
+          const resItem = await fetch(`/api/Barang/getItemByID?itemId=${itemId}`);
           if (resItem.ok) {
             const dataItem = await resItem.json();
             if (dataItem.place) {
