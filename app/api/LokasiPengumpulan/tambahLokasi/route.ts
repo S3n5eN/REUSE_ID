@@ -20,6 +20,24 @@ async function tambahLokasi(req: NextRequest){
             return NextResponse.json({ message: "Nama lokasi pengumpulan sudah ada" }, { status: 400 });
         }
 
+        const allPlaces = await prisma.place.findMany({
+         select: { id: true, keyLocation: true }
+        });
+
+        const isDuplicateKey = await Promise.all(
+         allPlaces.map(async (p) => {
+             return await bcrypt.compare(body.keyLocation, p.keyLocation);
+         })
+        ).then((results) => results.some((r) => r === true));
+
+        if (isDuplicateKey) {
+             return NextResponse.json({ message: "Passkey harus unik" }, { status: 400 });
+        }
+        const GENERAL_PASSCODE = process.env.KEY_PUSAT;
+        if (body.keyLocation === GENERAL_PASSCODE) {
+        return NextResponse.json({ message: "Passkey harus unik" }, { status: 400 });
+        }
+
         const hashKey = await bcrypt.hash(body.keyLocation, 10);
 
         await prisma.place.create({

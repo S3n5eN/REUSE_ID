@@ -36,6 +36,11 @@ export default function DashboardPage() {
   const [fetchingItems, setFetchingItems] = useState(true);
   const [selectedKategori, setSelectedKategori] = useState("");
   const [search, setSearch] = useState("");
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+   if (e.key === "Enter" && search.trim()) {
+    router.push(`/dashboard/search?q=${encodeURIComponent(search.trim())}`);
+    }
+  };
   const [beritaList, setBeritaList] = useState<{ id: number; title: string }[]>(
     [],
   );
@@ -122,9 +127,7 @@ export default function DashboardPage() {
       ? item.category === selectedKategori
       : true;
 
-    const matchSearch = search
-      ? item.name.toLowerCase().includes(search.toLowerCase())
-      : true;
+    const matchSearch = true;   
 
     const matchStatus = item.status === "Tersedia";
 
@@ -333,6 +336,7 @@ export default function DashboardPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleSearch}
               placeholder="Search here..."
               className="text-sm focus:outline-none bg-transparent w-36"
             />
