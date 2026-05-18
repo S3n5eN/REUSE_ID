@@ -209,7 +209,10 @@ export default function DashboardPage() {
             Penyaluran
           </a>
 
-          <a href="#" className="hover:text-teal-600 transition-colors">
+          <a
+            href="#tentang-kami"
+            className="hover:text-teal-600 transition-colors"
+          >
             Tentang Kami
           </a>
 
@@ -219,104 +222,6 @@ export default function DashboardPage() {
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* NOTIF */}
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowNotif(!showNotif);
-              }}
-              className="relative w-8 h-8 flex items-center justify-center text-gray-600 hover:text-teal-600 transition"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {notifikasi.some((n) => !n.isRead) && (
-                <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-white" />
-              )}
-            </button>
-
-            {showNotif && (
-              <div
-                className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
-                style={{ height: "450px" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-800 text-sm">
-                    Notifikasi
-                  </h3>
-                </div>
-
-                <div className="flex-1 overflow-y-auto h-full">
-                  {notifikasi.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-6">
-                      Tidak ada notifikasi
-                    </p>
-                  ) : (
-                    notifikasi.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => {
-                          handleBacaNotif(n.id);
-                          router.push(`/dashboard/berita/${n.id}`);
-                        }}
-                        className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition border-b border-gray-50
-                        ${
-                          !n.isRead
-                            ? "bg-yellow-50 hover:bg-yellow-100"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                            !n.isRead ? "bg-yellow-400" : "bg-gray-200"
-                          }`}
-                        />
-
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`text-sm truncate ${
-                              !n.isRead
-                                ? "font-semibold text-gray-800"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {n.title}
-                          </p>
-
-                          {n.caption && (
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              {n.caption}
-                            </p>
-                          )}
-
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {new Date(n.createdAt).toLocaleDateString("id-ID", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* SEARCH */}
           <div className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-1 rounded-full">
             <svg
@@ -348,6 +253,7 @@ export default function DashboardPage() {
             className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
           >
             {penggunaName.charAt(0)}
+
             {isOpen && (
               <ProfileDropdown
                 namapengguna={penggunaName}
@@ -378,7 +284,9 @@ export default function DashboardPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 to-teal-600/75 flex flex-col items-center justify-center text-white text-center px-10">
           <h1 className="text-4xl md:text-6xl font-bold">DONASI</h1>
 
-          <h2 className="text-2xl md:text-4xl font-semibold">BARANG BEKAS</h2>
+          <h2 className="text-2xl md:text-4xl font-semibold">
+            BARANG BEKAS
+          </h2>
 
           <div className="mt-4 inline-block bg-orange-400 text-black px-4 py-2 rounded-full font-semibold">
             BERBAGI UNTUK SESAMA
@@ -398,24 +306,10 @@ export default function DashboardPage() {
           </h2>
 
           <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
-              />
-            </svg>
-
             <select
               value={selectedKategori}
               onChange={(e) => setSelectedKategori(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm"
             >
               <option value="">Semua Kategori</option>
               <option value="Pakaian">Pakaian</option>
@@ -430,80 +324,37 @@ export default function DashboardPage() {
         {fetchingItems ? (
           <p className="text-sm text-gray-400">Memuat barang...</p>
         ) : filteredItems.length === 0 ? (
-          <p className="text-sm text-gray-400">Belum ada barang tersedia.</p>
+          <p className="text-sm text-gray-400">
+            Belum ada barang tersedia.
+          </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="group bg-gradient-to-b from-white to-[#f0fffb] rounded-[32px] p-4 shadow-[0_10px_30px_rgba(20,184,166,0.08)] hover:shadow-[0_20px_45px_rgba(20,184,166,0.18)] transition-all duration-300 border border-teal-100 flex flex-col"
+                className="group bg-white rounded-3xl p-4 shadow-md border border-gray-100"
               >
-                {/* IMAGE */}
-                <div className="relative rounded-[28px] overflow-hidden border border-teal-100 h-[280px]">
-                  {/* CATEGORY */}
-                  <div className="absolute top-4 left-4 z-10 bg-teal-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                    {item.category}
-                  </div>
-
-                  {/* IMAGE FULL */}
+                <div className="relative rounded-3xl overflow-hidden h-[280px]">
                   <Image
                     src={`/api/Barang/getImage/${item.id}`}
                     alt={item.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover"
                   />
                 </div>
 
-                {/* CONTENT */}
-                <div className="mt-5 flex flex-col flex-1">
+                <div className="mt-5">
                   <p className="text-sm text-teal-600 font-semibold">
                     {item.category}
                   </p>
 
-                  <h3 className="text-2xl font-bold text-gray-800 mt-1 line-clamp-2 min-h-[64px]">
+                  <h3 className="text-2xl font-bold text-gray-800 mt-1">
                     {item.name}
                   </h3>
-
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-
-                    <p className="text-sm text-gray-500">{item.status}</p>
-                  </div>
 
                   <p className="text-sm text-gray-400 mt-1">
                     {item.place?.name}
                   </p>
-
-                  {/* AJUKAN */}
-                  <div className="mt-6">
-                    {isVerified ? (
-                      <Link
-                        href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(
-                          item.name,
-                        )}&lokasi=${encodeURIComponent(
-                          item.placeId,
-                        )}&img=${encodeURIComponent(
-                          `/api/Barang/getImage/${item.id}`,
-                        )}`}
-                        className="w-full block text-center bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white py-3 rounded-full font-semibold transition-all duration-300"
-                      >
-                        Ajukan
-                      </Link>
-                    ) : (
-                      <>
-                        <button
-                          disabled
-                          className="w-full bg-gray-300 text-white py-3 rounded-full font-semibold cursor-not-allowed"
-                        >
-                          Ajukan
-                        </button>
-
-                        <p className="text-[11px] text-red-500 mt-2 text-center">
-                          Akun belum terverifikasi
-                        </p>
-                      </>
-                    )}
-                  </div>
                 </div>
               </div>
             ))}
@@ -511,77 +362,82 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Popup Berita */}
-      {showBerita && beritaList.length > 0 && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          onClick={() => {
-            if (beritaIndex < beritaList.length - 1) {
-              setBeritaIndex(beritaIndex + 1);
-            } else {
-              setShowBerita(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative w-full h-96">
-              <img
-                src={`/api/Admin/kelolaBerita/${beritaList[beritaIndex].id}`}
-                alt={beritaList[beritaIndex].title}
-                className="w-full h-full object-contain"
+      {/* FOOTER */}
+      <footer
+        id="tentang-kami"
+        className="bg-[#02142b] text-white mt-16"
+      >
+        <div className="max-w-7xl mx-auto px-8 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src={Logo}
+                alt="ReuseID"
+                width={50}
+                height={50}
+                className="object-contain"
               />
-              <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                {beritaIndex + 1} / {beritaList.length}
-              </div>
+
+              <h2 className="text-2xl font-bold text-teal-400">
+                ReuseID
+              </h2>
             </div>
 
-            <div className="p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">
-                {beritaList[beritaIndex].title}
-              </h2>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowBerita(false)}
-                  className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-xl hover:bg-gray-50 transition text-sm"
-                >
-                  Tutup
-                </button>
-                {beritaIndex < beritaList.length - 1 ? (
-                  <button
-                    onClick={() => setBeritaIndex(beritaIndex + 1)}
-                    className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold flex items-center justify-center gap-2"
-                  >
-                    Berikutnya
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowBerita(false)}
-                    className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-semibold"
-                  >
-                    Selesai
-                  </button>
-                )}
+            <p className="text-sm text-gray-300 leading-relaxed">
+              ReuseID adalah platform donasi barang bekas yang membantu
+              masyarakat berbagi barang layak pakai kepada mereka yang
+              membutuhkan.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">
+              Tentang Kami
+            </h3>
+
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Kami percaya bahwa barang bekas yang masih layak dapat
+              memberikan manfaat baru bagi orang lain.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">
+              Kontak
+            </h3>
+
+            <div className="space-y-3 text-sm text-gray-300">
+              <p>📍 Bandung, Indonesia</p>
+              <p>✉️ reuseid@gmail.com</p>
+              <p>📞 +62 812-3456-7890</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">
+              Social Media
+            </h3>
+
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                f
+              </div>
+
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                ig
+              </div>
+
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                in
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        <div className="border-t border-white/10 py-5 px-8 text-center text-sm text-gray-400">
+          © 2025 ReuseID. All rights reserved.
+        </div>
+      </footer>
 
       {/* CHATBOT */}
       <ReuseBot />
