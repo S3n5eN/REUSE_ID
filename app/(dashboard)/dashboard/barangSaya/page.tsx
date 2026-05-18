@@ -326,6 +326,39 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
           </div>
         </div>
 
+        {/* Biaya pengiriman — hanya tampil saat delivery + Approved */}
+        {status === "Approved" && claimType === "delivery" && (
+          <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-teal-50 border border-teal-100">
+            <svg
+              className="w-4 h-4 text-teal-500 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-teal-500">
+                Biaya Pengiriman
+              </p>
+              <p className="text-sm font-semibold text-teal-800">
+                {shipment.shipmentCost != null
+                  ? new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                    minimumFractionDigits: 0,
+                  }).format(shipment.shipmentCost)
+                  : "Belum ditetapkan"}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Spacer */}
         <div className="flex-1" />
 
@@ -491,12 +524,8 @@ export default function BarangSayaPage() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Kembali
+              Kembali ke Dashboard
             </Link>
-            <span className="text-slate-200">/</span>
-            <span className="text-sm text-slate-700 font-medium">
-              Barang Saya
-            </span>
           </div>
 
           {/* Title + badge */}

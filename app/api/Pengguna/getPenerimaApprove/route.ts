@@ -27,6 +27,7 @@ async function getPenerimaApprove(req: NextRequest, decoded: { id: number }) {
                 userProfile: true,
                 item: {
                     select: {
+                        id: true,
                         name: true
                     }
                 }
