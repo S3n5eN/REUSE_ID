@@ -8,9 +8,9 @@ export async function main() {
     where: { email: process.env.EMAIL_ADMIN },
     update: {},
     create: {
-      name: String(process.env.NAME_ADMIN),
-      email: String(process.env.EMAIL_ADMIN),
-      password: await bcrypt.hash(process.env.PASSWORD_ADMIN, 10),
+      name: process.env.NAME_ADMIN as string,
+      email: process.env.EMAIL_ADMIN as string,
+      password: await bcrypt.hash(process.env.PASSWORD_ADMIN as string, 10),
     },
   });
 
@@ -20,9 +20,9 @@ export async function main() {
     create: {
       name: "Kantor Pusat",
       address: "",
-      managerName: String(process.env.NAMA_ADMIN),
+      managerName: process.env.NAME_ADMIN as string,
       managerPhone: "08123456789", // dummy phone number
-      keyLocation: await bcrypt.hash(process.env.KEY_PUSAT, 10),
+      keyLocation: await bcrypt.hash(process.env.KEY_PUSAT as string, 10),
       operationalJam: "-",
       latitude: -6.2088,
       longitude: 106.8456,
