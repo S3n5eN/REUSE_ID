@@ -70,9 +70,9 @@ export default function ItemDetailModal({ itemId, claimType, onClose }: Props) {
           <div className="px-6 py-5 space-y-4">
             {/* Gambar barang */}
             <div className="w-full h-48 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-              {detail.imageBase64 && detail.imageType ? (
+              { detail.imageType ? (
                 <img
-                  src={`data:${detail.imageType};base64,${detail.imageBase64}`}
+                  src={`/api/Barang/getImage/${itemId}`}
                   alt={detail.name}
                   className="w-full h-full object-cover"
                 />

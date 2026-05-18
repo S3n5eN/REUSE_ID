@@ -16,6 +16,7 @@ import {
   Newspaper,
   Warehouse,
   ShelvingUnit,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/public/Logo/Logo.svg";
@@ -66,6 +67,12 @@ const menuItems: MenuItem[] = [
         icon: <UserPen size={15} />,
         to: "/admin/dashboard/konfirmasiPenerima",
       },
+      {
+        id: "verifikasi-pembayaran",
+        label: "Verifikasi Pembayaran",
+        icon: <CreditCard size={15} />,
+        to: "/admin/dashboard/verifikasiPembayaran",
+      },
     ],
   },
   {
@@ -110,6 +117,7 @@ const menuDaerah = [
   "penerima",
   "verifikasi-penerima",
   "konfirmasi-penerima",
+  "verifikasi-pembayaran",
   "kelola-lokasi",
   "kelola-Berita",
   "daftar-lokasi",
@@ -162,6 +170,7 @@ export default function Sidebar() {
     });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     takeInfoAdmin();
     document.body.classList.toggle("sb-open", isOpen);
     document.body.classList.toggle("sb-closed", !isOpen);

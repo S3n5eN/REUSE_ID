@@ -54,6 +54,13 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
       );
     }
 
+    if (isShipmenttExist.claimType === "delivery" && isShipmenttExist.paymentStatus !== "Paid") {
+      return NextResponse.json(
+        { message: "Pembayaran delivery belum diverifikasi" },
+        { status: 400 },
+      );
+    }
+
     // ==== Ambil poin berdasarkan kualitas barang ====
     const tambahPoin = Poin[isShipmenttExist.item.quality];
 
@@ -77,6 +84,10 @@ async function konfirmasiTerima(req: NextRequest, decoded: { id: string }) {
         prisma.rak.update({
           where: { id: Number(isShipmenttExist.item.rakId) },
           data: { kapasitasSekarang: { decrement: 1 } },
+        }),
+        prisma.item.update({
+          where: { id: Number(isShipmenttExist.itemId) },
+          data: { rakId: null },
         }),
       ]);
       return NextResponse.json(

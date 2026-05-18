@@ -97,11 +97,24 @@ model shipment {
   createdAt       DateTime       @default(now())
   deliveredDate   DateTime?
   shipmentCost    Int?
+  paymentInvoice  String?
+  paymentTotal    Int?
+  paymentExpiredAt DateTime?
   distance        Float?
   deliveryLat     Float?
   deliveryLng     Float?
-  paymentMethod   String?       // "QRIS" atau "ATM"
+  paymentMethod   String?       // "ATM"
   paymentStatus   PaymentStatus @default(Unpaid)
+  transferBankCode String?
+  transferBankName String?
+  transferAccountNumber String?
+  transferAccountHolder String?
+  payerBank       String?
+  payerAccountName String?
+  transferProofImage Bytes?
+  transferProofType String?
+  transferProofUploadedAt DateTime?
+  paymentVerifiedAt DateTime?
 
   admin           admin?         @relation(fields: [adminId], references: [id], map: "Shipment_adminId_fkey")
   item            item           @relation(fields: [itemId], references: [id], map: "Shipment_itemId_fkey")
@@ -210,6 +223,7 @@ enum userProfile_gender {
 
 enum PaymentStatus {
   Unpaid
+  WaitingVerification
   Paid
   Failed
 }

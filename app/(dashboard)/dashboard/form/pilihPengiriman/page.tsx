@@ -4,9 +4,29 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Truck, Store, CheckCircle2, AlertCircle, Loader2, Navigation, Package } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Truck,
+  Store,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Navigation,
+  Package,
+  Landmark,
+  ReceiptText,
+  ShieldCheck,
+} from "lucide-react";
 
 const RouteMap = dynamic(() => import("@/components/RouteMap"), { ssr: false });
+
+const bankAccounts = [
+  { code: "BCA", name: "Bank Central Asia", accountNumber: "1234567890", holder: "REUSEID INDONESIA" },
+  { code: "BNI", name: "Bank Negara Indonesia", accountNumber: "8800123456", holder: "REUSEID INDONESIA" },
+  { code: "BRI", name: "Bank Rakyat Indonesia", accountNumber: "002301234567890", holder: "REUSEID INDONESIA" },
+  { code: "MANDIRI", name: "Bank Mandiri", accountNumber: "1410012345678", holder: "REUSEID INDONESIA" },
+];
 
 export default function FormPilihPengiriman() {
   const searchParams = useSearchParams();
@@ -32,6 +52,7 @@ export default function FormPilihPengiriman() {
   const [errorMsg, setErrorMsg] = useState("");
   const [ongkirData, setOngkirData] = useState<{ distance: number; ongkir: number } | null>(null);
   const [loadingOngkir, setLoadingOngkir] = useState(false);
+  const [selectedBank, setSelectedBank] = useState(bankAccounts[0]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,14 +133,28 @@ export default function FormPilihPengiriman() {
           alamat: form.jenisPengiriman === "delivery" ? form.alamat : undefined,
           lat: form.jenisPengiriman === "delivery" ? Number(form.lat) : undefined,
           lng: form.jenisPengiriman === "delivery" ? Number(form.lng) : undefined,
-          paymentMethod: form.jenisPengiriman === "delivery" ? "Manual" : undefined,
+          paymentMethod: form.jenisPengiriman === "delivery" ? "ATM" : undefined,
+          transferBankCode: form.jenisPengiriman === "delivery" ? selectedBank.code : undefined,
+          transferBankName: form.jenisPengiriman === "delivery" ? selectedBank.name : undefined,
+          transferAccountNumber: form.jenisPengiriman === "delivery" ? selectedBank.accountNumber : undefined,
+          transferAccountHolder: form.jenisPengiriman === "delivery" ? selectedBank.holder : undefined,
         }),
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccessMsg("Jenis pengiriman berhasil dipilih!");
+        setSuccessMsg(
+          form.jenisPengiriman === "delivery"
+            ? "Invoice pembayaran berhasil dibuat!"
+            : "Jenis pengiriman berhasil dipilih!",
+        );
         setForm({ jenisPengiriman: "", alamat: "", lat: "", lng: "" });
-        setTimeout(() => router.push("/dashboard"), 2500);
+        setTimeout(() => {
+          if (form.jenisPengiriman === "delivery") {
+            router.push(`/dashboard/form/uploadBuktiTransfer?shipmentId=${shipmentId}`);
+            return;
+          }
+          router.push("/dashboard");
+        }, 1200);
       } else {
         setErrorMsg(data.message || "Terjadi kesalahan pada server.");
       }
@@ -133,6 +168,9 @@ export default function FormPilihPengiriman() {
   const isDelivery = form.jenisPengiriman === "delivery";
   const isPickup = form.jenisPengiriman === "pickup";
   const hasCoords = originCoords.lat && originCoords.lng && form.lat && form.lng;
+  const formattedOngkir = ongkirData
+    ? `Rp ${ongkirData.ongkir.toLocaleString("id-ID")}`
+    : "Menunggu kalkulasi";
 
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
@@ -324,17 +362,88 @@ export default function FormPilihPengiriman() {
                 </div>
               </div>
 
+              {/* Pembayaran ATM */}
+              <AnimatePresence>
+                {isDelivery && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-2xl border border-[#007582]/20 bg-[#007582]/[0.04] p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#007582] text-white flex items-center justify-center shrink-0">
+                          <Landmark className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-zinc-900">Pembayaran Transfer ATM</p>
+                          <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                            Bayar ongkos kirim melalui transfer ATM. Status pembayaran akan menunggu verifikasi setelah pengiriman dikonfirmasi.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        {bankAccounts.map((bank) => {
+                          const active = selectedBank.code === bank.code;
+                          return (
+                            <button
+                              key={bank.code}
+                              type="button"
+                              onClick={() => setSelectedBank(bank)}
+                              className={`rounded-xl border px-3 py-2.5 text-left transition ${
+                                active
+                                  ? "border-[#007582] bg-white shadow-sm"
+                                  : "border-zinc-200 bg-white/70 hover:border-zinc-300"
+                              }`}
+                            >
+                              <p className={`text-xs font-bold ${active ? "text-[#007582]" : "text-zinc-700"}`}>
+                                {bank.code}
+                              </p>
+                              <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{bank.name}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-4 rounded-xl bg-white border border-zinc-200 divide-y divide-zinc-100">
+                        <div className="flex items-center justify-between gap-3 px-3 py-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <ReceiptText className="w-4 h-4 text-zinc-400 shrink-0" />
+                            <span className="text-xs text-zinc-500">Total transfer</span>
+                          </div>
+                          <span className="text-sm font-bold text-zinc-900">
+                            {loadingOngkir ? "Menghitung..." : formattedOngkir}
+                          </span>
+                        </div>
+                        <div className="px-3 py-3">
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Nomor Rekening</p>
+                          <p className="text-base font-bold tracking-wide text-zinc-900">{selectedBank.accountNumber}</p>
+                          <p className="text-xs text-zinc-500 mt-1">a.n. {selectedBank.holder}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-start gap-2 text-xs text-zinc-500 leading-relaxed">
+                        <ShieldCheck className="w-4 h-4 text-[#007582] shrink-0 mt-0.5" />
+                        <span>Pastikan nominal transfer sesuai ongkir agar pembayaran mudah diverifikasi.</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex-1" />
 
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !shipmentId || !form.jenisPengiriman}
+                disabled={loading || !shipmentId || !form.jenisPengiriman || (isDelivery && (!ongkirData || loadingOngkir))}
                 className="w-full py-3.5 bg-[#007582] hover:bg-[#005f6b] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#007582]/20"
               >
                 {loading
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</>
-                  : "Konfirmasi Pengiriman"
+                  : isDelivery ? "Konfirmasi & Gunakan Transfer ATM" : "Konfirmasi Pengiriman"
                 }
               </button>
             </form>

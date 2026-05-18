@@ -5,7 +5,18 @@ import { hitungJarak, hitungOngkir } from "@/lib/distance";
 
 async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
   try {
-    const { shipmentId, jenisPengiriman, alamat, lat, lng, paymentMethod } = await req.json();
+    const {
+      shipmentId,
+      jenisPengiriman,
+      alamat,
+      lat,
+      lng,
+      paymentMethod,
+      transferBankCode,
+      transferBankName,
+      transferAccountNumber,
+      transferAccountHolder,
+    } = await req.json();
 
     if (!jenisPengiriman || !shipmentId) {
       return NextResponse.json(
@@ -30,6 +41,23 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
       );
     }
 
+    if (jenisPengiriman === "delivery" && paymentMethod !== "ATM") {
+      return NextResponse.json(
+        { message: "Metode pembayaran hanya mendukung transfer ATM" },
+        { status: 400 },
+      );
+    }
+
+    if (
+      jenisPengiriman === "delivery" &&
+      (!transferBankCode || !transferBankName || !transferAccountNumber || !transferAccountHolder)
+    ) {
+      return NextResponse.json(
+        { message: "Data rekening transfer ATM belum lengkap" },
+        { status: 400 },
+      );
+    }
+
     const shipment = await prisma.shipment.findFirst({
       where: { id: Number(shipmentId), userId: Number(decoded.id), type: "claim", claimType: null },
       include: {
@@ -48,6 +76,9 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
 
     let distance = null;
     let shipmentCost = null;
+    let paymentInvoice = null;
+    let paymentTotal = null;
+    let paymentExpiredAt = null;
 
     // Kalkulasi jarak dan ongkir di server (agar aman tidak dimanipulasi)
     if (jenisPengiriman === "delivery") {
@@ -60,6 +91,9 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
 
       distance = hitungJarak(Number(lat), Number(lng), placeLat, placeLng);
       shipmentCost = hitungOngkir(distance, shipment.item.weight || 1);
+      paymentInvoice = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${String(shipment.id).padStart(6, "0")}`;
+      paymentTotal = shipmentCost + (shipment.id % 997) + 1;
+      paymentExpiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
 
     const updateShipment = await prisma.shipment.update({
@@ -73,6 +107,13 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
             paymentStatus: jenisPengiriman === "delivery" ? "Unpaid" : "Paid",
             distance: distance,
             shipmentCost: shipmentCost,
+            paymentInvoice,
+            paymentTotal,
+            paymentExpiredAt,
+            transferBankCode: jenisPengiriman === "delivery" ? transferBankCode : null,
+            transferBankName: jenisPengiriman === "delivery" ? transferBankName : null,
+            transferAccountNumber: jenisPengiriman === "delivery" ? transferAccountNumber : null,
+            transferAccountHolder: jenisPengiriman === "delivery" ? transferAccountHolder : null,
             status: "Approved"
         }
     });

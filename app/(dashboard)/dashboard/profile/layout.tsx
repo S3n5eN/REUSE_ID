@@ -56,7 +56,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const [profileImage, setProfileImage] = useState("/api/Pengguna/photoProfile");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [penggunaName, setPenggunaName] = useState("Glen");
+  const [penggunaName, setPenggunaName] = useState("");
   const [isVerified, setIsVerified] = useState(true);
   const [jumlahDonasi, setJumlahDonasi] = useState(0);
   const [myPoin, setMyPoin] = useState(0);

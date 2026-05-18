@@ -15,6 +15,7 @@ async function getItemDetail(req: NextRequest) {
         category: true,
         weight: true,
         imageData: true,
+        imageType: true,
         rak: {
           select: { nomor: true }
         }

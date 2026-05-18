@@ -3,7 +3,7 @@ import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
 
-async function getPenerimaApprove(req: NextRequest, decoded: { id: number }) {
+async function getPenerimaApprove(req: NextRequest) {
     try {
         const placeId = req.cookies.get("placeId")?.value;
 
@@ -19,6 +19,10 @@ async function getPenerimaApprove(req: NextRequest, decoded: { id: number }) {
                 claimType: { not: null },
                 status: "Approved",
                 type: "claim",
+                OR: [
+                    { claimType: "pickup" },
+                    { claimType: "delivery", paymentStatus: "Paid" },
+                ],
                 item: {
                     placeId: Number(placeId),
                 }
