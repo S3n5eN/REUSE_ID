@@ -20,9 +20,12 @@ export default function ProfileDropdown({
       {/* HEADER */}
       <div className="flex pb-2 px-4 pt-3 items-center border-b border-b-slate-300">
 
-        <div className="w-8 h-8 rounded-full bg-cyan-300 flex items-center justify-center text-white font-bold mr-3">
-          {namapengguna.charAt(0)}
-        </div>
+        <img
+          src="/api/Pengguna/photoProfile"
+          alt={namapengguna}
+          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(namapengguna)}&background=0D8ABC&color=fff`; }}
+          className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm mr-3"
+        />
 
         <span className="text-md font-semibold text-slate-600">
           {namapengguna}

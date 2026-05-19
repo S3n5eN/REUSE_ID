@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         }
 
         const isExist = await prisma.user.findFirst({
-            where: { email}
+            where: { email }
         });
 
         // ==== statsus tetap 200 dan pesan tetap seperti ini, ini biar tidak menunjukkan apakah email ada atau tidak ====

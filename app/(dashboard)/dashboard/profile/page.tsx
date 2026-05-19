@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 // Lazy load map to avoid SSR issues
 const LocationPickerMap = dynamic(() => import("@/components/locationPickerMap"), {
@@ -45,9 +48,32 @@ const MapPinIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const COUNTRIES = [
+  { code: "+62", iso: "id", name: "Indonesia" },
+  { code: "+1", iso: "us", name: "United States" },
+  { code: "+60", iso: "my", name: "Malaysia" },
+  { code: "+65", iso: "sg", name: "Singapore" },
+  { code: "+81", iso: "jp", name: "Japan" },
+  { code: "+61", iso: "au", name: "Australia" },
+  { code: "+44", iso: "gb", name: "United Kingdom" },
+  { code: "+49", iso: "de", name: "Germany" },
+  { code: "+33", iso: "fr", name: "France" },
+  { code: "+82", iso: "kr", name: "South Korea" },
+  { code: "+86", iso: "cn", name: "China" },
+  { code: "+91", iso: "in", name: "India" },
+  { code: "+966", iso: "sa", name: "Saudi Arabia" },
+  { code: "+971", iso: "ae", name: "UAE" },
+];
+
 export default function ProfileContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [countryCode, setCountryCode] = useState("+62");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showCountryMenu, setShowCountryMenu] = useState(false);
+  
+  const [popupSuccess, setPopupSuccess] = useState<string | null>(null);
+  const [popupError, setPopupError] = useState<string | null>(null);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
 
   const [form, setForm] = useState<FormData>({
     namaLengkap: "",
@@ -72,13 +98,32 @@ export default function ProfileContent() {
       let profileData: any = {};
       if (res.ok && response.hasProfile && response.data) profileData = response.data;
 
+      const fullPhone = profileData.phone ?? "";
+      let foundCode = "+62";
+      let localPhone = fullPhone;
+
+      const matchedCountry = COUNTRIES
+        .slice()
+        .sort((a, b) => b.code.length - a.code.length)
+        .find(c => fullPhone.startsWith(c.code));
+
+      if (matchedCountry) {
+        foundCode = matchedCountry.code;
+        localPhone = fullPhone.substring(matchedCountry.code.length);
+      } else if (fullPhone.startsWith("0")) {
+        foundCode = "+62";
+        localPhone = fullPhone.substring(1);
+      }
+
+      setCountryCode(foundCode);
+
       const filled: FormData = {
         namaLengkap: profileData.namaLengkap ?? "",
         email: profileData.email ?? "",
         usia: profileData.usia ?? "",
         gender: profileData.gender ?? "Laki-laki",
         pekerjaan: profileData.pekerjaan ?? "",
-        phone: profileData.phone ?? "",
+        phone: localPhone,
         address: profileData.address ?? "",
         latitude: profileData.latitude ?? -6.9175,
         longitude: profileData.longitude ?? 107.6191,
@@ -92,47 +137,70 @@ export default function ProfileContent() {
   };
 
   const validataForm = () => {
-    const namaRegex = /^[A-Za-z\s]{4,}$/;
-    if (!namaRegex.test(form.namaLengkap.trim())) {
-      alert("Nama minimal 4 huruf dan hanya boleh alfabet");
-      return false;
-    };
-    const usiaNumber = Number(form.usia);
-    if (isNaN(usiaNumber) || usiaNumber < 17) {
-      alert("Usia minimal 17 tahun");
-      return false;
-    }
-    const phoneRegex = /^[1-9][0-9]{7,15}$/;
-    if (!phoneRegex.test(form.phone)) {
-      alert("Nomor telepon tidak boleh dimulai dari 0")
-      return false;
+    const newErrors: { [key: string]: string } = {};
+
+    if (!form.namaLengkap.trim()) {
+      newErrors.namaLengkap = "Nama lengkap wajib diisi";
+    } else {
+      const namaRegex = /^[A-Za-z\s]{4,}$/;
+      if (!namaRegex.test(form.namaLengkap.trim())) {
+        newErrors.namaLengkap = "Nama minimal 4 huruf dan hanya boleh alfabet";
+      }
     }
 
-    return true;
+    const usiaNumber = Number(form.usia);
+    if (!form.usia) {
+      newErrors.usia = "Usia wajib diisi";
+    } else if (isNaN(usiaNumber) || usiaNumber < 17) {
+      newErrors.usia = "Usia minimal 17 tahun";
+    }
+
+    if (!form.phone) {
+      newErrors.phone = "Nomor telepon wajib diisi";
+    } else {
+      const phoneRegex = /^[1-9][0-9]{7,15}$/;
+      if (!phoneRegex.test(form.phone)) {
+        newErrors.phone = "Nomor telepon tidak boleh dimulai dari 0 dan minimal 8 digit";
+      }
+    }
+
+    if (!form.address.trim()) {
+      newErrors.address = "Alamat wajib diisi";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
-  const handleSave = async () => {
-    if (!form.namaLengkap.trim() || !form.email.trim() || !form.address.trim()) {
-      alert("Nama, email, dan alamat wajib diisi!"); return;
+  const requestSave = () => {
+    if (validataForm()) {
+      setShowConfirmSave(true);
     }
-    if (!validataForm()) return;
+  };
+
+  const handleSave = async () => {
+    setShowConfirmSave(false);
+    setErrors({});
     setIsSaving(true);
     try {
       const res = await fetch("/api/Pengguna/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          phone: `${countryCode}${form.phone}`
+        }),
       });
       const response = await res.json();
       if (res.ok && response.success) {
         setOriginalForm(form);
-        alert(!response.data?.isVerified ? "Profile berhasil disimpan! Data sedang menunggu verifikasi admin." : "Perubahan berhasil disimpan!");
+        setPopupSuccess(!response.data?.isVerified ? "Profile berhasil disimpan! Data sedang menunggu verifikasi admin." : "Perubahan berhasil disimpan!");
       } else {
-        alert(response.message || "Gagal menyimpan perubahan.");
+        setPopupError(response.message || "Gagal menyimpan perubahan.");
       }
     } catch (error) {
       console.error("Error saving profil:", error);
-      alert("Terjadi kesalahan saat menyimpan.");
+      setPopupError("Terjadi kesalahan saat menyimpan.");
     } finally {
       setIsSaving(false);
     }
@@ -167,7 +235,8 @@ export default function ProfileContent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Nama Lengkap</label>
-            <input className={inputCls} type="text" name="namaLengkap" value={form.namaLengkap} onChange={handleChange} />
+            <input className={`${inputCls} ${errors.namaLengkap ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} type="text" name="namaLengkap" value={form.namaLengkap} onChange={handleChange} />
+            {errors.namaLengkap && <p className="text-[11px] text-red-500 font-medium mt-0.5">{errors.namaLengkap}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Alamat Email</label>
@@ -175,7 +244,8 @@ export default function ProfileContent() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Usia</label>
-            <input className={inputCls} type="number" min="17" name="usia" value={form.usia} onChange={handleChange} />
+            <input className={`${inputCls} ${errors.usia ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`} type="number" min="17" name="usia" value={form.usia} onChange={handleChange} />
+            {errors.usia && <p className="text-[11px] text-red-500 font-medium mt-0.5">{errors.usia}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Jenis Kelamin</label>
@@ -191,15 +261,54 @@ export default function ProfileContent() {
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Nomor Telepon</label>
             <div className="flex gap-1.5">
-              <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="bg-gray-50 border border-gray-300 rounded-lg px-2 py-2 text-[.83rem] font-semibold text-gray-800">
-                <option value="+62">+62</option>
-                <option value="+1">+1</option>
-                <option value="+60">+60</option>
-                <option value="+65">+65</option>
-                <option value="+81">+81</option>
-              </select>
+              {/* Custom Country Dropdown with real SVG flags */}
+              <div className="relative">
+                <div
+                  onClick={() => setShowCountryMenu(!showCountryMenu)}
+                  className="flex items-center justify-between gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-[.83rem] font-bold text-gray-800 cursor-pointer transition hover:border-teal-600 focus-within:border-teal-600 select-none w-[95px] h-[38px]"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <img 
+                      src={`https://flagcdn.com/w40/${COUNTRIES.find(c => c.code === countryCode)?.iso || 'id'}.png`}
+                      alt="flag"
+                      className="w-[18px] h-[12px] object-cover rounded-sm border border-gray-200 flex-shrink-0 shadow-sm"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    <span>{countryCode}</span>
+                  </div>
+                  <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${showCountryMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+
+                {showCountryMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowCountryMenu(false)} />
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 shadow-xl rounded-xl py-1 z-50 max-h-60 overflow-y-auto">
+                      {COUNTRIES.map(c => (
+                        <div 
+                          key={c.code}
+                          onClick={() => {
+                            setCountryCode(c.code);
+                            setShowCountryMenu(false);
+                          }}
+                          className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-teal-50 transition-all text-[.83rem] select-none"
+                        >
+                          <img 
+                            src={`https://flagcdn.com/w40/${c.iso}.png`}
+                            alt={c.name}
+                            className="w-[18px] h-[12px] object-cover rounded-sm border border-gray-100 shadow-sm flex-shrink-0"
+                          />
+                          <span className="font-bold text-gray-800">{c.code}</span>
+                          <span className="text-gray-400 text-[.72rem] truncate font-medium">{c.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
               <input
-                className={`${inputCls} flex-1`}
+                className={`${inputCls} flex-1 ${errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`}
                 type="tel"
                 name="phone"
                 value={form.phone}
@@ -212,13 +321,15 @@ export default function ProfileContent() {
                   setForm((p) => ({ ...p, phone: value }));
                 }} />
             </div>
+            {errors.phone && <p className="text-[11px] text-red-500 font-medium mt-0.5">{errors.phone}</p>}
           </div>
           <div className="flex flex-col gap-1.5 sm:col-span-2">
             <label className="text-[.76rem] font-semibold">Alamat Rumah</label>
             <textarea
-              className={`${inputCls} resize-none h-16 leading-relaxed`}
+              className={`${inputCls} resize-none h-16 leading-relaxed ${errors.address ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : ''}`}
               name="address" value={form.address} onChange={handleChange}
             />
+            {errors.address && <p className="text-[11px] text-red-500 font-medium mt-0.5">{errors.address}</p>}
           </div>
         </div>
 
@@ -230,7 +341,7 @@ export default function ProfileContent() {
             Batalkan
           </button>
           <button
-            onClick={handleSave}
+            onClick={requestSave}
             disabled={isSaving}
             className="bg-teal-700 text-white border-none rounded-lg px-6 py-1.5 text-[.83rem] font-bold cursor-pointer transition hover:bg-teal-800 hover:-translate-y-px disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 font-[inherit]"
           >
@@ -267,6 +378,19 @@ export default function ProfileContent() {
           </div>
         </div>
       </div>
+
+      {popupSuccess && <SuccessPopup message={popupSuccess} onClose={() => setPopupSuccess(null)} />}
+      {popupError && <ErrorPopup message={popupError} onClose={() => setPopupError(null)} />}
+      {showConfirmSave && (
+        <ConfirmPopup
+          message="Apakah Anda yakin ingin menyimpan seluruh perubahan pada profil Anda?"
+          confirmText="Ya, Simpan"
+          cancelText="Batal"
+          type="info"
+          onConfirm={handleSave}
+          onCancel={() => setShowConfirmSave(false)}
+        />
+      )}
     </>
   );
 }

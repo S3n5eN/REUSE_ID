@@ -3,11 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const ChevronLeftIcon = () => (
   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
     <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+const PencilIcon = () => (
+  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
 const CheckIcon = () => (
@@ -50,6 +59,12 @@ const DocIcon = () => (
     <line x1="9" y1="7" x2="15" y2="7" /><line x1="9" y1="11" x2="15" y2="11" /><line x1="9" y1="15" x2="12" y2="15" />
   </svg>
 );
+const AwardIcon = () => (
+  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="6"/>
+    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+  </svg>
+);
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -62,6 +77,16 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   const [myPoin, setMyPoin] = useState(0);
   const [streak, setStreak] = useState(0);
   const [memberSinceYear, setMemberSinceYear] = useState(new Date().getFullYear());
+  
+  // Modal Photo States
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const [popupSuccess, setPopupSuccess] = useState<string | null>(null);
+  const [popupError, setPopupError] = useState<string | null>(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   const getPenggunaName = async () => {
     try {
@@ -96,18 +121,18 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
       });
       const response = await res.json();
       if (res.ok) {
-        alert("Foto profile berhasil diupload");
+        setPopupSuccess("Foto profile berhasil diupload");
         setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`);
       } else {
-        alert(response.message);
+        setPopupError(response.message);
       }
     } catch (error) {
-      console.log(error); alert("Terjadi kesalahan");
+      console.log(error); setPopupError("Terjadi kesalahan");
     }
   };
 
   const handleDeletePhoto = async () => {
-    if (!confirm("Yakin ingin menghapus foto profile?")) return;
+    setShowConfirmDelete(false);
     try {
       const res = await fetch("/api/Pengguna/photoProfile", {
         method: "DELETE",
@@ -115,14 +140,55 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
       });
       const response = await res.json();
       if (res.ok) {
-        alert("Foto berhasil dihapus");
-        setProfileImage("https://i.pinimg.com/236x/56/2e/be/562ebed9cd49b9a09baa35eddfe86b00.jpg");
+        setPopupSuccess("Foto berhasil dihapus");
+        setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`);
+        setIsModalOpen(false);
       } else {
-        alert(response.message);
+        setPopupError(response.message);
       }
     } catch (error) {
-      console.log(error); alert("Terjadi kesalahan");
+      console.log(error); setPopupError("Terjadi kesalahan");
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleSavePhoto = async () => {
+    if (!selectedFile) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("foto", selectedFile);
+      const res = await fetch("/api/Pengguna/photoProfile", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: formData,
+      });
+      const response = await res.json();
+      if (res.ok) {
+        setPopupSuccess("Foto profile berhasil disimpan");
+        setProfileImage(`/api/Pengguna/photoProfile?t=${Date.now()}`);
+        setIsModalOpen(false);
+        setSelectedFile(null);
+        setPreviewUrl(null);
+      } else {
+        setPopupError(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      setPopupError("Terjadi kesalahan saat mengupload");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleModalDelete = async () => {
+    setShowConfirmDelete(true);
   };
 
   useEffect(() => {
@@ -133,6 +199,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   const menus = [
     { key: "/dashboard/profile", label: "Edit Profil", icon: <UserIcon size={15} /> },
     { key: "/dashboard/profile/riwayatDonasi", label: "Riwayat Donasi", icon: <ClockIcon /> },
+    { key: "/dashboard/profile/sertifikat", label: "Sertifikat", icon: <AwardIcon /> },
     { key: "/dashboard/profile/keamanan", label: "Pengaturan Keamanan", icon: <LockIcon /> },
   ];
 
@@ -154,35 +221,16 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
         <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto flex flex-col gap-3 p-4 max-lg:w-full max-lg:overflow-visible">
           {/* Profile card */}
           <div className="text-center">
-            <div className="relative w-[72px] h-[72px] mx-auto mb-2">
+            <div className="relative w-[180px] h-[180px] mx-auto mb-3 group cursor-pointer" onClick={() => setIsModalOpen(true)}>
               <img
                 src={profileImage}
                 alt={penggunaName}
-                onError={(e) => { e.currentTarget.src = "https://i.pravatar.cc/104?img=68"; }}
-                className="w-[72px] h-[72px] rounded-full object-cover border-[3px] border-teal-100"
+                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(penggunaName)}&background=EBF4F1&color=007582&size=180`; }}
+                className="w-[180px] h-[180px] rounded-full object-cover border-[4px] border-teal-100 transition-all group-hover:border-teal-600 shadow-sm"
               />
-              <div className="absolute bottom-0.5 right-0.5 bg-teal-700 rounded-full w-[18px] h-[18px] flex items-center justify-center border-2 border-white text-white">
-                <CheckIcon />
+              <div className="absolute bottom-1 right-1 bg-teal-700 text-white rounded-full w-10 h-10 flex items-center justify-center border-[3px] border-white shadow-md transition-all transform group-hover:scale-110">
+                <PencilIcon />
               </div>
-            </div>
-
-            <input
-              type="file" accept="image/*" ref={fileInputRef}
-              className="hidden" onChange={handleUploadPhoto}
-            />
-            <div className="flex justify-center gap-2 mt-2.5">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-teal-700 text-white border-none px-3 py-1.5 rounded-lg cursor-pointer font-semibold text-xs transition hover:bg-teal-800"
-              >
-                Ganti Foto
-              </button>
-              <button
-                onClick={handleDeletePhoto}
-                className="bg-red-500 text-white border-none px-3 py-1.5 rounded-lg cursor-pointer font-semibold text-xs transition hover:bg-red-600"
-              >
-                Hapus
-              </button>
             </div>
 
             <div className="text-[.98rem] font-extrabold mt-2 mb-0.5">{penggunaName || "—"}</div>
@@ -252,6 +300,79 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
           {children}
         </div>
       </div>
+
+      {/* Modal Upload Photo */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-[350px] p-6 shadow-2xl flex flex-col items-center relative animate-in zoom-in-95 duration-200 text-center">
+            <h3 className="text-[1.05rem] font-extrabold text-teal-700 mb-4">Ubah Foto Profil</h3>
+            
+            <div className="w-[180px] h-[180px] rounded-full border-4 border-teal-50 overflow-hidden mb-4 flex-shrink-0 shadow-sm">
+              <img 
+                src={previewUrl || profileImage} 
+                alt="Preview" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(penggunaName)}&background=EBF4F1&color=007582&size=180`; }}
+              />
+            </div>
+
+            <input 
+              type="file" accept="image/*" 
+              className="hidden" id="modal-photo-upload" 
+              onChange={handleFileSelect}
+            />
+            <label 
+              htmlFor="modal-photo-upload" 
+              className="bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer transition-all mb-5 w-full flex items-center justify-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+                <circle cx="12" cy="13" r="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {selectedFile ? "Ganti Pilihan Gambar" : "Pilih Gambar Baru"}
+            </label>
+            
+            <div className="flex w-full gap-3 pt-3 border-t border-gray-100">
+              <button 
+                onClick={handleModalDelete}
+                className="flex-1 py-2.5 rounded-lg border border-red-100 text-red-600 font-bold text-xs hover:bg-red-50 transition cursor-pointer"
+              >
+                Hapus
+              </button>
+              <button 
+                onClick={handleSavePhoto}
+                disabled={!selectedFile || isUploading}
+                className="flex-1 py-2.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isUploading ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+
+            {/* Close Button */}
+            <button 
+              onClick={() => { setIsModalOpen(false); setPreviewUrl(null); setSelectedFile(null); }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 border-none bg-transparent cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {popupSuccess && <SuccessPopup message={popupSuccess} onClose={() => setPopupSuccess(null)} />}
+      {popupError && <ErrorPopup message={popupError} onClose={() => setPopupError(null)} />}
+      {showConfirmDelete && (
+        <ConfirmPopup
+          message="Apakah Anda yakin ingin menghapus foto profil Anda? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          type="danger"
+          onConfirm={handleDeletePhoto}
+          onCancel={() => setShowConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import SuccessPopup from "@/components/SuccessPopup";
 import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 import { useRouter } from "next/navigation";
 import Logo from "@/public/Logo/Logo.svg";
 
@@ -18,9 +19,10 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showConfirmRegister, setShowConfirmRegister] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validasi nama
@@ -56,6 +58,12 @@ export default function RegisterPage() {
       setPasswordError("");
     }
 
+    // Tampilkan konfirmasi
+    setShowConfirmRegister(true);
+  };
+
+  const handleExecuteRegister = async () => {
+    setShowConfirmRegister(false);
     try {
       const res = await fetch("/api/Pengguna/register", {
         method: "POST",
@@ -76,7 +84,7 @@ export default function RegisterPage() {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("Terjadi kesalahan server");
+      setErrorMessage("Terjadi kesalahan server");
     }
   };
 
@@ -100,7 +108,7 @@ export default function RegisterPage() {
             </div>
 
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleRequestSubmit}
               className="bg-white p-8 rounded max-w-4xl flex flex-col gap-4"
             >
 
@@ -220,6 +228,18 @@ export default function RegisterPage() {
         <ErrorPopup
           message={errorMessage}
           onClose={() => setErrorMessage("")}
+        />
+      )}
+
+      {/* popup konfirmasi registrasi */}
+      {showConfirmRegister && (
+        <ConfirmPopup
+          message="Apakah Anda yakin informasi pendaftaran sudah benar dan ingin membuat akun sekarang?"
+          confirmText="Ya, Buat Akun"
+          cancelText="Batal"
+          type="info"
+          onConfirm={handleExecuteRegister}
+          onCancel={() => setShowConfirmRegister(false)}
         />
       )}
     </div>

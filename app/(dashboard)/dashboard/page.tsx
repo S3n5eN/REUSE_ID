@@ -58,7 +58,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/Pengguna");
       const data = await res.json();
 
-      setPenggunaName(data.name);
+      setPenggunaName(data.namalengkap || data.name || "");
       setIsVerified(data.isVerified ?? false);
     } catch (error) {
       console.error("Error fetching pengguna name:", error);
@@ -250,9 +250,14 @@ export default function DashboardPage() {
           {/* PROFILE */}
           <div
             onClick={() => setIsOpen(!isOpen)}
-            className="w-8 h-8 relative rounded-full object-cover cursor-pointer bg-cyan-300 flex items-center justify-center text-white font-bold"
+            className="relative w-8 h-8 cursor-pointer"
           >
-            {penggunaName.charAt(0)}
+            <img
+              src="/api/Pengguna/photoProfile"
+              alt={penggunaName}
+              onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(penggunaName)}&background=0D8ABC&color=fff`; }}
+              className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm hover:ring-2 hover:ring-teal-500 transition-all"
+            />
 
             {isOpen && (
               <ProfileDropdown
