@@ -91,7 +91,7 @@ async function verifikasiPembayaran(req: NextRequest, decoded: { id: string }) {
     const updated = await prisma.shipment.update({
       where: { id: Number(shipmentId) },
       data: {
-        paymentStatus: action === "approve" ? "Paid" : "Failed",
+        paymentStatus: action === "approve" ? "Paid" : "Unpaid",
         paymentVerifiedAt: action === "approve" ? new Date() : null,
         adminId: Number(decoded.id),
       },
