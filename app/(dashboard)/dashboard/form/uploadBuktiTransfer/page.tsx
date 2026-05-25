@@ -144,6 +144,9 @@ export default function UploadBuktiTransferPage() {
           : prev,
       );
       setProof(null);
+      setTimeout(() => {
+        router.push("/dashboard/barangSaya");
+      }, 1500);
     } catch {
       setErrorMsg("Gagal terhubung ke server.");
     } finally {

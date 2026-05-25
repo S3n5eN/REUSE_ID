@@ -21,7 +21,9 @@ async function getDashboard(req: NextRequest) {
       totalPlace,
       totalDiambil,
       pendingList,
-      shipmentStatus
+      shipmentStatus,
+      pendingPaymentCount,
+      pendingPaymentList
     ] = await Promise.all([
 
       // TOTAL ITEM
@@ -85,6 +87,43 @@ async function getDashboard(req: NextRequest) {
         _count: 
           {status: true}
         
+      }),
+
+      // TOTAL PEMBAYARAN TERTUNDA
+      prisma.shipment.count({
+        where: {
+          type: "claim",
+          claimType: "delivery",
+          paymentStatus: "WaitingVerification",
+          ...(isGeneral ? {} : { item: { placeId: Number(placeId) } }),
+        }
+      }),
+
+      // LIST PEMBAYARAN TERTUNDA
+      prisma.shipment.findMany({
+        where: {
+          type: "claim",
+          claimType: "delivery",
+          paymentStatus: "WaitingVerification",
+          ...(isGeneral ? {} : { item: { placeId: Number(placeId) } }),
+        },
+        include: {
+          user: {
+            select: {
+              name: true
+            }
+          },
+          item: {
+            select: {
+              name: true,
+              category: true
+            }
+          }
+        },
+        orderBy: {
+          transferProofUploadedAt: "desc"
+        },
+        take: 5
       })
     ]);
 
@@ -96,9 +135,11 @@ async function getDashboard(req: NextRequest) {
       totalTersedia,
       totalPlace,
       totalDiambil,
+      pendingPaymentCount,
 
       // TABLE
       pendingList,
+      pendingPaymentList,
 
       // DONUT CHART
       shipmentStatus

@@ -22,7 +22,7 @@ async function getMyBarang(req: NextRequest, decoded: { id: string }) {
       response = await prisma.shipment.findMany({
         where: { userId: Number(decoded.id), type: "claim" },
         include: {
-          item: { include: { user: true } },
+          item: { include: { user: true, place: true } },
         },
       });
     } else if (action === "Menunggu") {

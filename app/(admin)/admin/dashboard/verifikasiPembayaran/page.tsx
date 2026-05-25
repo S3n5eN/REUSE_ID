@@ -50,6 +50,7 @@ export default function VerifikasiPembayaranPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [agreedIds, setAgreedIds] = useState<Record<number, boolean>>({});
 
   const fetchPayments = async () => {
     try {
@@ -76,6 +77,11 @@ export default function VerifikasiPembayaranPage() {
   }, []);
 
   const handleVerify = async (shipmentId: number, action: "approve" | "reject") => {
+    const confirmMsg = action === "approve"
+      ? "Apakah Anda yakin ingin menyetujui verifikasi pembayaran ini?"
+      : "Apakah Anda yakin ingin menolak pembayaran ini? Pengguna harus mengunggah ulang bukti transfer.";
+    if (!window.confirm(confirmMsg)) return;
+
     try {
       setProcessingId(shipmentId);
       const res = await fetch("/api/Admin/verifikasiPembayaran", {
@@ -136,8 +142,10 @@ export default function VerifikasiPembayaranPage() {
       )}
 
       <div className="space-y-5">
-        {payments.map((payment) => (
-          <article key={payment.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+        {payments.map((payment) => {
+          const isAgreed = agreedIds[payment.id] || false;
+          return (
+            <article key={payment.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div className="grid lg:grid-cols-[320px_1fr]">
               <div className="bg-gray-100 border-r border-gray-200 p-4">
                 <div className="aspect-[4/5] rounded-xl overflow-hidden bg-white border border-gray-200">
@@ -201,6 +209,19 @@ export default function VerifikasiPembayaranPage() {
                   </div>
                 </div>
 
+                <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal-50/40 border border-teal-100">
+                  <input
+                    type="checkbox"
+                    id={`agree-${payment.id}`}
+                    checked={isAgreed}
+                    onChange={() => setAgreedIds((prev) => ({ ...prev, [payment.id]: !isAgreed }))}
+                    className="mt-0.5 w-4 h-4 text-teal-600 border-teal-300 rounded focus:ring-teal-500 cursor-pointer accent-teal-600"
+                  />
+                  <label htmlFor={`agree-${payment.id}`} className="text-xs text-teal-900 select-none cursor-pointer leading-relaxed">
+                    Saya menyatakan telah memeriksa dan mencocokkan nominal transfer bank pengirim dengan nominal tagihan secara benar.
+                  </label>
+                </div>
+
                 <div className="mt-5 flex justify-end gap-3">
                   <button
                     disabled={processingId === payment.id}
@@ -211,9 +232,9 @@ export default function VerifikasiPembayaranPage() {
                     Tolak
                   </button>
                   <button
-                    disabled={processingId === payment.id}
+                    disabled={processingId === payment.id || !isAgreed}
                     onClick={() => handleVerify(payment.id, "approve")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
                   >
                     {processingId === payment.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     Terima Pembayaran
@@ -222,7 +243,8 @@ export default function VerifikasiPembayaranPage() {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

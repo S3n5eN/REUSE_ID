@@ -197,7 +197,7 @@ export default function DashboardPage() {
       {/* SUMMARY CARDS */}
       {/* ========================== */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 mb-6">
 
         {/* TOTAL ITEM */}
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
@@ -235,6 +235,27 @@ export default function DashboardPage() {
 
             <h1 className="text-3xl font-bold text-gray-800 mt-1">
               {data?.pendingItem}
+            </h1>
+
+          </div>
+
+        </div>
+
+        {/* PENDING PAYMENT */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+
+          <div className="w-14 h-14 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 text-2xl font-bold">
+            💳
+          </div>
+
+          <div className="mt-6">
+
+            <p className="text-gray-500 text-sm">
+              Verifikasi Pembayaran
+            </p>
+
+            <h1 className="text-3xl font-bold text-gray-800 mt-1">
+              {data?.pendingPaymentCount || 0}
             </h1>
 
           </div>
@@ -288,117 +309,142 @@ export default function DashboardPage() {
       {/* ========================== */}
       {/* CHART SECTION */}
       {/* ========================== */}
-
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
 
-       {/* ========================== */}
-{/* PERSETUJUAN TERTUNDA */}
-{/* ========================== */}
+        {/* LEFT COLUMN: PENDING LISTS STACK */}
+        <div className="xl:col-span-2 space-y-6">
 
-<div className="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* PERSETUJUAN TERTUNDA (BARANG) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-  {/* HEADER */}
-  <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-
-    <div>
-
-      <h1 className="text-2xl font-bold text-gray-800">
-        Persetujuan Tertunda
-      </h1>
-
-      <p className="text-sm text-gray-500 mt-1">
-        Barang yang menunggu verifikasi admin
-      </p>
-
-    </div>
-
-  </div>
-
-  {/* TABLE */}
-  <div className="overflow-x-auto">
-
-    <table className="w-full">
-
-      <thead className="bg-[#F8FAF9]">
-
-        <tr className="text-left text-sm text-gray-500">
-
-          <th className="px-6 py-4">
-            ITEM
-          </th>
-
-          <th className="px-6 py-4">
-            PENGIRIM
-          </th>
-
-          <th className="px-6 py-4">
-            WAKTU
-          </th>
-
-          <th className="px-6 py-4">
-            STATUS
-          </th>
-
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        {data?.pendingList?.map((item: any) => (
-
-          <tr
-            key={item.id}
-            className="border-t border-gray-100"
-          >
-
-            {/* ITEM */}
-            <td className="px-6 py-5">
-
+            {/* HEADER */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <div>
-
-                <h1 className="font-semibold text-gray-800">
-                  {item.name}
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Persetujuan Tertunda
                 </h1>
-
-                <p className="text-sm text-gray-500">
-                  {item.category}
+                <p className="text-sm text-gray-500 mt-1">
+                  Barang yang menunggu verifikasi admin
                 </p>
-
               </div>
+            </div>
 
-            </td>
+            {/* TABLE */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#F8FAF9]">
+                  <tr className="text-left text-sm text-gray-500">
+                    <th className="px-6 py-4">ITEM</th>
+                    <th className="px-6 py-4">PENGIRIM</th>
+                    <th className="px-6 py-4">WAKTU</th>
+                    <th className="px-6 py-4">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.pendingList && data.pendingList.length > 0 ? (
+                    data.pendingList.map((item: any) => (
+                      <tr key={item.id} className="border-t border-gray-100">
+                        {/* ITEM */}
+                        <td className="px-6 py-5">
+                          <div>
+                            <h1 className="font-semibold text-gray-800">{item.name}</h1>
+                            <p className="text-sm text-gray-500">{item.category}</p>
+                          </div>
+                        </td>
+                        {/* USER */}
+                        <td className="px-6 py-5 text-gray-700">{item.user?.name || "Anonim"}</td>
+                        {/* WAKTU */}
+                        <td className="px-6 py-5 text-gray-700">{formatDate(item.createdAt)}</td>
+                        {/* STATUS */}
+                        <td className="px-6 py-5">
+                          <span className="px-3 py-1 rounded-full bg-red-100 text-red-500 text-sm font-semibold">
+                            Pending
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-sm">
+                        Tidak ada persetujuan barang tertunda.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-            {/* USER */}
-            <td className="px-6 py-5 text-gray-700">
-              {item.user?.name || "Anonim"}
-            </td>
+          </div>
 
-            {/* WAKTU */}
-            <td className="px-6 py-5 text-gray-700">
-              {formatDate(item.createdAt)}
-            </td>
+          {/* PERSETUJUAN PEMBAYARAN TERTUNDA */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-            {/* STATUS */}
-            <td className="px-6 py-5">
+            {/* HEADER */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Persetujuan Pembayaran Tertunda
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Pembayaran yang menunggu verifikasi admin
+                </p>
+              </div>
+            </div>
 
-              <span className="px-3 py-1 rounded-full bg-red-100 text-red-500 text-sm font-semibold">
-                Pending
-              </span>
+            {/* TABLE */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#F8FAF9]">
+                  <tr className="text-left text-sm text-gray-500">
+                    <th className="px-6 py-4">ITEM</th>
+                    <th className="px-6 py-4">PENGIRIM</th>
+                    <th className="px-6 py-4">WAKTU UPLOAD</th>
+                    <th className="px-6 py-4">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.pendingPaymentList && data.pendingPaymentList.length > 0 ? (
+                    data.pendingPaymentList.map((payment: any) => (
+                      <tr key={payment.id} className="border-t border-gray-100">
+                        {/* ITEM */}
+                        <td className="px-6 py-5">
+                          <div>
+                            <h1 className="font-semibold text-gray-800">
+                              {payment.item?.name || "Barang"}
+                            </h1>
+                            <p className="text-sm text-gray-500">
+                              {payment.item?.category || "-"}
+                            </p>
+                          </div>
+                        </td>
+                        {/* USER */}
+                        <td className="px-6 py-5 text-gray-700">{payment.user?.name || "Anonim"}</td>
+                        {/* WAKTU */}
+                        <td className="px-6 py-5 text-gray-700">
+                          {payment.transferProofUploadedAt ? formatDate(payment.transferProofUploadedAt) : "-"}
+                        </td>
+                        {/* STATUS */}
+                        <td className="px-6 py-5">
+                          <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-xs font-semibold whitespace-nowrap">
+                            Waiting Verification
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-sm">
+                        Tidak ada pembayaran tertunda.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-            </td>
+          </div>
 
-          </tr>
-
-        ))}
-
-      </tbody>
-
-    </table>
-
-  </div>
-
-</div>
+        </div>
 
         {/* DONUT CHART */}
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">

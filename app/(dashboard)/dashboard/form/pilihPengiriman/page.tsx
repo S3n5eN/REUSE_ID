@@ -34,6 +34,7 @@ export default function FormPilihPengiriman() {
 
   const shipmentId = searchParams.get("shipmentId");
   const itemId = searchParams.get("itemId");
+  const from = searchParams.get("from");
 
   const [form, setForm] = useState({
     jenisPengiriman: "",
@@ -46,6 +47,12 @@ export default function FormPilihPengiriman() {
     lat: null,
     lng: null,
   });
+
+  const [placeDetails, setPlaceDetails] = useState<{
+    name: string;
+    address: string;
+    operationalJam: string;
+  } | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -76,6 +83,11 @@ export default function FormPilihPengiriman() {
               setOriginCoords({
                 lat: Number(dataItem.place.latitude),
                 lng: Number(dataItem.place.longitude),
+              });
+              setPlaceDetails({
+                name: dataItem.place.name || "",
+                address: dataItem.place.address || "",
+                operationalJam: dataItem.place.operationalJam || "",
               });
             }
           }
@@ -178,7 +190,13 @@ export default function FormPilihPengiriman() {
       {/* navbar */}
       <div className="shrink-0 bg-white border-b border-zinc-100 px-6 py-4 flex items-center gap-4 z-20">
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            if (from === "barangSaya") {
+              router.push("/dashboard/barangSaya");
+            } else {
+              router.push("/dashboard");
+            }
+          }}
           className="flex items-center justify-center w-9 h-9 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition text-zinc-600"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -275,7 +293,14 @@ export default function FormPilihPengiriman() {
                       <Package className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-zinc-700">Ambil di Gudang</p>
-                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                        {placeDetails && (
+                          <div className="mt-2 space-y-1 text-xs text-zinc-600 bg-white p-3 rounded-lg border border-zinc-150">
+                            <p className="font-bold text-zinc-800">{placeDetails.name}</p>
+                            <p className="leading-relaxed"><span className="font-medium text-zinc-400">Alamat:</span> {placeDetails.address}</p>
+                            <p><span className="font-medium text-zinc-400">Jam Operasional:</span> {placeDetails.operationalJam}</p>
+                          </div>
+                        )}
+                        <p className="text-xs text-zinc-500 mt-2.5 leading-relaxed">
                           Datang langsung ke gudang sesuai jam operasional. Bawa bukti klaim saat pengambilan.
                         </p>
                       </div>

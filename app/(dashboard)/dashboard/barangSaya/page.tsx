@@ -12,6 +12,7 @@ interface Place {
   id: number;
   name: string;
   address?: string;
+  operationalJam?: string;
 }
 
 interface ItemUser {
@@ -294,11 +295,33 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
           </div>
         )}
 
+        {status === "Approved" && claimType === "pickup" && (
+          <div className="mt-2 flex flex-col gap-2 p-3.5 rounded-xl bg-amber-50/50 border border-amber-100/80">
+            <div className="flex items-start gap-2.5">
+              <svg className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <div className="text-xs text-amber-900">
+                <p className="font-bold text-[10px] uppercase tracking-widest text-amber-700">Detail Pengambilan</p>
+                {item.place ? (
+                  <div className="mt-1 space-y-1">
+                    <p className="font-bold text-slate-800">{item.place.name}</p>
+                    <p className="text-slate-600 leading-relaxed"><span className="font-medium text-amber-800">Alamat:</span> {item.place.address}</p>
+                    <p className="text-slate-600"><span className="font-medium text-amber-800">Jam Operasional:</span> {item.place.operationalJam}</p>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-slate-500">Detail gudang tidak tersedia.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex-1" />
 
         {status === "Pending" ? (
           <Link
-            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}&placeId=${item.placeId}`}
+            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}&placeId=${item.placeId}&from=barangSaya`}
             className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
           >
             {cta.label}
