@@ -27,10 +27,24 @@ async function isiDataDiri(req: NextRequest, decoded: { id: string }) {
       });
     }
 
-    // ==== untuk validasi apakah nama lengkap mengandung angka atau tidak ====
-    if (/\d/.test(body.dataDiri.namaLengkap)) {
+    // ==== validasi nama lengkap (minimal 4 karakter, huruf saja) ====
+    if (!/^[A-Za-z\s]+$/.test(body.dataDiri.namaLengkap)) {
       return NextResponse.json(
-        { message: "Nama lengkap tidak boleh mengandung angka" },
+        { message: "Nama lengkap hanya boleh berisi huruf alfabet" },
+        { status: 400 },
+      );
+    }
+    if (body.dataDiri.namaLengkap.length < 4) {
+      return NextResponse.json(
+        { message: "Nama lengkap minimal terdiri dari 4 karakter" },
+        { status: 400 },
+      );
+    }
+
+    // ==== validasi NIK harus 16 digit angka ====
+    if (!/^\d{16}$/.test(body.dataDiri.NIK)) {
+      return NextResponse.json(
+        { message: "NIK harus terdiri dari 16 digit angka" },
         { status: 400 },
       );
     }

@@ -11,7 +11,10 @@ async function getPlace(req: NextRequest) {
       where: placeId ? { id: Number(placeId) } : undefined
     });
 
-    return NextResponse.json(places);
+    const placed = places.filter((place) => place.id !== 1);
+
+
+    return NextResponse.json(placed);
   } catch {
     return NextResponse.json(
       { message: "Server Error" },

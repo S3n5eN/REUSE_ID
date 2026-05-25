@@ -17,6 +17,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showConfirmRegister, setShowConfirmRegister] = useState(false);
@@ -58,6 +60,13 @@ export default function RegisterPage() {
       setPasswordError("");
     }
 
+    // Validasi konfirmasi password
+    if (confirmPassword !== password) {
+      setConfirmPasswordError("Password tidak cocok");
+      return;
+    } else {
+      setConfirmPasswordError("");
+    }
     // Tampilkan konfirmasi
     setShowConfirmRegister(true);
   };
@@ -94,7 +103,7 @@ export default function RegisterPage() {
       <div className="hidden md:flex flex-1 relative h-screen">
         <div className="flex-1 flex items-center justify-center px-0">
           <div className="w-full max-w-sm">
-             {/* Logo ReuseID */}
+            {/* Logo ReuseID */}
             <div className="flex items-center justify-center h-full">
               <Image src={Logo} alt="Logo ReuseID" width={150} />
             </div>
@@ -160,7 +169,7 @@ export default function RegisterPage() {
                         setPasswordError("");
                       }
                     }}
-                    
+
                     className="bg-gray-300 text-black p-2 rounded outline-none focus:ring-2 focus:ring-[#007582] focus:shadow-lg transition rounded outline-none w-full"
                     required
                   />
@@ -175,19 +184,49 @@ export default function RegisterPage() {
                 {passwordError && (
                   <p className="text-red-500 text-sm max-w-sm">{passwordError}</p>
                 )}
+                {/* Input Confirm Password */}
+                <div className="flex flex-col gap-0">
+                  <label className="text-black text-medium p-2">Konfirmasi Password:</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        if (e.target.value === password) {
+                          setConfirmPasswordError("");
+                        } else {
+                          setConfirmPasswordError("Password tidak cocok");
+                        }
+                      }}
+                      className="bg-gray-300 text-black p-2 rounded outline-none focus:ring-2 focus:ring-[#007582] focus:shadow-lg transition rounded outline-none w-full"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-gray-600 hover:text-black cursor-pointer"
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                  {confirmPasswordError && (
+                    <p className="text-red-500 text-sm max-w-sm">{confirmPasswordError}</p>
+                  )}
+                </div>
               </div>
 
               {/*Tombol Register */}
               <button
                 type="submit"
-                 className="bg-[#007582] hover:bg-[#006060] active:scale-95 text-white font-semibold py-2 rounded transition cursor-pointer w-full"
+                className="bg-[#007582] hover:bg-[#005f6a] active:scale-95 text-white font-semibold py-2 rounded transition cursor-pointer w-full"
               >
                 Register
               </button>
 
               <p className="text-sm text-center">
                 Sudah punya akun?{" "}
-                <a href="/login" className="text-gray-500 hover:underline">
+                <a href="/login" className="text-[#007582] hover:underline font-semibold">
                   Login
                 </a>
               </p>
@@ -205,14 +244,17 @@ export default function RegisterPage() {
 
       {/* Container kanan: Gambar ilustrasi */}
       <div className="hidden md:flex flex-1 relative h-screen">
-        <Image
-          src="/reuse_id.jpeg"
-          alt="ReuseID"
-          fill
-          quality={100}
-          sizes="100vh"
-          className="rounded shadow-md"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            src="/reuse_id.jpeg"
+            alt="ReuseID"
+            fill
+            quality={100}
+            sizes="100vh"
+            className="rounded shadow-md"
+          />
+          <div className="absolute inset-0 bg-[#007582]/40" />
+        </div>
       </div>
 
       {/* Popup sukses */}

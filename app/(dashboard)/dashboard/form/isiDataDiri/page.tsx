@@ -53,9 +53,21 @@ export default function FormDataDiri() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validasi nama lengkap
+    if (!form.namaLengkap.trim()) {
+      setErrorMsg("Nama lengkap tidak boleh kosong");
+      return;
+    } else if (!/^[A-Za-z\s]+$/.test(form.namaLengkap)) {
+      setErrorMsg("Nama lengkap hanya boleh berisi huruf alfabet");
+      return;
+    } else if (form.namaLengkap.length < 4) {
+      setErrorMsg("Nama lengkap minimal terdiri dari 4 karakter");
+      return;
+    }
+
     // Validasi NIK harus 16 digit
     if (!/^\d{16}$/.test(form.nik)) {
-      setErrorMsg("NIK harus terdiri dari 16 digit");
+      setErrorMsg("NIK harus terdiri dari 16 digit angka");
       return;
     }
 
@@ -142,6 +154,9 @@ export default function FormDataDiri() {
                 placeholder="Masukkan nama lengkap"
                 onChange={handleChange}
                 className={inputClass}
+                minLength={4}
+                pattern="^[A-Za-z\s]+$"
+                title="Nama lengkap hanya boleh berisi huruf alfabet dan minimal 4 karakter"
                 required
               />
             </div>
