@@ -14,6 +14,9 @@ import {
   MoveRight,
   AlertTriangle,
 } from "lucide-react";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 interface Item {
   id: number;
@@ -60,6 +63,14 @@ export default function KelolaRakPage() {
   const [targetRakId, setTargetRakId] = useState<number | "">("");
   const [isMoving, setIsMoving] = useState(false);
 
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   const fetchShelves = async () => {
@@ -72,7 +83,7 @@ export default function KelolaRakPage() {
         if (data.place) setPlaceInfo(data.place);
       }
     } catch {
-      alert("Gagal mengambil data rak");
+      setErrorPopupMsg("Gagal mengambil data rak");
     } finally {
       setIsLoading(false);
     }
@@ -89,10 +100,7 @@ export default function KelolaRakPage() {
     );
   };
 
-  const handleDelete = async () => {
-    if (!selectedIds.length) return;
-    if (!confirm("Hapus rak terpilih? Pastikan rak dalam keadaan kosong."))
-      return;
+  const executeDelete = async () => {
     setIsDeleting(true);
     try {
       const res = await fetch(
@@ -104,16 +112,26 @@ export default function KelolaRakPage() {
         setShelves((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
         setSelectedIds([]);
         if (activeRak && selectedIds.includes(activeRak.id)) setActiveRak(null);
+        setSuccessPopupMsg("Rak berhasil dihapus");
       } else {
-        alert(
+        setErrorPopupMsg(
           data.message || "Gagal menghapus rak karena sebagian masih terisi.",
         );
       }
     } catch {
-      alert("Terjadi kesalahan saat menghapus");
+      setErrorPopupMsg("Terjadi kesalahan saat menghapus");
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleDelete = () => {
+    if (!selectedIds.length) return;
+    setConfirmData({
+      message: "Hapus rak terpilih? Pastikan rak dalam keadaan kosong.",
+      type: "danger",
+      onConfirm: executeDelete,
+    });
   };
 
   const handleAddSubmit = async () => {
@@ -123,8 +141,10 @@ export default function KelolaRakPage() {
         typeof r.kapasitasMax === "number" &&
         r.kapasitasMax > 0,
     );
-    if (!validRaks.length)
-      return alert("Mohon isi nomor dan kapasitas dengan benar");
+    if (!validRaks.length) {
+      setErrorPopupMsg("Mohon isi nomor dan kapasitas dengan benar");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/Admin/kelolaRak", {
@@ -136,36 +156,28 @@ export default function KelolaRakPage() {
         setIsAddModalOpen(false);
         setNewRaks([{ nomorRak: "", kapasitasMax: "" }]);
         fetchShelves();
+        setSuccessPopupMsg("Rak berhasil ditambahkan");
       } else {
         const d = await res.json();
-        alert(d.message || "Gagal menambahkan rak");
+        setErrorPopupMsg(d.message || "Gagal menambahkan rak");
       }
     } catch {
-      alert("Terjadi kesalahan");
+      setErrorPopupMsg("Terjadi kesalahan");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleMoveSubmit = async () => {
+  const executeMove = async (targetId: number, itemIds: number[]) => {
     if (!activeRak) return;
-    if (selectedItemsToMove.length === 0) {
-      alert("Pilih setidaknya satu barang untuk dipindahkan");
-      return;
-    }
-    if (targetRakId === "") {
-      alert("Pilih rak tujuan");
-      return;
-    }
-
     setIsMoving(true);
     try {
       const res = await fetch(`/api/Admin/kelolaRak/${activeRak.id}/pindah`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          rakTujuanId: targetRakId,
-          itemIds: selectedItemsToMove
+          rakTujuanId: targetId,
+          itemIds: itemIds
         })
       });
       const data = await res.json();
@@ -173,15 +185,35 @@ export default function KelolaRakPage() {
         setIsMoveModalOpen(false);
         setActiveRak(null);
         fetchShelves();
-        alert("Barang berhasil dipindahkan");
+        setSuccessPopupMsg("Barang berhasil dipindahkan");
       } else {
-        alert(data.message || "Gagal memindahkan barang");
+        setErrorPopupMsg(data.message || "Gagal memindahkan barang");
       }
     } catch {
-      alert("Terjadi kesalahan saat memindahkan barang");
+      setErrorPopupMsg("Terjadi kesalahan saat memindahkan barang");
     } finally {
       setIsMoving(false);
     }
+  };
+
+  const handleMoveSubmit = () => {
+    if (!activeRak) return;
+    if (selectedItemsToMove.length === 0) {
+      setErrorPopupMsg("Pilih setidaknya satu barang untuk dipindahkan");
+      return;
+    }
+    if (targetRakId === "") {
+      setErrorPopupMsg("Pilih rak tujuan");
+      return;
+    }
+
+    const targetShelvesNum = shelves.find((s) => s.id === targetRakId)?.nomor || "";
+
+    setConfirmData({
+      message: `Apakah Anda yakin ingin memindahkan ${selectedItemsToMove.length} barang ke Rak ${targetShelvesNum}?`,
+      type: "warning",
+      onConfirm: () => executeMove(Number(targetRakId), selectedItemsToMove),
+    });
   };
 
   const filteredShelves = shelves.filter((s) =>
@@ -933,6 +965,30 @@ export default function KelolaRakPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
     </div>
   );
 }

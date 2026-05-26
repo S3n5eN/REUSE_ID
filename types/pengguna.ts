@@ -1,4 +1,4 @@
-import { Gender } from "@/generated/prisma";
+import { userProfile_gender } from "@/generated/prisma";
 
 export interface pengguna {
     id: number;
@@ -11,7 +11,7 @@ export interface pengguna {
         usia: number;
         nomorTelpon: string;
         alamat: string;
-        gender: Gender;
+        gender: userProfile_gender;
         pekerjaan: string;
         longitude: number | null;
         latitude: number | null;

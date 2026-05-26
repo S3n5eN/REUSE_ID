@@ -59,7 +59,7 @@ async function simpanBarang(req: NextRequest, decoded: { id: string }) {
       data: {
         name: data.name,
         description: data.desc,
-        imageData: webpBuffer,
+        imageData: new Uint8Array(webpBuffer),
         imageType: "image/webp",
         category: data.category,
         userId: Number(decoded.id),

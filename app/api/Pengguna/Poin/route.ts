@@ -39,5 +39,5 @@ export async function getPoin(decoded: { id: string }) {
 }
 
 export async function GET(req: NextRequest) {
-    return (await protect(getPoin, ["user"]))(req);
+  return (await protect(getPoin, ["user"]))(req);
 }

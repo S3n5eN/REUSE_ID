@@ -18,6 +18,9 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,61 +56,23 @@ function maskId(id: string): string {
   return id.slice(0, 4) + "••••••••" + id.slice(-4);
 }
 
-// ─── Toast Component ──────────────────────────────────────────────────────────
-
-interface ToastProps {
-  message: string;
-  type: "success" | "error" | null;
-  onClose: () => void;
-}
-
-function Toast({ message, type, onClose }: ToastProps) {
-  useEffect(() => {
-    if (!type) return;
-    const t = setTimeout(onClose, 3000);
-    return () => clearTimeout(t);
-  }, [type, onClose]);
-
-  if (!type) return null;
-
-  return (
-    <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-4 duration-300 ${
-        type === "success"
-          ? "bg-teal-800 text-teal-100"
-          : "bg-red-800 text-red-100"
-      }`}
-    >
-      {type === "success" ? (
-        <ShieldCheck size={16} />
-      ) : (
-        <ShieldX size={16} />
-      )}
-      {message}
-    </div>
-  );
-}
-
 // ─── User Card Component ──────────────────────────────────────────────────────
 
 interface UserCardProps {
   user: UserProfile;
   index: number;
-  onAction: (userId: number, action: "Approve" | "Reject") => Promise<void>;
+  onAction: (userId: number, action: "Approve" | "Reject") => void;
+  processingData: { id: number; action: "Approve" | "Reject" } | null;
 }
 
-function UserCard({ user, index, onAction }: UserCardProps) {
+function UserCard({ user, index, onAction, processingData }: UserCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showId, setShowId] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [actionType, setActionType] = useState<"Approve" | "Reject" | null>(null);
+  const isPending = processingData?.id === user.id;
+  const actionType = processingData?.id === user.id ? processingData.action : null;
 
   const handleAction = (action: "Approve" | "Reject") => {
-    setActionType(action);
-    startTransition(async () => {
-      await onAction(user.id, action);
-      setActionType(null);
-    });
+    onAction(user.id, action);
   };
 
   return (
@@ -297,10 +262,17 @@ export default function VerifikasiPenerimaPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [toast, setToast] = useState<{
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
     message: string;
-    type: "success" | "error" | null;
-  }>({ message: "", type: null });
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
+  const [processingData, setProcessingData] = useState<{
+    id: number;
+    action: "Approve" | "Reject";
+  } | null>(null);
 
   useEffect(() => {
     const fetchDataUnverifidUsers = async () => {
@@ -310,11 +282,10 @@ export default function VerifikasiPenerimaPage() {
         if (!res.ok) throw new Error("Gagal mengambil data pengguna");
         
         const json = await res.json();
-        // Langsung masukkan json.data karena sudah berbentuk array UserProfile
         setUsers(json.data || []);
       } catch (error) {
         console.error("Error fetching unverified users:", error);
-        setToast({ message: "Gagal mengambil data pengguna", type: "error" });
+        setErrorPopupMsg("Gagal mengambil data pengguna");
       } finally {
         setIsLoading(false);
       }
@@ -327,26 +298,40 @@ export default function VerifikasiPenerimaPage() {
     u.namaLengkap?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAction = async (
+  const executeAction = async (
     userId: number,
     action: "Approve" | "Reject"
   ) => {
     try {
+      setProcessingData({ id: userId, action });
       const res = await fetch("/api/Admin/verifikasiDataPenerima", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Kirim userId (bukan shipmentId lagi)
         body: JSON.stringify({ userId, action }),
       });
 
       if (!res.ok) throw new Error("Gagal memverifikasi data penerima");
       
-      // Hapus data pengguna yang berhasil di-approve/reject dari state
       setUsers((prev) => prev.filter((u) => u.id !== userId));
-      setToast({ message: `Pengguna berhasil di-${action === "Approve" ? "verifikasi" : "tolak"}`, type: "success" });
+      setSuccessPopupMsg(`Pengguna berhasil di-${action === "Approve" ? "verifikasi" : "tolak"}`);
     } catch {
-      setToast({ message: "Terjadi kesalahan, coba lagi", type: "error" });
+      setErrorPopupMsg("Terjadi kesalahan, coba lagi");
+    } finally {
+      setProcessingData(null);
     }
+  };
+
+  const handleAction = (
+    userId: number,
+    action: "Approve" | "Reject"
+  ) => {
+    setConfirmData({
+      message: action === "Approve"
+        ? "Apakah Anda yakin ingin memverifikasi data penerima ini?"
+        : "Apakah Anda yakin ingin menolak data penerima ini?",
+      type: action === "Approve" ? "info" : "danger",
+      onConfirm: () => executeAction(userId, action),
+    });
   };
 
   return (
@@ -419,6 +404,7 @@ export default function VerifikasiPenerimaPage() {
                 user={user}
                 index={i}
                 onAction={handleAction}
+                processingData={processingData}
               />
             ))}
           </div>
@@ -444,12 +430,29 @@ export default function VerifikasiPenerimaPage() {
         )}
       </div>
 
-      {/* ── Toast ─────────────────────────────────────────────────────────── */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: null })}
-      />
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
     </div>
   );
 }

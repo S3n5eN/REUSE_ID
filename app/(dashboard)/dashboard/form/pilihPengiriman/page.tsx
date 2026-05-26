@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +28,7 @@ const bankAccounts = [
   { code: "MANDIRI", name: "Bank Mandiri", accountNumber: "1410012345678", holder: "REUSEID INDONESIA" },
 ];
 
-export default function FormPilihPengiriman() {
+function FormPilihPengirimanContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -496,5 +496,18 @@ export default function FormPilihPengiriman() {
 
       </div>
     </div>
+  );
+}
+
+export default function FormPilihPengiriman() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen bg-white flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#007582] animate-spin" />
+        <p className="text-sm text-zinc-400 mt-2">Memuat halaman...</p>
+      </div>
+    }>
+      <FormPilihPengirimanContent />
+    </Suspense>
   );
 }

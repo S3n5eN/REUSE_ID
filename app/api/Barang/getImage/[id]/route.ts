@@ -4,7 +4,7 @@ import { Buffer } from "buffer";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const resolvedParams = await params;
@@ -12,6 +12,7 @@ export async function GET(
 
     const imageData = await prisma.item.findUnique({
       where: { id: imageId },
+      select: { id: true, imageData: true, imageType: true, createdAt: true },
     });
 
     if (!imageData || !imageData.imageData) {
@@ -20,10 +21,24 @@ export async function GET(
       });
     }
 
+    const etag = `W/"${imageData.id}-${new Date(imageData.createdAt).getTime()}"`;
+
+    const ifNoneMatch = req.headers.get("if-none-match");
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          "Cache-Control": "no-cache",
+          Etag: etag,
+        },
+      });
+    }
+
     return new NextResponse(Buffer.from(imageData.imageData), {
       headers: {
         "Content-Type": imageData.imageType || "image/webp",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "no-cache",
+        ETag: etag,
       },
     });
   } catch (error) {

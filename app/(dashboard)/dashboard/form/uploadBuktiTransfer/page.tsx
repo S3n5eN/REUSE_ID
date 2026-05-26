@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
@@ -10,6 +10,7 @@ import {
   Landmark,
   Loader2,
   ReceiptText,
+  Trash2,
   Upload,
 } from "lucide-react";
 
@@ -41,7 +42,7 @@ const statusCopy = {
   Failed: "Pembayaran Ditolak",
 };
 
-export default function UploadBuktiTransferPage() {
+function UploadBuktiTransferPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shipmentId = searchParams.get("shipmentId");
@@ -50,12 +51,41 @@ export default function UploadBuktiTransferPage() {
   const [payerBank, setPayerBank] = useState("");
   const [payerAccountName, setPayerAccountName] = useState("");
   const [proof, setProof] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!proof) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(proof);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [proof]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(
+          `/api/Pengguna/pembayaranTransfer/checkStatusTransfer?shipmentId=${shipmentId}`,
+        );
+        const data = await res.json();
+        if (data.status) {
+          router.push("/dashboard/barangSaya");
+        }
+      } catch {
+        setErrorMsg("Gagal terhubung ke server.");
+      }
+    };
+
     const fetchDetail = async () => {
       if (!shipmentId) {
         setErrorMsg("ID pengiriman tidak ditemukan.");
@@ -64,7 +94,9 @@ export default function UploadBuktiTransferPage() {
       }
 
       try {
-        const res = await fetch(`/api/Pengguna/pembayaranTransfer?shipmentId=${shipmentId}`);
+        const res = await fetch(
+          `/api/Pengguna/pembayaranTransfer?shipmentId=${shipmentId}`,
+        );
         const body = await res.json();
 
         if (!res.ok) {
@@ -82,6 +114,7 @@ export default function UploadBuktiTransferPage() {
       }
     };
 
+    checkStatus();
     fetchDetail();
   }, [shipmentId]);
 
@@ -131,7 +164,9 @@ export default function UploadBuktiTransferPage() {
         return;
       }
 
-      setSuccessMsg("Bukti transfer berhasil dikirim. Admin akan melakukan verifikasi.");
+      setSuccessMsg(
+        "Bukti transfer berhasil dikirim. Admin akan melakukan verifikasi.",
+      );
       setDetail((prev) =>
         prev
           ? {
@@ -171,10 +206,15 @@ export default function UploadBuktiTransferPage() {
           <section className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold text-[#007582] uppercase tracking-widest">Transfer ATM</p>
-                <h1 className="text-2xl font-bold text-zinc-900 mt-2">Upload Bukti Pembayaran</h1>
+                <p className="text-[10px] font-bold text-[#007582] uppercase tracking-widest">
+                  Transfer ATM
+                </p>
+                <h1 className="text-2xl font-bold text-zinc-900 mt-2">
+                  Upload Bukti Pembayaran
+                </h1>
                 <p className="text-sm text-zinc-500 mt-2">
-                  Transfer sesuai nominal invoice, lalu upload bukti agar admin dapat memverifikasi pembayaran.
+                  Transfer sesuai nominal invoice, lalu upload bukti agar admin
+                  dapat memverifikasi pembayaran.
                 </p>
               </div>
               {detail && (
@@ -194,38 +234,58 @@ export default function UploadBuktiTransferPage() {
                   <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                     <div className="flex items-center gap-2 text-zinc-400">
                       <ReceiptText className="w-4 h-4" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest">Invoice</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">
+                        Invoice
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm font-bold text-zinc-900">{detail.paymentInvoice}</p>
+                    <p className="mt-2 text-sm font-bold text-zinc-900">
+                      {detail.paymentInvoice}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-[#007582]/20 bg-[#007582]/5 p-4">
                     <div className="flex items-center gap-2 text-[#007582]">
                       <ReceiptText className="w-4 h-4" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest">Total Transfer</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">
+                        Total Transfer
+                      </p>
                     </div>
-                    <p className="mt-2 text-xl font-bold text-[#007582]">{totalTransfer}</p>
+                    <p className="mt-2 text-xl font-bold text-[#007582]">
+                      {totalTransfer}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                     <div className="flex items-center gap-2 text-zinc-400">
                       <Landmark className="w-4 h-4" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest">Rekening Tujuan</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">
+                        Rekening Tujuan
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm font-bold text-zinc-900">{detail.transferBankCode} - {detail.transferAccountNumber}</p>
-                    <p className="text-xs text-zinc-500 mt-1">a.n. {detail.transferAccountHolder}</p>
+                    <p className="mt-2 text-sm font-bold text-zinc-900">
+                      {detail.transferBankCode} - {detail.transferAccountNumber}
+                    </p>
+                    <p className="text-xs text-zinc-500 mt-1">
+                      a.n. {detail.transferAccountHolder}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                     <div className="flex items-center gap-2 text-zinc-400">
                       <Clock className="w-4 h-4" />
-                      <p className="text-[10px] font-bold uppercase tracking-widest">Batas Bayar</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">
+                        Batas Bayar
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm font-bold text-zinc-900">{expiredAt} WIB</p>
+                    <p className="mt-2 text-sm font-bold text-zinc-900">
+                      {expiredAt} WIB
+                    </p>
                   </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-zinc-600 mb-2">Bank Pengirim</label>
+                      <label className="block text-xs font-semibold text-zinc-600 mb-2">
+                        Bank Pengirim
+                      </label>
                       <input
                         value={payerBank}
                         onChange={(e) => setPayerBank(e.target.value)}
@@ -236,7 +296,9 @@ export default function UploadBuktiTransferPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-zinc-600 mb-2">Nama Pemilik Rekening</label>
+                      <label className="block text-xs font-semibold text-zinc-600 mb-2">
+                        Nama Pemilik Rekening
+                      </label>
                       <input
                         value={payerAccountName}
                         onChange={(e) => setPayerAccountName(e.target.value)}
@@ -248,12 +310,65 @@ export default function UploadBuktiTransferPage() {
                     </div>
                   </div>
 
-                  <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center hover:border-[#007582] hover:bg-[#007582]/5 transition">
-                    <Upload className="w-7 h-7 text-[#007582]" />
-                    <span className="mt-3 text-sm font-semibold text-zinc-800">
-                      {proof ? proof.name : "Upload struk atau screenshot transfer"}
-                    </span>
-                    <span className="mt-1 text-xs text-zinc-400">PNG, JPG, atau JPEG maksimal 2MB</span>
+                  <label
+                    className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 transition ${
+                      previewUrl
+                        ? "border-zinc-200 bg-zinc-50 p-2"
+                        : "border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center hover:border-[#007582] hover:bg-[#007582]/5"
+                    }`}
+                  >
+                    {previewUrl ? (
+                      <div className="relative w-full rounded-xl overflow-hidden group flex flex-col items-center">
+                        <div className="relative w-full h-64 rounded-lg overflow-hidden bg-white flex items-center justify-center border border-zinc-200">
+                          <img
+                            src={previewUrl}
+                            alt="Preview Bukti Transfer"
+                            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white gap-2">
+                            <Upload className="w-6 h-6 animate-bounce" />
+                            <span className="text-xs font-semibold">
+                              Klik untuk mengganti gambar
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full mt-3 px-2 py-1 flex items-center justify-between gap-3 text-left">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-zinc-800 truncate">
+                              {proof?.name}
+                            </p>
+                            <p className="text-xs text-zinc-400">
+                              {proof
+                                ? (proof.size / (1024 * 1024)).toFixed(2)
+                                : 0}{" "}
+                              MB
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setProof(null);
+                            }}
+                            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 text-xs font-semibold transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-7 h-7 text-[#007582]" />
+                        <span className="mt-3 text-sm font-semibold text-zinc-800">
+                          Upload struk atau screenshot transfer
+                        </span>
+                        <span className="mt-1 text-xs text-zinc-400">
+                          PNG, JPG, atau JPEG maksimal 2MB
+                        </span>
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
@@ -282,7 +397,9 @@ export default function UploadBuktiTransferPage() {
                     className="w-full rounded-xl bg-[#007582] px-5 py-3.5 text-sm font-semibold text-white hover:bg-[#005f6b] disabled:opacity-45 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {detail.paymentStatus === "WaitingVerification" ? "Upload Ulang Bukti Transfer" : "Kirim Bukti Transfer"}
+                    {detail.paymentStatus === "WaitingVerification"
+                      ? "Upload Ulang Bukti Transfer"
+                      : "Kirim Bukti Transfer"}
                   </button>
                 </form>
               </>
@@ -297,7 +414,9 @@ export default function UploadBuktiTransferPage() {
             <p className="text-sm font-bold text-zinc-900">Instruksi ATM</p>
             <ol className="mt-4 space-y-3 text-sm text-zinc-600">
               <li>1. Pilih menu transfer antar bank atau sesama bank.</li>
-              <li>2. Masukkan nomor rekening tujuan yang tertera di invoice.</li>
+              <li>
+                2. Masukkan nomor rekening tujuan yang tertera di invoice.
+              </li>
               <li>3. Masukkan nominal tepat sampai tiga digit terakhir.</li>
               <li>4. Simpan struk atau screenshot transaksi.</li>
               <li>5. Upload bukti transfer di form ini.</li>
@@ -306,5 +425,18 @@ export default function UploadBuktiTransferPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function UploadBuktiTransferPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F5F7F6] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#007582] animate-spin" />
+        <p className="text-sm text-zinc-400 mt-2">Memuat halaman...</p>
+      </main>
+    }>
+      <UploadBuktiTransferPageContent />
+    </Suspense>
   );
 }

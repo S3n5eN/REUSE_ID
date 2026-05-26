@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import ItemDetailModal from "@/components/ItemDetailModal";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 type UserProfile = {
   namaLengkap: string;
@@ -32,6 +35,14 @@ export default function KonfirmasiPenerimaPage() {
   const [blurred, setBlurred] = useState<Record<number, boolean>>({});
   const [activeModal, setActiveModal] = useState<{ itemId: number; claimType?: string } | null>(null);
 
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
+
   useEffect(() => {
     fetch("/api/Pengguna/getPenerimaApprove")
       .then((res) => res.json())
@@ -51,8 +62,8 @@ export default function KonfirmasiPenerimaPage() {
       .catch((err) => console.error("Error fetch shipments:", err));
   }, []);
 
-  // ── aksi-reaksi dari kode asli, tidak diubah ──
-  const handleConfirm = async (shipmentId: number, action: string) => {
+  // ── aksi-reaksi dari kode asli ──
+  const executeConfirm = async (shipmentId: number, action: string) => {
     try {
       setLoading(true);
       const res = await fetch("/api/Admin/konfirmasiTerima", {
@@ -65,21 +76,21 @@ export default function KonfirmasiPenerimaPage() {
       console.log("Response konfirmasi:", data);
 
       if (!res.ok) {
-        alert("Error: " + data.message);
+        setErrorPopupMsg("Error: " + data.message);
         return;
       }
 
-      alert(`${data.message} | Poin diberikan: ${data.poinDiberikan}`);
+      setSuccessPopupMsg(`${data.message} | Poin diberikan: ${data.poinDiberikan}`);
       setShipments((prev) => prev.filter((s) => s.id !== shipmentId));
     } catch (err) {
       console.error("Error konfirmasi:", err);
-      alert("Terjadi error di frontend");
+      setErrorPopupMsg("Terjadi error di frontend");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReject = async (shipmentId: number, action: string) => {
+  const executeReject = async (shipmentId: number, action: string) => {
     try {
       setLoading(true);
       const res = await fetch("/api/Admin/konfirmasiTerima", {
@@ -92,18 +103,34 @@ export default function KonfirmasiPenerimaPage() {
       console.log("Response tolak:", data);
 
       if (!res.ok) {
-        alert("Error: " + data.message);
+        setErrorPopupMsg("Error: " + data.message);
         return;
       }
 
-      alert(data.message);
+      setSuccessPopupMsg(data.message);
       setShipments((prev) => prev.filter((s) => s.id !== shipmentId));
     } catch (err) {
       console.error("Error tolak:", err);
-      alert("Terjadi error di frontend");
+      setErrorPopupMsg("Terjadi error di frontend");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirm = (shipmentId: number, action: string) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin mengonfirmasi penerimaan donasi ini?",
+      type: "info",
+      onConfirm: () => executeConfirm(shipmentId, action),
+    });
+  };
+
+  const handleReject = (shipmentId: number, action: string) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin menolak penerimaan donasi ini?",
+      type: "danger",
+      onConfirm: () => executeReject(shipmentId, action),
+    });
   };
   // ── akhir aksi-reaksi ──
 
@@ -398,6 +425,29 @@ export default function KonfirmasiPenerimaPage() {
           itemId={activeModal.itemId}
           claimType={activeModal.claimType}
           onClose={() => setActiveModal(null)}
+        />
+      )}
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
         />
       )}
     </div>

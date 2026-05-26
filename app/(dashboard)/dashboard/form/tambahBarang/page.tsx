@@ -33,7 +33,7 @@ const WarehouseMap = dynamic(
 interface Place {
   id: number;
   name: string;
-  address: string;
+  address?: string;
   latitude: number | null;
   longitude: number | null;
 }

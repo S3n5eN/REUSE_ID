@@ -1,4 +1,4 @@
-export const ONGKIR = 2000; // ongkir 1 kilo per KM
+export const ONGKIR = 1000; // ongkir 1 kilo per KM
 
 export function hitungJarak(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Radius bumi dalam kilometer
@@ -14,5 +14,14 @@ export function hitungJarak(lat1: number, lon1: number, lat2: number, lon2: numb
 
 export function hitungOngkir(jarakKM: number, beratKG: number): number {
     const weight = beratKG && beratKG > 0 ? beratKG : 1; // berat minimal 1 kg
-    return Math.round(jarakKM * ONGKIR * weight); // Ongkir dihitung berdasarkan jarak dan berat
+
+    let cost;
+
+    if (weight > 10) {
+        cost = Math.round(jarakKM * ONGKIR * ( weight / 50))
+    } else {
+        cost = Math.round(jarakKM * ONGKIR)
+    }
+
+    return cost; // Ongkir dihitung berdasarkan jarak dan berat
 }

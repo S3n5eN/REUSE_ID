@@ -26,11 +26,11 @@ export default function FormDataDiri() {
   });
 
   // state lokasi map
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
 
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
@@ -38,7 +38,7 @@ export default function FormDataDiri() {
   };
 
   // format +62 jadi 0
-  const formatNoHp = (no) => {
+  const formatNoHp = (no: string) => {
     if (no.startsWith("+62")) {
       return "0" + no.slice(3);
     }
@@ -46,11 +46,11 @@ export default function FormDataDiri() {
   };
 
   // handle pilih lokasi map
-  const handleLocationSelect = (lat, lng) => {
+  const handleLocationSelect = (lat: number, lng: number) => {
     setSelectedLocation([lat, lng]);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validasi nama lengkap

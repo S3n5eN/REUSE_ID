@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,6 +22,7 @@ type Item = {
   user?: { name: string };
   place?: { id: number; name: string };
   rak?: { nomor: string };
+  imageType?: string | null;
 };
 
 type Rak = {
@@ -97,6 +101,7 @@ function ItemCard({
   onReject,
   loading,
   index,
+  processingData,
 }: {
   item: Item;
   raks: Rak[];
@@ -104,11 +109,11 @@ function ItemCard({
   onReject: (id: number) => void;
   loading: boolean;
   index: number;
+  processingData: { shipmentId: number; action: "Approve" | "Reject" } | null;
 }) {
   const [selectedQuality, setSelectedQuality] = useState<QualityValue | "">("");
   const [weight, setWeight] = useState<string>("");
   const [selectedRak, setSelectedRak] = useState<number | "">("");
-  const [exiting, setExiting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -116,19 +121,18 @@ function ItemCard({
     return () => clearTimeout(t);
   }, [index]);
 
-
+  const isPending = processingData?.shipmentId === item.shipmentId;
+  const actionType = processingData?.shipmentId === item.shipmentId ? processingData.action : null;
 
   const handleApprove = () => {
     const numericWeight = parseFloat(weight);
     if (!selectedQuality || !selectedRak || isNaN(numericWeight) || numericWeight < 0) return;
-    setExiting(true);
 
-    setTimeout(() => onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight)), 350);
+    onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight));
   };
 
   const handleReject = () => {
-    setExiting(true);
-    setTimeout(() => onReject(item.shipmentId), 350);
+    onReject(item.shipmentId);
   };
 
   const formattedDate = new Date(item.createdAt).toLocaleDateString("id-ID", {
@@ -145,7 +149,6 @@ function ItemCard({
         "hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)]",
         "border-[#e8f5ef]",
         mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
-        exiting ? "opacity-0 translate-x-3" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -271,18 +274,22 @@ function ItemCard({
           {selectedQuality && selectedRak && parseFloat(weight) > 0 && (
             <button
               onClick={handleApprove}
-              disabled={loading}
+              disabled={loading || isPending}
               className="flex items-center gap-1.5 text-[12px] font-semibold py-[7px] px-3.5 rounded-[9px] border border-[#5DCAA5] bg-[#1D9E75] text-white whitespace-nowrap transition-colors hover:bg-[#0F6E56] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-                <path
-                  d="M2 6l3 3 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {isPending && actionType === "Approve" ? (
+                <span className="w-3 h-3 border-2 border-teal-200 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M2 6l3 3 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
               Verifikasi
             </button>
           )}
@@ -290,47 +297,25 @@ function ItemCard({
           {/* Reject */}
           <button
             onClick={handleReject}
-            disabled={loading}
+            disabled={loading || isPending}
             className="flex items-center gap-1.5 text-[12px] font-semibold py-[7px] px-3.5 rounded-[9px] border border-[#F09595] bg-[#FCEBEB] text-[#A32D2D] whitespace-nowrap transition-colors hover:bg-[#F7C1C1] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-              <path
-                d="M3 3l6 6M9 3l-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            {isPending && actionType === "Reject" ? (
+              <span className="w-3 h-3 border-2 border-red-300 border-t-red-600 rounded-full animate-spin" />
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
+                <path
+                  d="M3 3l6 6M9 3l-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            )}
             Tolak
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-function Toast({ message, type }: { message: string; type: "success" | "error" }) {
-  return (
-    <div
-      className={[
-        "fixed bottom-6 right-6 flex items-center gap-2 px-5 py-3 rounded-xl",
-        "text-[13px] font-semibold text-white z-50",
-        "shadow-lg animate-[toastIn_0.3s_ease_both]",
-        type === "success" ? "bg-[#1D9E75]" : "bg-[#E24B4A]",
-      ].join(" ")}
-    >
-      {type === "success" ? (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      )}
-      {message}
     </div>
   );
 }
@@ -347,7 +332,17 @@ export default function DaftarBarangPendingPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
+  const [processingData, setProcessingData] = useState<{
+    shipmentId: number;
+    action: "Approve" | "Reject";
+  } | null>(null);
 
   // Tambahkan fallback [] agar tidak error saat data belum siap
   const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? []))
@@ -365,7 +360,7 @@ export default function DaftarBarangPendingPage() {
       ]);
 
       // Fungsi pembantu agar tidak repetitif dan aman
-      const safeParse = async (res) => {
+      const safeParse = async (res: Response) => {
         try {
           const text = await res.text();
           if (!res.ok) {
@@ -411,13 +406,9 @@ export default function DaftarBarangPendingPage() {
     fetchItems();
   }, []);
 
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleApprove = async (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
+  const executeApprove = async (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
     try {
+      setProcessingData({ shipmentId, action: "Approve" });
       setLoading(true);
       const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
@@ -425,20 +416,22 @@ export default function DaftarBarangPendingPage() {
         body: JSON.stringify({ shipmentId, action: "Approve", quality, rakId, weight }),
       });
       const text = await res.text();
-      if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
+      if (!res.ok) { setErrorPopupMsg("Gagal: " + text); return; }
       const data = JSON.parse(text);
-      showToast(data.message ?? "Barang berhasil diverifikasi", "success");
+      setSuccessPopupMsg(data.message ?? "Barang berhasil diverifikasi");
       setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
-      showToast("Terjadi error di frontend", "error");
+      setErrorPopupMsg("Terjadi error di frontend");
     } finally {
       setLoading(false);
+      setProcessingData(null);
     }
   };
 
-  const handleReject = async (shipmentId: number) => {
+  const executeReject = async (shipmentId: number) => {
     try {
+      setProcessingData({ shipmentId, action: "Reject" });
       setLoading(true);
       const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
@@ -446,16 +439,33 @@ export default function DaftarBarangPendingPage() {
         body: JSON.stringify({ shipmentId, action: "Reject" }),
       });
       const text = await res.text();
-      if (!res.ok) { showToast("Gagal: " + text, "error"); return; }
+      if (!res.ok) { setErrorPopupMsg("Gagal: " + text); return; }
       const data = JSON.parse(text);
-      showToast(data.message ?? "Barang ditolak", "success");
+      setSuccessPopupMsg(data.message ?? "Barang ditolak");
       setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
     } catch (err) {
       console.error(err);
-      showToast("Terjadi error di frontend", "error");
+      setErrorPopupMsg("Terjadi error di frontend");
     } finally {
       setLoading(false);
+      setProcessingData(null);
     }
+  };
+
+  const handleApprove = (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin memverifikasi dan menerima barang ini?",
+      type: "info",
+      onConfirm: () => executeApprove(shipmentId, quality, rakId, weight),
+    });
+  };
+
+  const handleReject = (shipmentId: number) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin menolak barang donasi ini?",
+      type: "danger",
+      onConfirm: () => executeReject(shipmentId),
+    });
   };
 
   return (
@@ -569,6 +579,7 @@ export default function DaftarBarangPendingPage() {
               onApprove={handleApprove}
               onReject={handleReject}
               loading={loading}
+              processingData={processingData}
             />
           ) : (
             <div
@@ -623,8 +634,29 @@ export default function DaftarBarangPendingPage() {
         )}
       </div>
 
-      {/* ── Toast ── */}
-      {toast && <Toast message={toast.message} type={toast.type} />}
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
     </>
   );
 }

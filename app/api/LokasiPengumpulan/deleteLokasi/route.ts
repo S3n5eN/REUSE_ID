@@ -44,15 +44,6 @@ async function deleteLokasi(req: NextRequest) {
       );
     }
 
-    await prisma.admin.updateMany({
-      where: {
-        placeId: { in: ids }
-      },
-      data: {
-        placeId: null
-      }
-    });
-
     await prisma.place.deleteMany({
       where: {
         id: { in: ids }

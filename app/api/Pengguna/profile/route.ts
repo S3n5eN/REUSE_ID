@@ -81,6 +81,8 @@ async function updateProfile(req: NextRequest, decoded: { id: string }) {
       where: { userId: userId }
     });
 
+    const genderMapped = (body.gender as string) === "Laki-laki" ? "Pria" : (body.gender as string) === "Perempuan" ? "Wanita" : body.gender;
+
     if (existingProfile) {
       // Update existing profile
       const updatedProfile = await prisma.userProfile.update({
@@ -88,7 +90,7 @@ async function updateProfile(req: NextRequest, decoded: { id: string }) {
         data: {
           namaLengkap: body.namaLengkap.trim(),
           usia: Number (body.usia),
-          gender: body.gender,
+          gender: genderMapped as userProfile_gender,
           pekerjaan: body.pekerjaan?.trim() || null,
           phone: body.phone.trim(), 
           address: body.address.trim(),
@@ -109,12 +111,13 @@ async function updateProfile(req: NextRequest, decoded: { id: string }) {
           userId: userId,
           namaLengkap: body.namaLengkap.trim(),
           usia: Number (body.usia),
-          gender: body.gender,
+          gender: genderMapped as userProfile_gender,
           pekerjaan: body.pekerjaan?.trim() || null,
           phone: body.phone.trim(),
           address: body.address.trim(),
           latitude: body.latitude || null,
           longitude: body.longitude || null,
+          identityId: "",
           isVerified: false // Default belum verified
         }
       });

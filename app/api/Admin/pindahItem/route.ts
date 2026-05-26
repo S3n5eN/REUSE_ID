@@ -11,71 +11,95 @@ async function moveItem(req: NextRequest) {
     if (!itemIds || itemIds.length === 0 || !targetPlaceId || !sourcePlaceId) {
       return NextResponse.json(
         { message: "Data tidak lengkap" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const items = await prisma.item.findMany({
       where: {
-        id: { in: itemIds }
-      }
+        id: { in: itemIds },
+      },
     });
 
-    const invalidItems = items.filter(
-      (item) => item.placeId !== sourcePlaceId
-    );
+    const invalidItems = items.filter((item) => item.placeId !== sourcePlaceId);
 
     if (invalidItems.length > 0) {
       return NextResponse.json(
         {
           message: "Beberapa item tidak berasal dari lokasi ini",
-          invalidItemIds: invalidItems.map((i) => i.id)
+          invalidItemIds: invalidItems.map((i) => i.id),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const itemsWithShipment = await prisma.item.findMany({
       where: {
-        id: { in: itemIds }
+        id: { in: itemIds },
       },
       include: {
-        shipment: true
-      }
+        shipment: true,
+      },
     });
 
     const invalidStatus = itemsWithShipment.filter((item) =>
-      item.shipment.some((s) => s.status === "Delivered")
+      item.shipment.some((s) => s.status === "Delivered"),
     );
 
     if (invalidStatus.length > 0) {
       return NextResponse.json(
         {
           message: "Item yang sudah delivered tidak bisa dipindahkan",
-          invalidItemIds: invalidStatus.map((i) => i.id)
+          invalidItemIds: invalidStatus.map((i) => i.id),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    await prisma.item.updateMany({
-      where: {
-        id: { in: itemIds }
+    const rakGroups = itemsWithShipment.reduce(
+      (acc, item) => {
+        if (item.rakId) {
+          acc[item.rakId] = (acc[item.rakId] || 0) + 1;
+        }
+        return acc;
       },
-      data: {
-        placeId: targetPlaceId
-      }
-    });
+      {} as Record<number, number>,
+    );
+
+    await prisma.$transaction([
+      ...Object.entries(rakGroups).map(([rakId, count]) =>
+        prisma.rak.update({
+          where: { id: Number(rakId) },
+          data: { kapasitasSekarang: { decrement: count } },
+        }),
+      ),
+      prisma.item.updateMany({
+        where: {
+          id: { in: itemIds },
+        },
+        data: {
+          placeId: targetPlaceId,
+          rakId: null,
+        },
+      }),
+      prisma.shipment.updateMany({
+        where: {
+          itemId: { in: itemIds },
+        },
+        data: {
+          status: "Pending",
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       message: "Item berhasil dipindahkan",
-      movedItemIds: itemIds
+      movedItemIds: itemIds,
     });
-
   } catch {
     return NextResponse.json(
       { message: "Gagal memindahkan item" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 
-export default function KonfirmasiPage() {
+function KonfirmasiPageContent() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -124,5 +125,17 @@ export default function KonfirmasiPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function KonfirmasiPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-[#f5f0e8] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-gray-400">Memuat konfirmasi...</p>
+      </div>
+    }>
+      <KonfirmasiPageContent />
+    </Suspense>
   );
 }

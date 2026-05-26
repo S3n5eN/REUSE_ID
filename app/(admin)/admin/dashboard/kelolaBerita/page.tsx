@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 type Berita = {
   id: number;
@@ -29,27 +32,6 @@ function SkeletonCard() {
   );
 }
 
-function Toast({ message, type }: { message: string; type: "success" | "error" }) {
-  return (
-    <div className={[
-      "fixed bottom-6 right-6 flex items-center gap-2 px-5 py-3 rounded-xl",
-      "text-[13px] font-semibold text-white z-50 shadow-lg animate-[toastIn_0.3s_ease_both]",
-      type === "success" ? "bg-[#1D9E75]" : "bg-[#E24B4A]",
-    ].join(" ")}>
-      {type === "success" ? (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      )}
-      {message}
-    </div>
-  );
-}
-
 export default function KelolaBeritaPage() {
   const [activeTab, setActiveTab] = useState<TabType>("pending");
   const [pendingBerita, setPendingBerita] = useState<Berita[]>([]);
@@ -57,7 +39,13 @@ export default function KelolaBeritaPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
   const [title, setTitle] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -87,11 +75,6 @@ export default function KelolaBeritaPage() {
 
   useEffect(() => { fetchBerita(); }, []);
 
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -101,7 +84,7 @@ export default function KelolaBeritaPage() {
 
   const handleAdd = async () => {
     if (!title || !foto) {
-      showToast("Judul dan foto wajib diisi", "error");
+      setErrorPopupMsg("Judul dan foto wajib diisi");
       return;
     }
     setLoading(true);
@@ -117,8 +100,8 @@ export default function KelolaBeritaPage() {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) { showToast(data.message || "Gagal menambah berita", "error"); return; }
-      showToast("Berita berhasil ditambahkan", "success");
+      if (!res.ok) { setErrorPopupMsg(data.message || "Gagal menambah berita"); return; }
+      setSuccessPopupMsg("Berita berhasil ditambahkan");
       setTitle("");
       setFoto(null);
       setPreview(null);
@@ -126,40 +109,56 @@ export default function KelolaBeritaPage() {
       setShowAddForm(false);
       await fetchBerita();
     } catch {
-      showToast("Terjadi kesalahan", "error");
+      setErrorPopupMsg("Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePublish = async (id: number) => {
+  const executePublish = async (id: number) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/Admin/kelolaBerita/${id}`, { method: "PATCH" });
       const data = await res.json();
-      if (!res.ok) { showToast(data.message || "Gagal publish", "error"); return; }
-      showToast("Berita berhasil dipublikasi", "success");
+      if (!res.ok) { setErrorPopupMsg(data.message || "Gagal publish"); return; }
+      setSuccessPopupMsg("Berita berhasil dipublikasi");
       await fetchBerita();
     } catch {
-      showToast("Terjadi kesalahan", "error");
+      setErrorPopupMsg("Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handlePublish = (id: number) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin mempublikasikan berita ini?",
+      type: "info",
+      onConfirm: () => executePublish(id),
+    });
+  };
+
+  const executeDelete = async (id: number) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/Admin/kelolaBerita/${id}`, { method: "DELETE" });
       const data = await res.json();
-      if (!res.ok) { showToast(data.message || "Gagal hapus", "error"); return; }
-      showToast("Berita berhasil dihapus", "success");
+      if (!res.ok) { setErrorPopupMsg(data.message || "Gagal hapus"); return; }
+      setSuccessPopupMsg("Berita berhasil dihapus");
       await fetchBerita();
     } catch {
-      showToast("Terjadi kesalahan", "error");
+      setErrorPopupMsg("Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = (id: number) => {
+    setConfirmData({
+      message: "Apakah Anda yakin ingin menghapus berita ini secara permanen?",
+      type: "danger",
+      onConfirm: () => executeDelete(id),
+    });
   };
 
   return (
@@ -357,7 +356,29 @@ export default function KelolaBeritaPage() {
         </div>
       )}
 
-      {toast && <Toast message={toast.message} type={toast.type} />}
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
     </>
   );
 }

@@ -66,7 +66,7 @@ async function tambahBerita(req: NextRequest, decoded: { id: string }) {
       data: {
         title,
         caption: caption || null,
-        imageData: webpBuffer,
+        imageData: new Uint8Array(webpBuffer),
         imageType: "image/webp",
         adminId: Number(decoded.id),
         isPublished: false,

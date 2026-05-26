@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 type Payment = {
   id: number;
@@ -52,6 +55,14 @@ export default function VerifikasiPembayaranPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [agreedIds, setAgreedIds] = useState<Record<number, boolean>>({});
 
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
+
   const fetchPayments = async () => {
     try {
       setLoading(true);
@@ -76,12 +87,7 @@ export default function VerifikasiPembayaranPage() {
     fetchPayments();
   }, []);
 
-  const handleVerify = async (shipmentId: number, action: "approve" | "reject") => {
-    const confirmMsg = action === "approve"
-      ? "Apakah Anda yakin ingin menyetujui verifikasi pembayaran ini?"
-      : "Apakah Anda yakin ingin menolak pembayaran ini? Pengguna harus mengunggah ulang bukti transfer.";
-    if (!window.confirm(confirmMsg)) return;
-
+  const executeVerify = async (shipmentId: number, action: "approve" | "reject") => {
     try {
       setProcessingId(shipmentId);
       const res = await fetch("/api/Admin/verifikasiPembayaran", {
@@ -92,17 +98,29 @@ export default function VerifikasiPembayaranPage() {
       const body = await res.json();
 
       if (!res.ok) {
-        alert(body.message || "Gagal memproses pembayaran");
+        setErrorPopupMsg(body.message || "Gagal memproses pembayaran");
         return;
       }
 
-      alert(body.message);
+      setSuccessPopupMsg(body.message);
       setPayments((prev) => prev.filter((payment) => payment.id !== shipmentId));
     } catch {
-      alert("Gagal terhubung ke server");
+      setErrorPopupMsg("Gagal terhubung ke server");
     } finally {
       setProcessingId(null);
     }
+  };
+
+  const handleVerify = (shipmentId: number, action: "approve" | "reject") => {
+    const confirmMsg = action === "approve"
+      ? "Apakah Anda yakin ingin menyetujui verifikasi pembayaran ini?"
+      : "Apakah Anda yakin ingin menolak pembayaran ini? Pengguna harus mengunggah ulang bukti transfer.";
+
+    setConfirmData({
+      message: confirmMsg,
+      type: action === "approve" ? "info" : "danger",
+      onConfirm: () => executeVerify(shipmentId, action),
+    });
   };
 
   return (
@@ -246,6 +264,30 @@ export default function VerifikasiPembayaranPage() {
           );
         })}
       </div>
+
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
     </main>
   );
 }

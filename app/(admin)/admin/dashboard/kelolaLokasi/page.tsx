@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { get } from "http";
+import SuccessPopup from "@/components/SuccessPopup";
+import ErrorPopup from "@/components/ErrorPopup";
+import ConfirmPopup from "@/components/ConfirmPopup";
 
 const LocationPickerMap = dynamic(
   () => import("@/components/locationPickerMap"),
@@ -46,6 +49,14 @@ export default function DaftarLokasiPage() {
   const [fetchingItems, setFetchingItems] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
   const [targetPlaceId, setTargetPlaceId] = useState<number | null>(null);
+
+  const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
+  const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
+  const [confirmData, setConfirmData] = useState<{
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
   const [loadingPindah, setLoadingPindah] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -268,7 +279,7 @@ export default function DaftarLokasiPage() {
     }
   };
 
-  const handlePindah = async () => {
+  const executePindah = async () => {
     if (!selectedPlace || !targetPlaceId || selectedItemIds.length === 0)
       return;
     setLoadingPindah(true);
@@ -284,17 +295,31 @@ export default function DaftarLokasiPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.message || "Gagal memindahkan barang");
+        setErrorPopupMsg(data.message || "Gagal memindahkan barang");
         return;
       }
+      setSuccessPopupMsg("Barang berhasil dipindahkan");
       await fetchItemsByPlace(selectedPlace.id);
       setSelectedItemIds([]);
       setTargetPlaceId(null);
     } catch (err) {
-      alert("Terjadi kesalahan, coba lagi");
+      setErrorPopupMsg("Terjadi kesalahan, coba lagi");
     } finally {
       setLoadingPindah(false);
     }
+  };
+
+  const handlePindah = () => {
+    if (!selectedPlace || !targetPlaceId || selectedItemIds.length === 0)
+      return;
+
+    const targetPlaceName = AllPlaces.find((p) => p.id === targetPlaceId)?.name || "lokasi tujuan";
+
+    setConfirmData({
+      message: `Apakah Anda yakin ingin memindahkan ${selectedItemIds.length} barang ke ${targetPlaceName}?`,
+      type: "warning",
+      onConfirm: executePindah,
+    });
   };
 
   const toggleSelectId = (id: number) => {
@@ -320,18 +345,19 @@ export default function DaftarLokasiPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Gagal menghapus lokasi");
+        setErrorPopupMsg(data.message || "Gagal menghapus lokasi");
         setShowDeleteConfirm(false);
         return;
       }
 
+      setSuccessPopupMsg("Lokasi berhasil dihapus");
       await fetchPlaces();
       setSelectedIds([]);
       setDeleteMode(false);
       setShowDeleteConfirm(false);
     } catch (err) {
       console.error("Gagal hapus lokasi:", err);
-      alert("Terjadi kesalahan, coba lagi");
+      setErrorPopupMsg("Terjadi kesalahan, coba lagi");
     }
   };
 
@@ -562,7 +588,7 @@ export default function DaftarLokasiPage() {
                       )}
                     </div>
                     <img
-                      src={`/api/getImage/${item.id}`}
+                      src={`/api/Barang/getImage/${item.id}`}
                       alt={item.name}
                       className="w-10 h-10 object-cover rounded-md flex-shrink-0"
                     />
@@ -594,10 +620,35 @@ export default function DaftarLokasiPage() {
             >
               {loadingPindah
                 ? "Memindahkan..."
-                : `Pindahkan ${selectedItemIds.length > 0 ? `(${selectedItemIds.length})` : "Barang"}`}
+                : selectedItemIds.length > 0
+                ? `Pindahkan (${selectedItemIds.length})`
+                : "Pindahkan Barang"}
             </button>
           </div>
         </div>
+        {successPopupMsg && (
+          <SuccessPopup
+            message={successPopupMsg}
+            onClose={() => setSuccessPopupMsg(null)}
+          />
+        )}
+        {errorPopupMsg && (
+          <ErrorPopup
+            message={errorPopupMsg}
+            onClose={() => setErrorPopupMsg(null)}
+          />
+        )}
+        {confirmData && (
+          <ConfirmPopup
+            message={confirmData.message}
+            type={confirmData.type}
+            onConfirm={() => {
+              confirmData.onConfirm();
+              setConfirmData(null);
+            }}
+            onCancel={() => setConfirmData(null)}
+          />
+        )}
       </div>
     );
   }
@@ -1137,6 +1188,30 @@ export default function DaftarLokasiPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {successPopupMsg && (
+        <SuccessPopup
+          message={successPopupMsg}
+          onClose={() => setSuccessPopupMsg(null)}
+        />
+      )}
+      {errorPopupMsg && (
+        <ErrorPopup
+          message={errorPopupMsg}
+          onClose={() => setErrorPopupMsg(null)}
+        />
+      )}
+      {confirmData && (
+        <ConfirmPopup
+          message={confirmData.message}
+          type={confirmData.type}
+          onConfirm={() => {
+            confirmData.onConfirm();
+            setConfirmData(null);
+          }}
+          onCancel={() => setConfirmData(null)}
+        />
       )}
     </div>
   );
