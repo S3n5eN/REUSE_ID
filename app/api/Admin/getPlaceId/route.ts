@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { protect } from "@/lib/protect";
 
-async function getPlaceId(req: NextRequest) {
+async function getPlaceId(req: NextRequest, decoded: { id: string; placeId?: number }) {
   try {
-    const placeId = req.cookies.get("placeId")?.value;
+    const placeId = decoded.placeId;
 
     if (!placeId) {
       return NextResponse.json(
@@ -13,8 +13,8 @@ async function getPlaceId(req: NextRequest) {
     }
 
     return NextResponse.json({
-      placeId: placeId ? Number(placeId) : null,
-      isGeneral: !placeId || placeId === "",
+      placeId: Number(placeId),
+      isGeneral: !placeId,
     });
   } catch {
     return NextResponse.json(

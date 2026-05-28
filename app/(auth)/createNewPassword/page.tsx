@@ -15,6 +15,7 @@ export default function CreateNewPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function CreateNewPasswordPage() {
     if (!canSubmit) return;
     try {
       setStatus("loading");
+      setErrorMessage("");
       const res = await fetch("/api/Pengguna/createNewPassword", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,14 +47,15 @@ export default function CreateNewPasswordPage() {
           token: new URLSearchParams(window.location.search).get("token"),
           newPassword: password,
         }),
-      })
+      });
 
-      if (res.ok) {
-        setStatus("success");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal mereset password");
 
+      setStatus("success");
       await new Promise((r) => setTimeout(r, 1800));
-    } catch {
+    } catch (err: any) {
+      setErrorMessage(err.message || "Gagal mereset password");
       setStatus("idle");
     } 
   };
@@ -407,6 +410,11 @@ export default function CreateNewPasswordPage() {
                     {confirm.length > 0 && !isMatching && (
                       <p className="text-xs text-[#e05c5c]">
                         Kata sandi tidak cocok
+                      </p>
+                    )}
+                    {errorMessage && (
+                      <p className="text-xs text-[#e05c5c] mt-1.5 font-medium text-center">
+                        {errorMessage}
                       </p>
                     )}
                   </div>

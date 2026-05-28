@@ -87,7 +87,10 @@ export default function VerifikasiPembayaranPage() {
     fetchPayments();
   }, []);
 
-  const executeVerify = async (shipmentId: number, action: "approve" | "reject") => {
+  const executeVerify = async (
+    shipmentId: number,
+    action: "approve" | "reject",
+  ) => {
     try {
       setProcessingId(shipmentId);
       const res = await fetch("/api/Admin/verifikasiPembayaran", {
@@ -102,8 +105,14 @@ export default function VerifikasiPembayaranPage() {
         return;
       }
 
-      setSuccessPopupMsg(body.message);
-      setPayments((prev) => prev.filter((payment) => payment.id !== shipmentId));
+      if (action == "approve") {
+        setSuccessPopupMsg(body.message);
+      } else {
+        setErrorPopupMsg(body.message);
+      }
+      setPayments((prev) =>
+        prev.filter((payment) => payment.id !== shipmentId),
+      );
     } catch {
       setErrorPopupMsg("Gagal terhubung ke server");
     } finally {
@@ -112,9 +121,10 @@ export default function VerifikasiPembayaranPage() {
   };
 
   const handleVerify = (shipmentId: number, action: "approve" | "reject") => {
-    const confirmMsg = action === "approve"
-      ? "Apakah Anda yakin ingin menyetujui verifikasi pembayaran ini?"
-      : "Apakah Anda yakin ingin menolak pembayaran ini? Pengguna harus mengunggah ulang bukti transfer.";
+    const confirmMsg =
+      action === "approve"
+        ? "Apakah Anda yakin ingin menyetujui verifikasi pembayaran ini?"
+        : "Apakah Anda yakin ingin menolak pembayaran ini? Pengguna harus mengunggah ulang bukti transfer.";
 
     setConfirmData({
       message: confirmMsg,
@@ -127,10 +137,15 @@ export default function VerifikasiPembayaranPage() {
     <main className="min-h-screen bg-gray-50 px-10 py-8">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold text-teal-600 tracking-widest mb-1">REUSEID ADMIN</p>
-          <h1 className="text-2xl font-bold text-gray-900">Verifikasi Pembayaran</h1>
+          <p className="text-xs font-semibold text-teal-600 tracking-widest mb-1">
+            REUSEID ADMIN
+          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Verifikasi Pembayaran
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Cocokkan nominal transfer, rekening pengirim, dan bukti struk sebelum menyetujui pembayaran.
+            Cocokkan nominal transfer, rekening pengirim, dan bukti struk
+            sebelum menyetujui pembayaran.
           </p>
         </div>
         <div className="flex items-center gap-2 border border-amber-300 rounded-full px-4 py-2 text-sm font-medium text-amber-800 bg-amber-50">
@@ -163,104 +178,153 @@ export default function VerifikasiPembayaranPage() {
         {payments.map((payment) => {
           const isAgreed = agreedIds[payment.id] || false;
           return (
-            <article key={payment.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="grid lg:grid-cols-[320px_1fr]">
-              <div className="bg-gray-100 border-r border-gray-200 p-4">
-                <div className="aspect-[4/5] rounded-xl overflow-hidden bg-white border border-gray-200">
-                  <img
-                    src={`/api/Admin/buktiTransfer/${payment.id}`}
-                    alt={`Bukti transfer ${payment.paymentInvoice || payment.id}`}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <a
-                  href={`/api/Admin/buktiTransfer/${payment.id}`}
-                  target="_blank"
-                  className="mt-3 block text-center text-sm font-semibold text-teal-700 hover:text-teal-900"
-                >
-                  Buka bukti transfer
-                </a>
-              </div>
-
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold tracking-widest uppercase text-teal-600">{payment.paymentInvoice}</p>
-                    <h2 className="mt-1 text-lg font-bold text-gray-900">{payment.item.name}</h2>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {payment.userProfile?.namaLengkap || "-"} - {payment.userProfile?.phone || "-"}
-                    </p>
+            <article
+              key={payment.id}
+              className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
+            >
+              <div className="grid lg:grid-cols-[320px_1fr]">
+                <div className="bg-gray-100 border-r border-gray-200 p-4">
+                  <div className="aspect-[4/5] rounded-xl overflow-hidden bg-white border border-gray-200">
+                    <img
+                      src={`/api/Admin/buktiTransfer/${payment.id}`}
+                      alt={`Bukti transfer ${payment.paymentInvoice || payment.id}`}
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
-                    Menunggu Verifikasi
-                  </span>
-                </div>
-
-                <div className="mt-5 grid md:grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-teal-100 bg-teal-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-teal-700">Total Harus Dibayar</p>
-                    <p className="mt-1 text-xl font-bold text-teal-800">{formatCurrency(payment.paymentTotal)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Ongkir Asli</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">{formatCurrency(payment.shipmentCost)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rekening Tujuan</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">
-                      {payment.transferBankCode} - {payment.transferAccountNumber}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">a.n. {payment.transferAccountHolder}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rekening Pengirim</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">{payment.payerBank || "-"}</p>
-                    <p className="text-xs text-gray-500 mt-1">a.n. {payment.payerAccountName || "-"}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Upload Bukti</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">{formatDate(payment.transferProofUploadedAt)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Batas Bayar</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">{formatDate(payment.paymentExpiredAt)}</p>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal-50/40 border border-teal-100">
-                  <input
-                    type="checkbox"
-                    id={`agree-${payment.id}`}
-                    checked={isAgreed}
-                    onChange={() => setAgreedIds((prev) => ({ ...prev, [payment.id]: !isAgreed }))}
-                    className="mt-0.5 w-4 h-4 text-teal-600 border-teal-300 rounded focus:ring-teal-500 cursor-pointer accent-teal-600"
-                  />
-                  <label htmlFor={`agree-${payment.id}`} className="text-xs text-teal-900 select-none cursor-pointer leading-relaxed">
-                    Saya menyatakan telah memeriksa dan mencocokkan nominal transfer bank pengirim dengan nominal tagihan secara benar.
-                  </label>
-                </div>
-
-                <div className="mt-5 flex justify-end gap-3">
-                  <button
-                    disabled={processingId === payment.id}
-                    onClick={() => handleVerify(payment.id, "reject")}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-300 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  <a
+                    href={`/api/Admin/buktiTransfer/${payment.id}`}
+                    target="_blank"
+                    className="mt-3 block text-center text-sm font-semibold text-teal-700 hover:text-teal-900"
                   >
-                    <XCircle className="w-4 h-4" />
-                    Tolak
-                  </button>
-                  <button
-                    disabled={processingId === payment.id || !isAgreed}
-                    onClick={() => handleVerify(payment.id, "approve")}
-                    className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                  >
-                    {processingId === payment.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                    Terima Pembayaran
-                  </button>
+                    Buka bukti transfer
+                  </a>
+                </div>
+
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold tracking-widest uppercase text-teal-600">
+                        {payment.paymentInvoice}
+                      </p>
+                      <h2 className="mt-1 text-lg font-bold text-gray-900">
+                        {payment.item.name}
+                      </h2>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {payment.userProfile?.namaLengkap || "-"} -{" "}
+                        {payment.userProfile?.phone || "-"}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                      Menunggu Verifikasi
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid md:grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-teal-100 bg-teal-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-teal-700">
+                        Total Harus Dibayar
+                      </p>
+                      <p className="mt-1 text-xl font-bold text-teal-800">
+                        {formatCurrency(payment.paymentTotal)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Ongkir Asli
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {formatCurrency(payment.shipmentCost)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Rekening Tujuan
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {payment.transferBankCode} -{" "}
+                        {payment.transferAccountNumber}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        a.n. {payment.transferAccountHolder}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Rekening Pengirim
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {payment.payerBank || "-"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        a.n. {payment.payerAccountName || "-"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Upload Bukti
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {formatDate(payment.transferProofUploadedAt)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Batas Bayar
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {formatDate(payment.paymentExpiredAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal-50/40 border border-teal-100">
+                    <input
+                      type="checkbox"
+                      id={`agree-${payment.id}`}
+                      checked={isAgreed}
+                      onChange={() =>
+                        setAgreedIds((prev) => ({
+                          ...prev,
+                          [payment.id]: !isAgreed,
+                        }))
+                      }
+                      className="mt-0.5 w-4 h-4 text-teal-600 border-teal-300 rounded focus:ring-teal-500 cursor-pointer accent-teal-600"
+                    />
+                    <label
+                      htmlFor={`agree-${payment.id}`}
+                      className="text-xs text-teal-900 select-none cursor-pointer leading-relaxed"
+                    >
+                      Saya menyatakan telah memeriksa dan mencocokkan nominal
+                      transfer bank pengirim dengan nominal tagihan secara
+                      benar.
+                    </label>
+                  </div>
+
+                  <div className="mt-5 flex justify-end gap-3">
+                    <button
+                      disabled={processingId === payment.id}
+                      onClick={() => handleVerify(payment.id, "reject")}
+                      className="inline-flex items-center gap-2 rounded-xl border border-red-300 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Tolak
+                    </button>
+                    <button
+                      disabled={processingId === payment.id || !isAgreed}
+                      onClick={() => handleVerify(payment.id, "approve")}
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      {processingId === payment.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      Terima Pembayaran
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
+            </article>
           );
         })}
       </div>

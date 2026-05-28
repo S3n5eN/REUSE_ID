@@ -13,9 +13,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validasi format password
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
+    const containsEmoji = /\p{Extended_Pictographic}/u.test(newPassword);
+
+    // ini kalau password mengandung emoji
+    if (containsEmoji) {
+      return NextResponse.json(
+        { message: "Password tidak boleh mengandung emoji" },
+        { status: 400 },
+      );
+    }
+
+    // ini kalau password panjangnya kurang dari 8 karakter
     if (newPassword.length < 8) {
       return NextResponse.json(
-        { message: "Password harus memiliki minimal 8 karakter" },
+        { message: "Password minimal terdiri dari 8 karakter" },
+        { status: 400 },
+      );
+    }
+
+    // ini kalau password panjangnya lebih dari 64 karakter
+    if (newPassword.length > 64) {
+      return NextResponse.json(
+        { message: "Password maksimal terdiri dari 64 karakter" },
+        { status: 400 },
+      );
+    }
+
+    // ini kalau password tidak mengandung huruf kecil, huruf besar, dan angka
+    if (!passwordRegex.test(newPassword)) {
+      return NextResponse.json(
+        {
+          message:
+            "Password harus mengandung huruf kecil, huruf besar, dan angka",
+        },
         { status: 400 },
       );
     }

@@ -2,12 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
-async function getPembayaranTransfer(req: NextRequest, decoded: { id: string }) {
+async function getPembayaranTransfer(
+  req: NextRequest,
+  decoded: { id: string },
+) {
   try {
     const shipmentId = req.nextUrl.searchParams.get("shipmentId");
 
     if (!shipmentId) {
-      return NextResponse.json({ message: "Shipment ID dibutuhkan" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Shipment ID dibutuhkan" },
+        { status: 400 },
+      );
     }
 
     const shipment = await prisma.shipment.findFirst({
@@ -47,12 +53,21 @@ async function getPembayaranTransfer(req: NextRequest, decoded: { id: string }) 
     });
 
     if (!shipment) {
-      return NextResponse.json({ message: "Data pembayaran tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Data pembayaran tidak ditemukan" },
+        { status: 404 },
+      );
     }
 
-    return NextResponse.json({ message: "Berhasil mengambil data pembayaran", data: shipment });
+    return NextResponse.json({
+      message: "Berhasil mengambil data pembayaran",
+      data: shipment,
+    });
   } catch {
-    return NextResponse.json({ message: "Gagal mengambil data pembayaran" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Gagal mengambil data pembayaran" },
+      { status: 500 },
+    );
   }
 }
 
@@ -60,23 +75,71 @@ async function uploadBuktiTransfer(req: NextRequest, decoded: { id: string }) {
   try {
     const formData = await req.formData();
     const shipmentId = formData.get("shipmentId");
-    const payerBank = formData.get("payerBank");
-    const payerAccountName = formData.get("payerAccountName");
+    const payerBank = formData.get("payerBank") as string;
+    const payerAccountName = formData.get("payerAccountName") as string;
     const proof = formData.get("proof");
 
-    if (!shipmentId || !payerBank || !payerAccountName || !(proof instanceof File)) {
+    if (
+      !shipmentId ||
+      !payerBank ||
+      !payerAccountName ||
+      !(proof instanceof File)
+    ) {
       return NextResponse.json(
-        { message: "Shipment ID, bank pengirim, nama pemilik rekening, dan bukti transfer wajib diisi" },
+        {
+          message:
+            "Shipment ID, bank pengirim, nama pemilik rekening, dan bukti transfer wajib diisi",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Bank Pengirim
+    const payerbankContainsEmoji = /\p{Extended_Pictographic}/u.test(payerBank);
+    if (
+      payerBank.length < 3 ||
+      payerBank.length > 20 ||
+      payerbankContainsEmoji
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            "Bank pengirim harus terdiri dari 3-20 karakter dan tidak boleh mengandung emoji",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Acount Name
+    const accountNameContainsEmoji = /\p{Extended_Pictographic}/u.test(
+      payerAccountName,
+    );
+    if (
+      payerAccountName.length < 3 ||
+      payerAccountName.length > 30 ||
+      accountNameContainsEmoji
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            "Nama pemilik rekening harus terdiri dari 3-30 karakter dan tidak boleh mengandung emoji",
+        },
         { status: 400 },
       );
     }
 
     if (!proof.type.startsWith("image/")) {
-      return NextResponse.json({ message: "Bukti transfer harus berupa gambar" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Bukti transfer harus berupa gambar" },
+        { status: 400 },
+      );
     }
 
     if (proof.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ message: "Ukuran bukti transfer maksimal 2MB" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Ukuran bukti transfer maksimal 2MB" },
+        { status: 400 },
+      );
     }
 
     const shipment = await prisma.shipment.findFirst({
@@ -89,15 +152,24 @@ async function uploadBuktiTransfer(req: NextRequest, decoded: { id: string }) {
     });
 
     if (!shipment) {
-      return NextResponse.json({ message: "Data pembayaran tidak ditemukan" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Data pembayaran tidak ditemukan" },
+        { status: 404 },
+      );
     }
 
     if (shipment.paymentExpiredAt && shipment.paymentExpiredAt < new Date()) {
-      return NextResponse.json({ message: "Batas waktu pembayaran sudah lewat" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Batas waktu pembayaran sudah lewat" },
+        { status: 400 },
+      );
     }
 
     if (shipment.paymentStatus === "Paid") {
-      return NextResponse.json({ message: "Pembayaran sudah diverifikasi" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Pembayaran sudah diverifikasi" },
+        { status: 400 },
+      );
     }
 
     const bytes = Buffer.from(await proof.arrayBuffer());
@@ -119,9 +191,15 @@ async function uploadBuktiTransfer(req: NextRequest, decoded: { id: string }) {
       },
     });
 
-    return NextResponse.json({ message: "Bukti transfer berhasil diupload", data: updated });
+    return NextResponse.json({
+      message: "Bukti transfer berhasil diupload",
+      data: updated,
+    });
   } catch {
-    return NextResponse.json({ message: "Gagal upload bukti transfer" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Gagal upload bukti transfer" },
+      { status: 500 },
+    );
   }
 }
 

@@ -2,19 +2,47 @@ import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
-async function TambahRak(req: NextRequest, decoded: { id: string }) {
+async function TambahRak(
+  req: NextRequest,
+  decoded: { id: string; placeId?: number },
+) {
   try {
     // ==== arrRak ini buat kumpulan Rak dalam bentuk array, ini biar Frontend bisa kirim banyak rak sekaligus, jadi cuman butuh 1 request aja ====
     const { arrRak } = await req.json();
-    const placeIdStr = req.cookies.get("placeId")?.value;
+    const placeId = decoded.placeId;
 
-    if (!arrRak || !placeIdStr) {
+    if (!arrRak || !placeId) {
       return new Response(
         JSON.stringify({ message: "Rak dan Place ID harus diisi" }),
         { status: 400 },
       );
     }
-    const placeId = Number(placeIdStr);
+
+    const isOverflow = arrRak.some(
+      (rak: { nomorRak: string; kapasitasMax: number }) => {
+        if (rak.nomorRak.length < 4 || rak.nomorRak.length > 10) {
+          return true;
+        }
+
+        if (!rak.nomorRak.match(/^[a-zA-Z0-9-]+$/)) {
+          return true;
+        }
+
+        if (rak.kapasitasMax < 10 || rak.kapasitasMax > 100) {
+          return true;
+        }
+      },
+    );
+
+    if (isOverflow) {
+      return NextResponse.json(
+        {
+          message:
+            "Rak tidak valid, nomor rak harus 4-10 karakter mengandung huruf, angka, dan garis, kapasitas max minimal 10 dan maksimal 100",
+        },
+        { status: 400 },
+      );
+    }
 
     await prisma.rak.createMany({
       data: arrRak.map((rak: { nomorRak: string; kapasitasMax: number }) => ({
@@ -36,9 +64,12 @@ async function TambahRak(req: NextRequest, decoded: { id: string }) {
   }
 }
 
-async function getAllRak(req: NextRequest, decoded: { id: string }) {
+async function getAllRak(
+  req: NextRequest,
+  decoded: { id: string; placeId?: number },
+) {
   try {
-    const placeId = req.cookies.get("placeId")?.value;
+    const placeId = decoded.placeId;
 
     if (!placeId) {
       return NextResponse.json(

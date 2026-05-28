@@ -29,7 +29,7 @@ Verifikasi identitas diperlukan untuk memastikan bahwa barang donasi diterima ol
 --- SYARAT PENERIMA (KLAIM BARANG) ---
 Untuk bisa mengajukan klaim barang, kamu harus:
 1. Memiliki akun ReuseID yang sudah terdaftar.
-2. Melengkapi profil identitas: nama lengkap, nomor telepon, pekerjaan, alamat, usia, jenis kelamin, dan nomor identitas (KTP/KK).
+2. Melengkapi profil identitas: nama lengkap, nomor telepon, alamat, usia, jenis kelamin, dan nomor identitas (KTP/KK).
 3. Menunggu verifikasi dari admin sebelum bisa mengajukan klaim.
 4. Setelah diverifikasi, kamu bisa mengajukan klaim barang yang tersedia.
 
@@ -42,7 +42,8 @@ Untuk bisa mengajukan klaim barang, kamu harus:
 6. Jika memilih delivery, akan ada biaya pengiriman yang dihitung berdasarkan jarak dan berat barang.
 7. Admin akan memproses pengajuan klaim kamu.
 
-Gunakan bahasa Indonesia yang ramah, sopan, dan mudah dipahami. Jawab secara ringkas dan jelas.`;
+Gunakan bahasa Indonesia yang ramah, sopan, dan mudah dipahami. Jawab secara ringkas dan jelas.
+PENTING: Kirimkan jawaban dalam format TEKS BIASA (Plain Text). JANGAN menggunakan format Markdown seperti tanda bintang (** atau ***), simbol hashtag (#), atau tanda list markdown. Gunakan baris baru (\n) biasa untuk pemisah baris dan gunakan angka biasa (1, 2, 3) untuk membuat daftar agar rapi.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,6 +56,34 @@ export async function POST(req: NextRequest) {
     }
 
     const { messages } = await req.json();
+
+    // Validasi input messages
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json({ error: "Format input tidak valid." }, { status: 400 });
+    }
+
+    if (messages.length === 0 || messages.length > 20) {
+      return NextResponse.json({ error: "Riwayat pesan tidak boleh kosong atau melebihi 20 pesan." }, { status: 400 });
+    }
+
+    for (const msg of messages) {
+      if (
+        !msg ||
+        typeof msg !== "object" ||
+        typeof msg.role !== "string" ||
+        typeof msg.content !== "string" ||
+        (msg.role !== "user" && msg.role !== "assistant")
+      ) {
+        return NextResponse.json({ error: "Struktur pesan tidak valid." }, { status: 400 });
+      }
+
+      if (msg.content.trim().length === 0 || msg.content.length > 1000) {
+        return NextResponse.json(
+          { error: "Pesan tidak boleh kosong dan maksimal terdiri dari 1000 karakter." },
+          { status: 400 },
+        );
+      }
+    }
 
     const apiKey = process.env.GEMINI_KEY;
     if (!apiKey) {

@@ -1,12 +1,12 @@
 import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
-async function getAdminProfile(req: NextRequest, decoded: { id: number; name: string }) {
+async function getAdminProfile(req: NextRequest, decoded: { id: number; name: string; adminType?: string }) {
   try {
-    const adminType = req.cookies.get("adminType")?.value;
+    const adminType = decoded.adminType;
 
     if (!adminType) {
-      return NextResponse.json({ message: "Belum login" }, { status: 401 });
+      return NextResponse.json({ message: "Belum login atau divalidasi lokasi" }, { status: 401 });
     }
 
     return NextResponse.json(

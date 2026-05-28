@@ -5,7 +5,6 @@ import SuccessPopup from "@/components/SuccessPopup";
 import ErrorPopup from "@/components/ErrorPopup";
 import ConfirmPopup from "@/components/ConfirmPopup";
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Item = {
@@ -32,7 +31,12 @@ type Rak = {
   kapasitasSekarang: number;
 };
 
-type QualityValue = "SangatBaik" | "Baik" | "CukupBaik" | "Layak" | "CukupLayak";
+type QualityValue =
+  | "SangatBaik"
+  | "Baik"
+  | "CukupBaik"
+  | "Layak"
+  | "CukupLayak";
 
 const QUALITY_OPTIONS: { value: QualityValue; label: string }[] = [
   { value: "SangatBaik", label: "Sangat Baik" },
@@ -105,7 +109,12 @@ function ItemCard({
 }: {
   item: Item;
   raks: Rak[];
-  onApprove: (id: number, quality: QualityValue, rakId: number, weight: number) => void;
+  onApprove: (
+    id: number,
+    quality: QualityValue,
+    rakId: number,
+    weight: number,
+  ) => void;
   onReject: (id: number) => void;
   loading: boolean;
   index: number;
@@ -122,13 +131,27 @@ function ItemCard({
   }, [index]);
 
   const isPending = processingData?.shipmentId === item.shipmentId;
-  const actionType = processingData?.shipmentId === item.shipmentId ? processingData.action : null;
+  const actionType =
+    processingData?.shipmentId === item.shipmentId
+      ? processingData.action
+      : null;
 
   const handleApprove = () => {
     const numericWeight = parseFloat(weight);
-    if (!selectedQuality || !selectedRak || isNaN(numericWeight) || numericWeight < 0) return;
+    if (
+      !selectedQuality ||
+      !selectedRak ||
+      isNaN(numericWeight) ||
+      numericWeight < 0
+    )
+      return;
 
-    onApprove(item.shipmentId, selectedQuality as QualityValue, selectedRak as number, parseFloat(weight));
+    onApprove(
+      item.shipmentId,
+      selectedQuality as QualityValue,
+      selectedRak as number,
+      parseFloat(weight),
+    );
   };
 
   const handleReject = () => {
@@ -191,8 +214,14 @@ function ItemCard({
             label="Kualitas"
             value={item.quality ?? "Belum diverifikasi"}
           />
-          <MetaField label="Berat Barang" value={item.weight ? `${item.weight} kg` : "—"} />
-          <MetaField label="Lokasi Rak" value={item.rak ? `Rak ${item.rak.nomor}` : "—"} />
+          <MetaField
+            label="Berat Barang"
+            value={item.weight ? `${item.weight} kg` : "—"}
+          />
+          <MetaField
+            label="Lokasi Rak"
+            value={item.rak ? `Rak ${item.rak.nomor}` : "—"}
+          />
         </div>
 
         {/* Description */}
@@ -231,7 +260,9 @@ function ItemCard({
                 }
               }}
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#1D9E75] font-bold">KG</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#1D9E75] font-bold">
+              KG
+            </span>
           </div>
 
           <select
@@ -255,16 +286,18 @@ function ItemCard({
           <select
             className="text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] cursor-pointer flex-1 min-w-[140px] max-w-[200px] outline-none focus:border-[#1D9E75] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             value={selectedRak}
-            onChange={(e) =>
-              setSelectedRak(Number(e.target.value))
-            }
+            onChange={(e) => setSelectedRak(Number(e.target.value))}
             disabled={loading}
           >
             <option value="" disabled>
               Pilih Rak
             </option>
             {raks.map((r) => (
-              <option key={r.id} value={r.id} disabled={r.kapasitasSekarang >= r.kapasitasMax}>
+              <option
+                key={r.id}
+                value={r.id}
+                disabled={r.kapasitasSekarang >= r.kapasitasMax}
+              >
                 Rak {r.nomor} ({r.kapasitasSekarang}/{r.kapasitasMax})
               </option>
             ))}
@@ -345,9 +378,13 @@ export default function DaftarBarangPendingPage() {
   } | null>(null);
 
   // Tambahkan fallback [] agar tidak error saat data belum siap
-  const items = (activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? []))
-    .filter((item) => selectedPlace ? item.place?.id === selectedPlace : true)
-    .filter((item) => search ? item.name.toLowerCase().includes(search.toLowerCase()) : true);
+  const items = (
+    activeTab === "pending" ? (pendingItems ?? []) : (approvedItems ?? [])
+  )
+    .filter((item) => (selectedPlace ? item.place?.id === selectedPlace : true))
+    .filter((item) =>
+      search ? item.name.toLowerCase().includes(search.toLowerCase()) : true,
+    );
 
   const fetchItems = async () => {
     setFetchLoading(true);
@@ -356,7 +393,7 @@ export default function DaftarBarangPendingPage() {
         fetch("/api/Barang/getItemPending"),
         fetch("/api/Barang/getItemApprove"),
         fetch("/api/LokasiPengumpulan/getPlace"),
-        fetch("/api/Admin/kelolaRak")
+        fetch("/api/Admin/kelolaRak"),
       ]);
 
       // Fungsi pembantu agar tidak repetitif dan aman
@@ -391,7 +428,6 @@ export default function DaftarBarangPendingPage() {
       setApprovedItems(approvedData);
       setPlaces(placesData);
       setRaks(rakData);
-
     } catch (error) {
       console.error("Network/Unexpected Error:", error);
       setPendingItems([]);
@@ -406,20 +442,36 @@ export default function DaftarBarangPendingPage() {
     fetchItems();
   }, []);
 
-  const executeApprove = async (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
+  const executeApprove = async (
+    shipmentId: number,
+    quality: QualityValue,
+    rakId: number,
+    weight: number,
+  ) => {
     try {
       setProcessingData({ shipmentId, action: "Approve" });
       setLoading(true);
       const res = await fetch("/api/Admin/verifikasiBarang", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shipmentId, action: "Approve", quality, rakId, weight }),
+        body: JSON.stringify({
+          shipmentId,
+          action: "Approve",
+          quality,
+          rakId,
+          weight,
+        }),
       });
       const text = await res.text();
-      if (!res.ok) { setErrorPopupMsg("Gagal: " + text); return; }
+      if (!res.ok) {
+        setErrorPopupMsg("Gagal: " + text);
+        return;
+      }
       const data = JSON.parse(text);
       setSuccessPopupMsg(data.message ?? "Barang berhasil diverifikasi");
-      setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
+      setPendingItems((prev) =>
+        prev.filter((i) => i.shipmentId !== shipmentId),
+      );
     } catch (err) {
       console.error(err);
       setErrorPopupMsg("Terjadi error di frontend");
@@ -439,10 +491,15 @@ export default function DaftarBarangPendingPage() {
         body: JSON.stringify({ shipmentId, action: "Reject" }),
       });
       const text = await res.text();
-      if (!res.ok) { setErrorPopupMsg("Gagal: " + text); return; }
+      if (!res.ok) {
+        setErrorPopupMsg("Gagal: " + text);
+        return;
+      }
       const data = JSON.parse(text);
       setSuccessPopupMsg(data.message ?? "Barang ditolak");
-      setPendingItems((prev) => prev.filter((i) => i.shipmentId !== shipmentId));
+      setPendingItems((prev) =>
+        prev.filter((i) => i.shipmentId !== shipmentId),
+      );
     } catch (err) {
       console.error(err);
       setErrorPopupMsg("Terjadi error di frontend");
@@ -452,7 +509,12 @@ export default function DaftarBarangPendingPage() {
     }
   };
 
-  const handleApprove = (shipmentId: number, quality: QualityValue, rakId: number, weight: number) => {
+  const handleApprove = (
+    shipmentId: number,
+    quality: QualityValue,
+    rakId: number,
+    weight: number,
+  ) => {
     setConfirmData({
       message: "Apakah Anda yakin ingin memverifikasi dan menerima barang ini?",
       type: "info",
@@ -479,11 +541,19 @@ export default function DaftarBarangPendingPage() {
       `}</style>
 
       <div className="grid grid-cols-2 gap-3 max-w-full mx-auto px-6 py-8">
-
         {/* ── Page header ── */}
         <div className="flex col-span-2 items-center gap-3.5 mb-8">
           <div className="w-11 h-11 rounded-xl bg-[#E1F5EE] border border-[#9FE1CB] flex items-center justify-center shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#1D9E75"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
               <path d="M16 3H8L6 7h12l-2-4z" />
             </svg>
@@ -508,10 +578,11 @@ export default function DaftarBarangPendingPage() {
             <button
               onClick={() => setActiveTab("pending")}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
-        ${activeTab === "pending"
-                  ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-                  : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-                }`}
+        ${
+          activeTab === "pending"
+            ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+            : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+        }`}
             >
               Pending
               <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
@@ -522,10 +593,11 @@ export default function DaftarBarangPendingPage() {
             <button
               onClick={() => setActiveTab("approved")}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors border
-        ${activeTab === "approved"
-                  ? "bg-[#1D9E75] text-white border-[#1D9E75]"
-                  : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
-                }`}
+        ${
+          activeTab === "approved"
+            ? "bg-[#1D9E75] text-white border-[#1D9E75]"
+            : "bg-white text-[#0F6E56] border-[#9FE1CB] hover:bg-[#E1F5EE]"
+        }`}
             >
               Tersedia
               <span className="ml-2 font-mono text-xs bg-white/20 px-2 py-0.5 rounded-full">
@@ -537,8 +609,18 @@ export default function DaftarBarangPendingPage() {
           {/* Search — kanan */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 border border-[#9FE1CB] rounded-lg px-3 py-1.5 bg-[#E1F5EE]">
-              <svg className="w-3.5 h-3.5 text-[#1D9E75]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z" />
+              <svg
+                className="w-3.5 h-3.5 text-[#1D9E75]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"
+                />
               </svg>
               <input
                 value={search}
@@ -569,57 +651,77 @@ export default function DaftarBarangPendingPage() {
         {fetchLoading && [1, 2, 3].map((n) => <SkeletonCard key={n} />)}
 
         {/* ── Item list ── */}
-        {!fetchLoading && items.map((item, i) => (
-          activeTab === "pending" ? (
-            <ItemCard
-              key={item.id}
-              item={item}
-              raks={raks}
-              index={i}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              loading={loading}
-              processingData={processingData}
-            />
-          ) : (
-            <div
-              key={item.id}
-              className="relative grid grid-cols-[180px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)] transition-all"
-            >
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
-              <div className="relative w-[180px] min-h-[160px] overflow-hidden shrink-0">
-                <img
-                  src={`/api/Barang/getImage/${item.id}`}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col gap-2 p-[14px_16px_12px]">
-                <div className="flex items-start justify-between gap-2.5">
-                  <h2 className="text-[15px] font-bold text-[#04342C] leading-tight">{item.name}</h2>
-                  <span className="font-mono text-[9.5px] font-medium px-2.5 py-1 rounded-full bg-[#E1F5EE] text-[#0F6E56] border border-[#9FE1CB] whitespace-nowrap shrink-0">
-                    {item.status}
-                  </span>
+        {!fetchLoading &&
+          items.map((item, i) =>
+            activeTab === "pending" ? (
+              <ItemCard
+                key={item.id}
+                item={item}
+                raks={raks}
+                index={i}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                loading={loading}
+                processingData={processingData}
+              />
+            ) : (
+              <div
+                key={item.id}
+                className="relative grid grid-cols-[180px_1fr] bg-white border border-[#e8f5ef] rounded-2xl overflow-hidden mb-3.5 hover:border-[#5DCAA5] hover:shadow-[0_4px_20px_rgba(29,158,117,0.08)] transition-all"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#1D9E75] to-[#5DCAA5] rounded-l-2xl z-10" />
+                <div className="relative w-[180px] min-h-[160px] overflow-hidden shrink-0">
+                  <img
+                    src={`/api/Barang/getImage/${item.id}`}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-y-1 gap-x-4">
-                  <MetaField label="Kategori" value={item.category} />
-                  <MetaField label="Donatur" value={item.user?.name ?? "—"} />
-                  <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
-                  <MetaField label="Kualitas" value={item.quality ?? "—"} />
-                  <MetaField label="BeratBarang" value={item.weight ? `${item.weight} kg` : "—"}/>
-                  <MetaField label="Lokasi Rak" value={item.rak?.nomor ? `Rak ${item.rak.nomor}` : "—"}/>
+                <div className="flex flex-col gap-2 p-[14px_16px_12px]">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <h2 className="text-[15px] font-bold text-[#04342C] leading-tight">
+                      {item.name}
+                    </h2>
+                    <span className="font-mono text-[9.5px] font-medium px-2.5 py-1 rounded-full bg-[#E1F5EE] text-[#0F6E56] border border-[#9FE1CB] whitespace-nowrap shrink-0">
+                      {item.status}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-y-1 gap-x-4">
+                    <MetaField label="Kategori" value={item.category} />
+                    <MetaField label="Donatur" value={item.user?.name ?? "—"} />
+                    <MetaField label="Lokasi" value={item.place?.name ?? "—"} />
+                    <MetaField label="Kualitas" value={item.quality ?? "—"} />
+                    <MetaField
+                      label="BeratBarang"
+                      value={item.weight ? `${item.weight} kg` : "—"}
+                    />
+                    <MetaField
+                      label="Lokasi Rak"
+                      value={item.rak?.nomor ? `Rak ${item.rak.nomor}` : "—"}
+                    />
+                  </div>
+                  <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">
+                    {item.description}
+                  </p>
                 </div>
-                <p className="text-[11.5px] text-[#5a7a70] border-t border-[#E1F5EE] pt-2">{item.description}</p>
               </div>
-            </div>
-          )
-        ))}
+            ),
+          )}
 
         {/* ── Empty state ── */}
         {!fetchLoading && items.length === 0 && (
-          <div className="flex flex-col items-center py-16 px-8 text-center">
+          <div className="flex flex-col items-center py-16 px-8 text-center col-span-2">
             <div className="w-14 h-14 rounded-[14px] bg-[#E1F5EE] border border-[#9FE1CB] flex items-center justify-center mb-4">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#1D9E75"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M9 12l2 2 4-4" />
                 <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
               </svg>

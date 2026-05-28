@@ -24,7 +24,6 @@ interface FormData {
   email: string;
   usia: number | "";
   gender: string;
-  pekerjaan: string;
   phone: string;
   address: string;
   latitude?: number;
@@ -92,7 +91,6 @@ export default function ProfileContent() {
     email: "",
     usia: "",
     gender: "Laki-laki",
-    pekerjaan: "",
     phone: "",
     address: "",
     latitude: -6.9175,
@@ -134,7 +132,6 @@ export default function ProfileContent() {
         email: profileData.email ?? "",
         usia: profileData.usia ?? "",
         gender: profileData.gender ?? "Laki-laki",
-        pekerjaan: profileData.pekerjaan ?? "",
         phone: localPhone,
         address: profileData.address ?? "",
         latitude: profileData.latitude ?? -6.9175,
@@ -149,7 +146,6 @@ export default function ProfileContent() {
         email: "",
         usia: "",
         gender: "Laki-laki",
-        pekerjaan: "",
         phone: "",
         address: "",
         latitude: -6.9175,
@@ -331,16 +327,7 @@ export default function ProfileContent() {
               <option>Perempuan</option>
             </select>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[.76rem] font-semibold">Pekerjaan</label>
-            <input
-              className={inputCls}
-              type="text"
-              name="pekerjaan"
-              value={form.pekerjaan}
-              onChange={handleChange}
-            />
-          </div>
+
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Nomor Telepon</label>
             <div className="flex gap-1.5">

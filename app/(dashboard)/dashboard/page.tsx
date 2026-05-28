@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Logo from "@/public/Logo/Logo.svg";
 import ReuseBot from "@/components/Chatbot/ReuseBot";
+import { MapPin, Mail, Phone } from "lucide-react";
 
 type Item = {
   id: number;
@@ -623,9 +624,18 @@ export default function DashboardPage() {
             <h3 className="text-xl font-semibold mb-4">Kontak</h3>
 
             <div className="space-y-3 text-sm text-gray-300">
-              <p>📍 Bandung, Indonesia</p>
-              <p>✉️ reuseid@gmail.com</p>
-              <p>📞 +62 812-3456-7890</p>
+              <div className="flex items-center gap-2.5">
+                <MapPin size={16} className="text-teal-400 shrink-0" />
+                <span>Bandung, Indonesia</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Mail size={16} className="text-teal-400 shrink-0" />
+                <span>reuseid@gmail.com</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Phone size={16} className="text-teal-400 shrink-0" />
+                <span>+62 812-3456-7890</span>
+              </div>
             </div>
           </div>
 

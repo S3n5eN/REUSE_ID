@@ -169,7 +169,6 @@ model userProfile {
   userId      Int                @unique(map: "userProfile_userId_key")
   namaLengkap String
   phone       String
-  pekerjaan   String?
   address     String
   usia        Int
   gender      userProfile_gender

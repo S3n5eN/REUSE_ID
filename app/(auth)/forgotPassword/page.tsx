@@ -9,6 +9,7 @@ export default function ForgotPasswordPage() {
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [focused, setFocused] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -21,6 +22,7 @@ export default function ForgotPasswordPage() {
     if (!email) return;
     try {
       setStatus("loading");
+      setErrorMessage("");
       const res = await fetch("/api/Pengguna/forgotPassword", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,7 +33,8 @@ export default function ForgotPasswordPage() {
       
       await new Promise((r) => setTimeout(r, 1800));
       setStatus("success");
-    } catch {
+    } catch (err: any) {
+      setErrorMessage(err.message || "Gagal mengirim email");
       setStatus("error");
     } 
   };
@@ -189,6 +192,11 @@ export default function ForgotPasswordPage() {
                         </div>
                       )}
                     </div>
+                    {errorMessage && (
+                      <p className="text-xs text-red-500 mt-1.5 font-medium">
+                        {errorMessage}
+                      </p>
+                    )}
                   </div>
 
                   {/* Submit button */}

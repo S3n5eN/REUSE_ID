@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Mailbox, AlertCircle } from "lucide-react";
 
 type ShipmentStatus = "Pending" | "Approved" | "Rejected" | "Delivered";
 type PaymentStatus = "Unpaid" | "WaitingVerification" | "Paid" | "Failed";
@@ -373,7 +374,7 @@ function SkeletonCard() {
 function EmptyState({ tab }: { tab: TabKey }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
-      <span className="text-5xl mb-4">📭</span>
+      <Mailbox size={48} className="text-gray-400 mb-4" />
       <p className="text-slate-400 text-sm max-w-xs">{EMPTY_MSG[tab]}</p>
     </div>
   );
@@ -502,7 +503,7 @@ export default function BarangSayaPage() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <span className="text-5xl mb-4">⚠️</span>
+            <AlertCircle size={48} className="text-red-500 mb-4" />
             <p className="text-slate-700 font-semibold mb-1">Terjadi Kesalahan</p>
             <p className="text-slate-400 text-sm mb-5">{error}</p>
             <button

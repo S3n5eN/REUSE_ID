@@ -142,7 +142,7 @@ export default function ReuseBot() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === "user"
                       ? "bg-teal-600 text-white rounded-br-sm"
                       : "bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-sm"

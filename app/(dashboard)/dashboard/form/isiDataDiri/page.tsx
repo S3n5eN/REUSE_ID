@@ -114,7 +114,7 @@ export default function FormDataDiri() {
       if (res.ok) {
         router.replace("/dashboard");
       } else {
-        alert(data.message);
+        setErrorMsg(data.message);
       }
     } catch (error) {
       console.error("Error:", error);

@@ -327,11 +327,11 @@ function FormPilihPengirimanContent() {
                         <input
                           type="text"
                           name="alamat"
-                          placeholder="Masukkan alamat lengkap"
+                          placeholder="Alamat belum diatur (Lengkapi profil data diri terlebih dahulu)"
                           value={form.alamat}
-                          onChange={handleChange}
+                          readOnly
                           required={isDelivery}
-                          className="w-full pl-10 pr-4 py-3 text-sm border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-[#007582]/20 focus:border-[#007582] transition bg-zinc-50 focus:bg-white"
+                          className="w-full pl-10 pr-4 py-3 text-sm border border-zinc-200 rounded-xl outline-none transition bg-zinc-100 cursor-not-allowed text-zinc-500"
                         />
                       </div>
                     </div>

@@ -9,7 +9,6 @@ import {
   Phone,
   MapPin,
   User,
-  Briefcase,
   CreditCard,
   Check,
   X,
@@ -30,7 +29,6 @@ interface UserProfile {
   id: number;
   namaLengkap: string;
   phone: string;
-  pekerjaan?: string;
   address: string;
   usia: number;
   gender: Gender;
@@ -140,21 +138,6 @@ function UserCard({ user, index, onAction, processingData }: UserCardProps) {
                   Telepon
                 </p>
                 <p className="text-sm font-medium text-slate-700">{user.phone}</p>
-              </div>
-            </div>
-
-            {/* Pekerjaan */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="w-7 h-7 rounded-lg bg-teal-100 flex items-center justify-center mt-0.5">
-                <Briefcase size={13} className="text-teal-700" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-0.5">
-                  Pekerjaan
-                </p>
-                <p className="text-sm font-medium text-slate-700">
-                  {user.pekerjaan || "—"}
-                </p>
               </div>
             </div>
 

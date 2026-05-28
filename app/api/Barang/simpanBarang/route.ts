@@ -45,6 +45,58 @@ async function simpanBarang(req: NextRequest, decoded: { id: string }) {
       );
     }
 
+    const nameContainsEmoji = /\p{Extended_Pictographic}/u.test(data.name);
+
+    // Ini kalau nama barang mengandung emoji
+    if (nameContainsEmoji) {
+      return NextResponse.json(
+        { message: "Nama barang tidak boleh mengandung emoji" },
+        { status: 400 },
+      );
+    }
+
+    // Ini kalau nama barang panjangnya kurang dari 8 karakter
+    if (data.name.length < 8) {
+      return NextResponse.json(
+        { message: "Nama barang minimal terdiri dari 8 karakter" },
+        { status: 400 },
+      );
+    }
+
+    // Ini kalau nama barang panjangnya lebih dari 30 karakter
+    if (data.name.length > 30) {
+      return NextResponse.json(
+        { message: "Nama barang maksimal terdiri dari 30 karakter" },
+        { status: 400 },
+      );
+    }
+
+    const descContainsEmoji = /\p{Extended_Pictographic}/u.test(data.desc);
+
+    // Ini kalau deskripsi barang mengandung emoji
+    if (descContainsEmoji) {
+      return NextResponse.json(
+        { message: "Deskripsi barang tidak boleh mengandung emoji" },
+        { status: 400 },
+      );
+    }
+
+    // Ini kalau deskripsi barang panjangnya kurang dari 10 karakter
+    if (data.desc.length < 10) {
+      return NextResponse.json(
+        { message: "Deskripsi barang minimal terdiri dari 10 karakter" },
+        { status: 400 },
+      );
+    }
+
+    // Ini kalau deskripsi barang panjangnya lebih dari 255 karakter
+    if (data.desc.length > 255) {
+      return NextResponse.json(
+        { message: "Deskripsi barang maksimal terdiri dari 255 karakter" },
+        { status: 400 },
+      );
+    }
+
     const arrayBuffer = await foto.arrayBuffer();
     const originalBuffer = Buffer.from(arrayBuffer);
 

@@ -2,17 +2,23 @@ import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { NextRequest, NextResponse } from "next/server";
 
-async function getDashboard(req: NextRequest) {
+async function getDashboard(
+  req: NextRequest,
+  decoded: { id: string; placeId?: number; adminType?: string },
+) {
   try {
-    const placeId = req.cookies.get("placeId")?.value;
-    const isGeneral = !placeId || placeId === "";
+    const placeId = decoded.placeId;
+    const isGeneral = !placeId;
 
-    // if (!placeId) {
-    //   return NextResponse.json(
-    //     { message: "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi" },
-    //     { status: 400 },
-    //   );
-    // }
+    if (!placeId) {
+      return NextResponse.json(
+        {
+          message:
+            "Place ID tidak ditemukan, pastikan sudah melakukan validasi key lokasi",
+        },
+        { status: 400 },
+      );
+    }
 
     const [
       totalItem,
@@ -23,9 +29,8 @@ async function getDashboard(req: NextRequest) {
       pendingList,
       shipmentStatus,
       pendingPaymentCount,
-      pendingPaymentList
+      pendingPaymentList,
     ] = await Promise.all([
-
       // TOTAL ITEM
       prisma.item.count(),
 
@@ -33,16 +38,16 @@ async function getDashboard(req: NextRequest) {
       prisma.item.count({
         where: {
           status: "PendingApproval",
-          ...(isGeneral ? {} : {placeId: Number(placeId)}),
-        }
+          ...(isGeneral ? {} : { placeId: Number(placeId) }),
+        },
       }),
 
       // ITEM TERSEDIA
       prisma.item.count({
         where: {
           status: "Tersedia",
-          ...(isGeneral ? {} :{placeId: Number(placeId)}),
-        }
+          ...(isGeneral ? {} : { placeId: Number(placeId) }),
+        },
       }),
 
       // TOTAL PLACE
@@ -51,8 +56,8 @@ async function getDashboard(req: NextRequest) {
       // ITEM SUDAH DIAMBIL
       prisma.shipment.count({
         where: {
-          status: "Delivered"
-        }
+          status: "Delivered",
+        },
       }),
 
       // TABEL PENDING
@@ -65,28 +70,28 @@ async function getDashboard(req: NextRequest) {
         include: {
           user: {
             select: {
-              name: true
-            }
-          }
+              name: true,
+            },
+          },
         },
 
         orderBy: {
-          createdAt: "desc"
+          createdAt: "desc",
         },
 
-        take: 5
+        take: 5,
       }),
 
       // DONUT CHART SHIPMENT STATUS
       prisma.shipment.groupBy({
         by: ["status"],
-        
-        where: {type: "claim",...(isGeneral ? {} : { item: {placeId: Number(placeId)} }),
-      },
 
-        _count: 
-          {status: true}
-        
+        where: {
+          type: "claim",
+          ...(isGeneral ? {} : { item: { placeId: Number(placeId) } }),
+        },
+
+        _count: { status: true },
       }),
 
       // TOTAL PEMBAYARAN TERTUNDA
@@ -96,7 +101,7 @@ async function getDashboard(req: NextRequest) {
           claimType: "delivery",
           paymentStatus: "WaitingVerification",
           ...(isGeneral ? {} : { item: { placeId: Number(placeId) } }),
-        }
+        },
       }),
 
       // LIST PEMBAYARAN TERTUNDA
@@ -110,25 +115,24 @@ async function getDashboard(req: NextRequest) {
         include: {
           user: {
             select: {
-              name: true
-            }
+              name: true,
+            },
           },
           item: {
             select: {
               name: true,
-              category: true
-            }
-          }
+              category: true,
+            },
+          },
         },
         orderBy: {
-          transferProofUploadedAt: "desc"
+          transferProofUploadedAt: "desc",
         },
-        take: 5
-      })
+        take: 5,
+      }),
     ]);
 
     return NextResponse.json({
-
       // SUMMARY
       totalItem,
       pendingItem,
@@ -142,17 +146,16 @@ async function getDashboard(req: NextRequest) {
       pendingPaymentList,
 
       // DONUT CHART
-      shipmentStatus
+      shipmentStatus,
     });
-
   } catch (error) {
     return NextResponse.json(
       {
-        message: "Gagal mengambil dashboard"
+        message: "Gagal mengambil dashboard",
       },
       {
-        status: 500
-      }
+        status: 500,
+      },
     );
   }
 }

@@ -12,7 +12,6 @@ export interface pengguna {
         nomorTelpon: string;
         alamat: string;
         gender: userProfile_gender;
-        pekerjaan: string;
         longitude: number | null;
         latitude: number | null;
         // === Baru nih karena di database minta NIK ====

@@ -2,9 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 import { protect } from "@/lib/protect";
 
-async function getItemApproved(req: NextRequest) {
+async function getItemApproved(req: NextRequest, decoded: { id: string; placeId?: number }) {
   try {
-    const placeId = req.cookies.get("placeId")?.value;
+    const placeId = decoded.placeId;
 
     if (!placeId) {
       return NextResponse.json(
