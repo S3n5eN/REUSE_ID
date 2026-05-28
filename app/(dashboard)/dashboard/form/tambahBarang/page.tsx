@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import InformationBoxPopup from "@/components/InformationBoxPopup";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -72,7 +73,7 @@ export default function FormInformasiBarang() {
   const filteredWarehouses = lokasiList.filter((place) =>
     warehouseSearch.trim()
       ? place.name.toLowerCase().includes(warehouseSearch.toLowerCase()) ||
-        (place.address || "").toLowerCase().includes(warehouseSearch.toLowerCase())
+      (place.address || "").toLowerCase().includes(warehouseSearch.toLowerCase())
       : true
   );
 
@@ -83,6 +84,7 @@ export default function FormInformasiBarang() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
 
   // Fetch user profile
   useEffect(() => {
@@ -225,7 +227,7 @@ export default function FormInformasiBarang() {
       const data = await res.json();
 
       if (res.ok) {
-        router.replace("/dashboard");
+        setShowInfoPopup(true);
       } else {
         setErrorMsg(data.message || "Terjadi kesalahan.");
       }
@@ -386,8 +388,8 @@ export default function FormInformasiBarang() {
                       ${isDragging
                         ? "border-teal-400 bg-teal-50"
                         : fileError
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-200 bg-gray-50 hover:border-teal-300 hover:bg-teal-50/40"
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-200 bg-gray-50 hover:border-teal-300 hover:bg-teal-50/40"
                       }
                     `}
                     onClick={() => fileInputRef.current?.click()}
@@ -400,12 +402,10 @@ export default function FormInformasiBarang() {
                       className="hidden"
                     />
                     <div className="flex flex-col items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors duration-200 ${
-                        isDragging ? "bg-teal-100" : "bg-gray-100"
-                      }`}>
-                        <UploadCloud className={`w-6 h-6 transition-colors duration-200 ${
-                          isDragging ? "text-teal-500" : "text-gray-400"
-                        }`} />
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors duration-200 ${isDragging ? "bg-teal-100" : "bg-gray-100"
+                        }`}>
+                        <UploadCloud className={`w-6 h-6 transition-colors duration-200 ${isDragging ? "text-teal-500" : "text-gray-400"
+                          }`} />
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-700">
@@ -533,10 +533,10 @@ export default function FormInformasiBarang() {
                   userLocation={
                     userProfile?.latitude && userProfile?.longitude
                       ? {
-                          lat: userProfile.latitude,
-                          lng: userProfile.longitude,
-                          address: userProfile.address || userProfile.name,
-                        }
+                        lat: userProfile.latitude,
+                        lng: userProfile.longitude,
+                        address: userProfile.address || userProfile.name,
+                      }
                       : undefined
                   }
                   selectedPlace={selectedPlace}
@@ -631,9 +631,8 @@ export default function FormInformasiBarang() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-sm font-medium truncate transition-colors duration-150 ${
-                            isSelected ? "text-teal-700" : "text-gray-800"
-                          }`}>
+                          <p className={`text-sm font-medium truncate transition-colors duration-150 ${isSelected ? "text-teal-700" : "text-gray-800"
+                            }`}>
                             {place.name}
                           </p>
                           {place.address && (
@@ -651,6 +650,16 @@ export default function FormInformasiBarang() {
           </motion.div>
         </form>
       </div>
+      {showInfoPopup && (
+        <InformationBoxPopup
+          message="Silahkan untuk segera mengantarkan barang ke gudang yang sudah dipilih untuk dilakukan verifikasi barang oleh admin, Terimakasih sudah berdonasi"
+          onClose={() => {
+            setShowInfoPopup(false);
+            setTimeout(() => {
+              router.replace("/dashboard");
+            }, 1500)
+          }} />
+      )}
     </div>
   );
 }

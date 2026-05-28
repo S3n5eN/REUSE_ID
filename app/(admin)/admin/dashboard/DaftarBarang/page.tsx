@@ -239,7 +239,7 @@ function ItemCard({
             <input
               type="text"
               inputMode="decimal"
-              placeholder="0.0"
+              placeholder="0.00"
               className="w-full text-[12px] font-medium py-[7px] px-2.5 rounded-[9px] border border-[#9FE1CB] bg-[#E1F5EE] text-[#085041] outline-none focus:border-[#1D9E75] transition-colors"
               value={weight}
               onChange={(e) => {
@@ -254,7 +254,7 @@ function ItemCard({
                 const parsed = parseFloat(weight);
                 // Memastikan jika user input minus, otomatis jadi 0
                 if (!isNaN(parsed) && parsed > 0) {
-                  setWeight(parsed.toFixed(1));
+                  setWeight(parsed.toFixed(2));
                 } else {
                   setWeight(""); // Reset jika 0 atau tidak valid
                 }

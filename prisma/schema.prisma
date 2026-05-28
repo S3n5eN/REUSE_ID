@@ -220,7 +220,7 @@ enum userProfile_gender {
   Wanita
 }
 
-enum PaymentStatus {
+enum PaymentStatus {        
   Unpaid
   WaitingVerification
   Paid

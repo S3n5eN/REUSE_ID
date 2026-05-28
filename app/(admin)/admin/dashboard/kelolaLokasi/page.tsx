@@ -424,7 +424,7 @@ export default function DaftarLokasiPage() {
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-teal-600 transition mb-6 w-fit"
           >
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -621,8 +621,8 @@ export default function DaftarLokasiPage() {
               {loadingPindah
                 ? "Memindahkan..."
                 : selectedItemIds.length > 0
-                ? `Pindahkan (${selectedItemIds.length})`
-                : "Pindahkan Barang"}
+                  ? `Pindahkan (${selectedItemIds.length})`
+                  : "Pindahkan Barang"}
             </button>
           </div>
         </div>
@@ -690,7 +690,10 @@ export default function DaftarLokasiPage() {
                     className="w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
                     title="Hapus Lokasi"
                   >
-                    🗑️
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                   </button>
                   <button
                     onClick={() => {
@@ -732,13 +735,12 @@ export default function DaftarLokasiPage() {
                     }
                   }}
                   className={`bg-white rounded-xl border shadow-sm p-4 cursor-pointer transition flex-1
-                  ${
-                    deleteMode
+                  ${deleteMode
                       ? isSelected
                         ? "border-red-400 bg-red-50"
                         : "border-gray-200 hover:border-red-300"
                       : "border-gray-200 hover:shadow-md hover:border-teal-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -783,11 +785,11 @@ export default function DaftarLokasiPage() {
                           e.stopPropagation();
                           openEdit(place);
                         }}
-                        className="text-gray-400 hover:text-teal-600 transition p-1 rounded-lg hover:bg-teal-50"
+                        className="text-gray-400 hover:text-teal-600 transition p-2 rounded-lg hover:bg-teal-50"
                         title="Edit"
                       >
                         <svg
-                          className="w-4 h-4"
+                          className="w-6 h-6"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -933,9 +935,9 @@ export default function DaftarLokasiPage() {
                     initialLocation={
                       form.latitude && form.longitude
                         ? [
-                            parseFloat(form.latitude),
-                            parseFloat(form.longitude),
-                          ]
+                          parseFloat(form.latitude),
+                          parseFloat(form.longitude),
+                        ]
                         : null
                     }
                   />
@@ -1112,9 +1114,9 @@ export default function DaftarLokasiPage() {
                     initialLocation={
                       form.latitude && form.longitude
                         ? [
-                            parseFloat(form.latitude),
-                            parseFloat(form.longitude),
-                          ]
+                          parseFloat(form.latitude),
+                          parseFloat(form.longitude),
+                        ]
                         : null
                     }
                   />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, Suspense } from "react";
+import SuccessPopup from "@/components/SuccessPopup";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
@@ -52,6 +53,7 @@ function UploadBuktiTransferPageContent() {
   const [payerAccountName, setPayerAccountName] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   useEffect(() => {
     if (!proof) {
@@ -69,7 +71,6 @@ function UploadBuktiTransferPageContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -129,16 +130,15 @@ function UploadBuktiTransferPageContent() {
 
   const totalTransfer = detail?.paymentTotal
     ? new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-      }).format(detail.paymentTotal)
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(detail.paymentTotal)
     : "-";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
-    setSuccessMsg("");
 
     if (!shipmentId || !proof) {
       setErrorMsg("Bukti transfer wajib diupload.");
@@ -164,24 +164,19 @@ function UploadBuktiTransferPageContent() {
         return;
       }
 
-      setSuccessMsg(
-        "Bukti transfer berhasil dikirim. Admin akan melakukan verifikasi.",
-      );
+      setShowSuccessPopup(true);
       setDetail((prev) =>
         prev
           ? {
-              ...prev,
-              paymentStatus: "WaitingVerification",
-              payerBank,
-              payerAccountName,
-              transferProofUploadedAt: body.data.transferProofUploadedAt,
-            }
+            ...prev,
+            paymentStatus: "WaitingVerification",
+            payerBank,
+            payerAccountName,
+            transferProofUploadedAt: body.data.transferProofUploadedAt,
+          }
           : prev,
       );
       setProof(null);
-      setTimeout(() => {
-        router.push("/dashboard/barangSaya");
-      }, 1500);
     } catch {
       setErrorMsg("Gagal terhubung ke server.");
     } finally {
@@ -311,11 +306,10 @@ function UploadBuktiTransferPageContent() {
                   </div>
 
                   <label
-                    className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 transition ${
-                      previewUrl
+                    className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 transition ${previewUrl
                         ? "border-zinc-200 bg-zinc-50 p-2"
                         : "border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center hover:border-[#007582] hover:bg-[#007582]/5"
-                    }`}
+                      }`}
                   >
                     {previewUrl ? (
                       <div className="relative w-full rounded-xl overflow-hidden group flex flex-col items-center">
@@ -384,12 +378,6 @@ function UploadBuktiTransferPageContent() {
                       {errorMsg}
                     </div>
                   )}
-                  {successMsg && (
-                    <div className="flex items-center gap-2 rounded-xl bg-[#007582]/5 border border-[#007582]/20 px-4 py-3 text-sm font-medium text-[#007582]">
-                      <CheckCircle2 className="w-4 h-4" />
-                      {successMsg}
-                    </div>
-                  )}
 
                   <button
                     type="submit"
@@ -424,6 +412,17 @@ function UploadBuktiTransferPageContent() {
           </aside>
         </div>
       </div>
+      {showSuccessPopup && (
+        <SuccessPopup
+          message="Bukti transfer berhasil dikirim. Admin akan melakukan verifikasi."
+          onClose={() => {
+            setShowSuccessPopup(false);
+            setTimeout(() => {
+              router.push("/dashboard/barangSaya");
+            }, 1500);
+          }}
+        />
+      )}
     </main>
   );
 }

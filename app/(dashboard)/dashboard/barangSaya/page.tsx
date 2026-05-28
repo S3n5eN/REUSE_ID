@@ -114,12 +114,24 @@ function formatCurrency(value?: number | null) {
   }).format(value);
 }
 
-function getStatusBadge(status: ShipmentStatus) {
+function getStatusBadge(status: ShipmentStatus, type?: string, paymentStatus?: PaymentStatus | null) {
+  if (status === "Approved") {
+    if (type === "pickup") {
+      return { label: "Menunggu Diambil", cls: "bg-blue-50 text-blue-700" };
+    }
+    if (type === "delivery") {
+      if (paymentStatus === "Paid") return { label: "Sedang Diantar", cls: "bg-teal-50 text-teal-700" };
+      if (paymentStatus === "Unpaid") return { label: "Menunggu Pembayaran", cls: "bg-amber-50 text-amber-700" };
+      if (paymentStatus === "WaitingVerification") return { label: "Menunggu Verifikasi", cls: "bg-amber-50 text-amber-700" };
+      if (paymentStatus === "Failed") return { label: "Pembayaran Ditolak", cls: "bg-red-50 text-red-600" };
+    }
+  }
+
   return {
     Pending: { label: "Pilih Pengiriman", cls: "bg-amber-50 text-amber-700" },
-    Approved: { label: "Disetujui", cls: "bg-teal-50 text-teal-700" },
+    Approved: { label: "Disetujui", cls: "bg-green-50 text-green-700" },
     Rejected: { label: "Ditolak", cls: "bg-red-50 text-red-600" },
-    Delivered: { label: "Selesai", cls: "bg-teal-50 text-teal-700" },
+    Delivered: { label: "Selesai", cls: "bg-green-50 text-green-700" },
   }[status];
 }
 
@@ -140,11 +152,11 @@ function getDeliveryPaymentLabel(paymentStatus?: PaymentStatus | null) {
 
 function getCtaConfig(status: ShipmentStatus, claimType?: string | null, paymentStatus?: PaymentStatus | null) {
   if (status === "Delivered") {
-    return { label: "Selesai Diterima", cls: "bg-teal-700 text-white", href: null as string | null };
+    return { label: "Selesai Diterima", cls: "bg-green-700 text-white", href: null as string | null };
   }
 
   if (status === "Pending") {
-    return { label: "Pilih Jenis Pengiriman", cls: "bg-teal-700 text-white", href: null as string | null };
+    return { label: "Pilih Jenis Pengiriman", cls: "bg-amber-500 text-white", href: null as string | null };
   }
 
   if (status === "Approved" && claimType === "delivery") {
@@ -170,7 +182,7 @@ function getCtaConfig(status: ShipmentStatus, claimType?: string | null, payment
   if (status === "Approved" && claimType === "pickup") {
     return {
       label: "Menunggu diambil",
-      cls: "border border-teal-600 text-teal-700 bg-white",
+      cls: "bg-blue-600 text-white",
       href: null as string | null,
     };
   }
@@ -220,7 +232,7 @@ function ItemImage({
 
 function ShipmentCard({ shipment }: { shipment: Shipment }) {
   const { item, status, claimType, id, itemId, paymentStatus, paymentTotal, paymentInvoice, shipmentCost } = shipment;
-  const badge = getStatusBadge(status);
+  const badge = getStatusBadge(status, claimType ?? undefined, paymentStatus);
   const claimDisplay = getClaimTypeDisplay(claimType);
   const cta = getCtaConfig(status, claimType, paymentStatus);
   const deliveryAmount = paymentTotal ?? shipmentCost;
@@ -451,7 +463,7 @@ export default function BarangSayaPage() {
   return (
     <main className="min-h-screen bg-[#F4F6F5] font-sans">
       <div className="bg-white border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-6 pt-6 pb-0">
+        <div className="max-w-screen-2xl mx-auto px-6 pt-6 pb-0">
           <div className="flex items-center gap-2 mb-5">
             <Link
               href="/dashboard"
@@ -486,11 +498,10 @@ export default function BarangSayaPage() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`px-5 pb-3 pt-1 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                    isActive
-                      ? "border-teal-600 text-teal-700"
-                      : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-                  }`}
+                  className={`px-5 pb-3 pt-1 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${isActive
+                    ? "border-teal-600 text-teal-700"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    }`}
                 >
                   {label}
                 </button>
@@ -500,7 +511,7 @@ export default function BarangSayaPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-screen-2xl mx-auto px-6 py-8">
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <AlertCircle size={48} className="text-red-500 mb-4" />
@@ -519,12 +530,14 @@ export default function BarangSayaPage() {
           </div>
         )}
 
+        {!error && !loading && displayed.length === 0 && (
+          <EmptyState tab={activeTab} />
+        )}
+
         {!error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {loading ? (
               Array.from({ length: 3 }).map((_, index) => <SkeletonCard key={index} />)
-            ) : displayed.length === 0 ? (
-              <EmptyState tab={activeTab} />
             ) : (
               displayed.map((shipment) => <ShipmentCard key={shipment.id} shipment={shipment} />)
             )}

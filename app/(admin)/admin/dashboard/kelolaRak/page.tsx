@@ -760,7 +760,7 @@ export default function KelolaRakPage() {
                       >
                         <input
                           type="text"
-                          placeholder="Cth: A1, B-02"
+                          placeholder="Cth: A-01, B-02"
                           value={r.nomorRak}
                           onChange={(e) => {
                             const arr = [...newRaks];
