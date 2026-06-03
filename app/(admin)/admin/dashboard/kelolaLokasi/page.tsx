@@ -6,6 +6,7 @@ import { get } from "http";
 import SuccessPopup from "@/components/SuccessPopup";
 import ErrorPopup from "@/components/ErrorPopup";
 import ConfirmPopup from "@/components/ConfirmPopup";
+import { Eye, EyeOff } from "lucide-react";
 
 const LocationPickerMap = dynamic(
   () => import("@/components/locationPickerMap"),
@@ -58,6 +59,7 @@ export default function DaftarLokasiPage() {
     type?: "danger" | "warning" | "info";
   } | null>(null);
   const [loadingPindah, setLoadingPindah] = useState(false);
+  const [showPasskey, setShowPasskey] = useState(false);
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -953,14 +955,22 @@ export default function DaftarLokasiPage() {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                   Passkey Gudang
                 </label>
-                <input
-                  type="password"
-                  name="keyLocation"
-                  placeholder="Passkey untuk admin gudang ini"
-                  value={form.keyLocation}
-                  onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition"
-                />
+                <div className="relative">
+                  <input
+                    type={showPasskey ? "text" : "password"}
+                    name="keyLocation"
+                    value={form.keyLocation}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasskey(!showPasskey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                  >
+                    {showPasskey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -979,7 +989,7 @@ export default function DaftarLokasiPage() {
               </button>
               <button
                 onClick={handleTambah}
-                disabled={loading}
+                disabled={loading || !form.keyLocation}
                 className="flex-1 bg-teal-600 text-white py-2 rounded-xl hover:bg-teal-700 transition text-sm font-medium disabled:opacity-50"
               >
                 {loading ? "Menyimpan..." : "Simpan"}

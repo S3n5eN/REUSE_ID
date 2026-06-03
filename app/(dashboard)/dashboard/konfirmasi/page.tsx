@@ -1,16 +1,44 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 function KonfirmasiPageContent() {
   const params = useSearchParams();
   const router = useRouter();
 
   const itemId = params.get("itemId"); // ✅ WAJIB ADA
-  const name = params.get("name") || "";
-  const lokasi = params.get("lokasi") || "";
-  const img = params.get("img") || "";
+  const nameParam = params.get("name") || "";
+  const lokasiParam = params.get("lokasi") || "";
+  const imgParam = params.get("img") || "";
+
+  const [itemName, setItemName] = useState(nameParam);
+  const [lokasiName, setLokasiName] = useState(lokasiParam);
+  const [itemImg, setItemImg] = useState(imgParam);
+
+  useEffect(() => {
+    if (!itemId) return;
+
+    const fetchItemDetails = async () => {
+      try {
+        const res = await fetch(`/api/Barang/getItemByID?itemId=${itemId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setItemName(data.name || nameParam);
+            setItemImg(`/api/Barang/getImage/${data.id}` || imgParam);
+            if (data.place?.name) {
+              setLokasiName(data.place.name);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching item details:", error);
+      }
+    };
+
+    fetchItemDetails();
+  }, [itemId, nameParam, imgParam]);
 
   const handleKonfirmasi = async () => {
     if (!itemId) {
@@ -25,7 +53,7 @@ function KonfirmasiPageContent() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          itemId: Number(itemId), 
+          itemId: Number(itemId),
         }),
       });
 
@@ -34,7 +62,7 @@ function KonfirmasiPageContent() {
       if (res.ok) {
         // ✅ Tangkap shipmentId dari response backend
         // (Asumsi backend kamu merespons dengan: { message: "...", shipmentId: 123 })
-        const newShipmentId = data.shipmentId || data.data?.id; 
+        const newShipmentId = data.shipmentId || data.data?.id;
 
         if (!newShipmentId) {
           alert("Gagal mendapatkan ID pengiriman dari server. Pastikan backend mengembalikan shipmentId.");
@@ -67,14 +95,14 @@ function KonfirmasiPageContent() {
         {/* Foto & Info Barang */}
         <div className="flex gap-4 items-center bg-[#f5f0e8] rounded-xl p-4 mb-6">
           <img
-            src={img}
-            alt={name}
+            src={itemImg}
+            alt={itemName}
             className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
           />
           <div>
-            <h2 className="font-semibold text-gray-800">{name}</h2>
+            <h2 className="font-semibold text-gray-800">{itemName}</h2>
             <p className="text-sm text-gray-500">Keadaan: Baik</p>
-            <p className="text-sm text-gray-500">Lokasi: {lokasi}</p>
+            <p className="text-sm text-gray-500">Lokasi: {lokasiName}</p>
           </div>
         </div>
 
@@ -100,12 +128,12 @@ function KonfirmasiPageContent() {
 
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Barang</span>
-            <span className="text-gray-800 font-medium">{name}</span>
+            <span className="text-gray-800 font-medium">{itemName}</span>
           </div>
 
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Lokasi Barang</span>
-            <span className="text-gray-800 font-medium">{lokasi}</span>
+            <span className="text-gray-800 font-medium">{lokasiName}</span>
           </div>
         </div>
 

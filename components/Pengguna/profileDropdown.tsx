@@ -5,12 +5,14 @@ type ProfileDropdownProps = {
   namapengguna: string;
   onLogout?: () => void;
   onProfile: () => void;
+  hasAlert?: boolean;
 };
 
 export default function ProfileDropdown({
   namapengguna,
   onLogout,
-  onProfile
+  onProfile,
+  hasAlert,
 }: ProfileDropdownProps) {
 
   return (
@@ -55,16 +57,19 @@ export default function ProfileDropdown({
         <Link href="/dashboard/barangSaya">
 
           <div
-            className="w-full flex px-3 py-2.5 gap-3 rounded-xl cursor-pointer text-gray-400 border border-transparent transition-all duration-200
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer text-gray-400 border border-transparent transition-all duration-200
                        hover:bg-[#007582]/10 hover:text-[#007582] hover:border-[#007582]"
           >
-
-            <span className="shrink-0 w-4.5 flex items-center justify-center">
-              <Box size={16} />
-            </span>
-
-            Barang Saya
-
+            <div className="flex items-center gap-3">
+              <span className="shrink-0 w-4.5 flex items-center justify-center">
+                <Box size={16} />
+              </span>
+              Barang Saya
+            </div>
+            
+            {hasAlert && (
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            )}
           </div>
 
         </Link>

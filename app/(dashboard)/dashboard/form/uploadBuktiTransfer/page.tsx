@@ -307,8 +307,8 @@ function UploadBuktiTransferPageContent() {
 
                   <label
                     className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 transition ${previewUrl
-                        ? "border-zinc-200 bg-zinc-50 p-2"
-                        : "border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center hover:border-[#007582] hover:bg-[#007582]/5"
+                      ? "border-zinc-200 bg-zinc-50 p-2"
+                      : "border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-center hover:border-[#007582] hover:bg-[#007582]/5"
                       }`}
                   >
                     {previewUrl ? (
@@ -414,7 +414,7 @@ function UploadBuktiTransferPageContent() {
       </div>
       {showSuccessPopup && (
         <SuccessPopup
-          message="Bukti transfer berhasil dikirim. Admin akan melakukan verifikasi."
+          message="Bukti Transfer Berhasil Dikirim"
           onClose={() => {
             setShowSuccessPopup(false);
             setTimeout(() => {

@@ -22,6 +22,15 @@ export default function SuccessPopup({ message, onClose }: SuccessPopupProps) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [onClose]);
 
+  // Tutup popup secara otomatis setelah 5 detik
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+      setTimeout(onClose, 300);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
   return (
     <div className={`fixed inset-0 flex items-center justify-center bg-black/10 z-50
         ${visible ? "animate-fadeIn" : "animate-fadeOut"}`}>
@@ -31,13 +40,13 @@ export default function SuccessPopup({ message, onClose }: SuccessPopupProps) {
         className="bg-white p-6 rounded-lg shadow-xl text-center max-w-sm w-full transform animate-slideDown"
       >
         <Image
-          src="/box.png"
+          src="/package.png"
           alt="Success"
           width={80}
           height={80}
           className="mx-auto mb-4"
         />
-        <h2 className="text-xl font-bold text-amber-400 mb-2">{message}</h2>
+        <h2 className="text-xl font-bold text-teal-800 mb-2">{message}</h2>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { protect } from "@/lib/protect";
 import { NextRequest } from "next/server";
 
-async function getItem(req: NextRequest) {
+async function getItem(req: NextRequest, payload: any) {
   try {
     const {searchParams} = new URL(req.url);
     const keyword = searchParams.get("q");
@@ -11,6 +11,9 @@ async function getItem(req: NextRequest) {
     const items = await prisma.item.findMany({
       where: {
         status:"Tersedia",
+        userId: {
+          not: Number(payload.id),
+        },
         ...(keyword ? {
           name: {
             contains:keyword,

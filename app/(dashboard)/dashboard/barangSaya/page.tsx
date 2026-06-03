@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mailbox, AlertCircle } from "lucide-react";
+import { Mailbox, AlertCircle, Clock } from "lucide-react";
 
 type ShipmentStatus = "Pending" | "Approved" | "Rejected" | "Delivered";
 type PaymentStatus = "Unpaid" | "WaitingVerification" | "Paid" | "Failed";
@@ -55,14 +55,16 @@ interface Shipment {
   paymentStatus?: PaymentStatus | null;
   paymentTotal?: number | null;
   paymentInvoice?: string | null;
+  paymentExpiredAt?: string | null;
   distance?: number | null;
   item: Item;
 }
 
-type TabKey = "Semua" | "Pilih" | "Perjalanan" | "AmbilSendiri" | "Selesai";
+type TabKey = "Semua" | "BelumDiantarkan" | "Pilih" | "Perjalanan" | "AmbilSendiri" | "Selesai";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "Semua", label: "Semua" },
+  { key: "BelumDiantarkan", label: "Belum Diantarkan" },
   { key: "Pilih", label: "Pilih Pengiriman" },
   { key: "Perjalanan", label: "Dalam Perjalanan" },
   { key: "AmbilSendiri", label: "Ambil Sendiri" },
@@ -71,6 +73,7 @@ const TABS: { key: TabKey; label: string }[] = [
 
 const TAB_TO_ACTION: Record<TabKey, string> = {
   Semua: "Semua",
+  BelumDiantarkan: "BelumDiantarkan",
   Pilih: "Pilih",
   Perjalanan: "Perjalanan",
   AmbilSendiri: "Perjalanan",
@@ -98,7 +101,8 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 const EMPTY_MSG: Record<TabKey, string> = {
-  Semua: "Kamu belum mengambil barang donasi apapun.",
+  Semua: "Kamu belum mengambil atau berdonasi barang apapun.",
+  BelumDiantarkan: "Tidak ada barang yang menunggu untuk diantarkan ke gudang.",
   Pilih: "Tidak ada barang yang menunggu pilihan pengiriman.",
   Perjalanan: "Tidak ada barang yang sedang dalam perjalanan.",
   AmbilSendiri: "Tidak ada barang yang menunggu diambil sendiri.",
@@ -114,17 +118,21 @@ function formatCurrency(value?: number | null) {
   }).format(value);
 }
 
-function getStatusBadge(status: ShipmentStatus, type?: string, paymentStatus?: PaymentStatus | null) {
+function getStatusBadge(status: ShipmentStatus, shipmentType?: string, claimType?: string | null, paymentStatus?: PaymentStatus | null) {
   if (status === "Approved") {
-    if (type === "pickup") {
+    if (claimType === "pickup") {
       return { label: "Menunggu Diambil", cls: "bg-blue-50 text-blue-700" };
     }
-    if (type === "delivery") {
+    if (claimType === "delivery") {
       if (paymentStatus === "Paid") return { label: "Sedang Diantar", cls: "bg-teal-50 text-teal-700" };
       if (paymentStatus === "Unpaid") return { label: "Menunggu Pembayaran", cls: "bg-amber-50 text-amber-700" };
       if (paymentStatus === "WaitingVerification") return { label: "Menunggu Verifikasi", cls: "bg-amber-50 text-amber-700" };
       if (paymentStatus === "Failed") return { label: "Pembayaran Ditolak", cls: "bg-red-50 text-red-600" };
     }
+  }
+
+  if (shipmentType === "donation") {
+    return { label: "Belum Diantarkan", cls: "bg-amber-100 text-amber-800" };
   }
 
   return {
@@ -156,6 +164,10 @@ function getCtaConfig(status: ShipmentStatus, claimType?: string | null, payment
   }
 
   if (status === "Pending") {
+    if (claimType === undefined) {
+      // This means it's a donation
+      return { label: "Menunggu Diantar ke Gudang", cls: "bg-amber-500 text-white cursor-default", href: null as string | null };
+    }
     return { label: "Pilih Jenis Pengiriman", cls: "bg-amber-500 text-white", href: null as string | null };
   }
 
@@ -230,12 +242,68 @@ function ItemImage({
   );
 }
 
+function CountdownTimer({ deadline }: { deadline: string }) {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(deadline).getTime() - new Date().getTime();
+      if (difference <= 0) {
+        setTimeLeft("Kedaluwarsa");
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+
+      const parts = [];
+      if (days > 0) {
+        parts.push(`${days}hri`);
+        parts.push(`${hours}j`);
+        parts.push(`${minutes}m`);
+      } else {
+        if (hours > 0) parts.push(`${hours}j`);
+        parts.push(`${minutes}m`);
+        parts.push(`${seconds}d`);
+      }
+
+      setTimeLeft(parts.join(" "));
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [deadline]);
+
+  if (timeLeft === "Kedaluwarsa") {
+    return <span className="font-semibold text-red-600">Kedaluwarsa</span>;
+  }
+
+  return (
+    <span className="font-semibold text-red-600 animate-pulse">
+      {timeLeft}
+    </span>
+  );
+}
+
 function ShipmentCard({ shipment }: { shipment: Shipment }) {
   const { item, status, claimType, id, itemId, paymentStatus, paymentTotal, paymentInvoice, shipmentCost } = shipment;
-  const badge = getStatusBadge(status, claimType ?? undefined, paymentStatus);
+  let badge = getStatusBadge(status, shipment.type, claimType ?? undefined, paymentStatus);
   const claimDisplay = getClaimTypeDisplay(claimType);
-  const cta = getCtaConfig(status, claimType, paymentStatus);
+  let cta = getCtaConfig(status, claimType, paymentStatus);
   const deliveryAmount = paymentTotal ?? shipmentCost;
+
+  const isDonation = shipment.type === "donation";
+  const donationDeadlineDate = new Date(new Date(shipment.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
+  const isExpiredDonation = isDonation && status === "Pending" && new Date().getTime() > donationDeadlineDate.getTime();
+
+  if (isExpiredDonation) {
+    badge = { label: "Dibatalkan", cls: "bg-red-50 text-red-600" };
+    cta = { label: "Pengajuan Dibatalkan (Waktu Habis)", cls: "bg-slate-100 text-slate-500 cursor-not-allowed", href: null };
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
@@ -244,49 +312,88 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
       <div className="p-5 flex flex-col gap-4 flex-1">
         <h3 className="font-bold text-slate-900 text-[15px] leading-snug">{item.name}</h3>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+        <div className={`grid ${isDonation ? "grid-cols-1" : "grid-cols-2"} gap-x-4 gap-y-3`}>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Kategori</p>
             <p className="text-sm text-slate-700">{item.category}</p>
           </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Kualitas</p>
-            <p className="text-sm text-slate-700">{item.quality ? QUALITY_LABEL[item.quality] : "-"}</p>
-          </div>
+          {!isDonation && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Kualitas</p>
+              <p className="text-sm text-slate-700">{item.quality ? QUALITY_LABEL[item.quality] : "-"}</p>
+            </div>
+          )}
         </div>
 
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-2">Pengambilan &amp; Kurir</p>
-          <div className="flex flex-col gap-1.5">
-            {item.place && (
+        {!isDonation && (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-2">Pengambilan &amp; Kurir</p>
+            <div className="flex flex-col gap-1.5">
+              {item.place && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-sm text-slate-600 font-medium">{item.place.name}</span>
+                  </div>
+                  {item.place.address && (
+                    <span className="text-xs text-slate-500 pl-6 pr-2 leading-relaxed">
+                      {item.place.address}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {claimDisplay.isUnset ? (
+                  <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="1" y="3" width="15" height="13" rx="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8h4l3 5v4h-7V8z" />
+                    <circle cx="5.5" cy="18.5" r="1.5" strokeWidth={2} />
+                    <circle cx="18.5" cy="18.5" r="1.5" strokeWidth={2} />
+                  </svg>
+                )}
+                <span className={`text-sm ${claimDisplay.isUnset ? "text-red-500" : "text-slate-600"}`}>
+                  {claimDisplay.label}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDonation && status === "Pending" && !isExpiredDonation && (
+          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="font-bold text-xs text-amber-900 mb-1">Lokasi Gudang Tujuan:</p>
+              <div className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-sm text-slate-600">{item.place.name}</span>
+                <div>
+                  <span className="text-sm text-amber-900 font-bold block">{item.place?.name}</span>
+                  <span className="text-xs text-amber-800/80 leading-relaxed block mt-0.5">{item.place?.address}</span>
+                </div>
               </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              {claimDisplay.isUnset ? (
-                <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <rect x="1" y="3" width="15" height="13" rx="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8h4l3 5v4h-7V8z" />
-                  <circle cx="5.5" cy="18.5" r="1.5" strokeWidth={2} />
-                  <circle cx="18.5" cy="18.5" r="1.5" strokeWidth={2} />
-                </svg>
-              )}
-              <span className={`text-sm ${claimDisplay.isUnset ? "text-red-500" : "text-slate-600"}`}>
-                {claimDisplay.label}
-              </span>
             </div>
+            <div className="mt-1 flex items-center gap-2 bg-amber-100/50 p-2 rounded-lg">
+              <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+              <div className="text-xs font-semibold text-amber-700">
+                Batas waktu antar:{" "}
+                <CountdownTimer deadline={donationDeadlineDate.toISOString()} />
+              </div>
+            </div>
+            <p className="text-[10px] text-amber-700/70 leading-relaxed italic">
+              *Jika batas waktu terlewati dan barang belum dikonfirmasi admin, donasi dibatalkan otomatis.
+            </p>
           </div>
-        </div>
+        )}
 
         {status === "Approved" && claimType === "delivery" && (
           <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-teal-50 border border-teal-100">
@@ -330,15 +437,46 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
           </div>
         )}
 
+        {status === "Pending" && !isDonation && (
+          <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-100">
+            <Clock className="w-4 h-4 text-red-500 shrink-0 animate-pulse" />
+            <div className="text-xs text-red-700">
+              Sisa waktu pilih pengiriman:{" "}
+              <CountdownTimer
+                deadline={new Date(new Date(shipment.createdAt).getTime() + 60 * 60 * 1000).toISOString()}
+              />
+            </div>
+          </div>
+        )}
+
+        {status === "Approved" &&
+          claimType === "delivery" &&
+          (paymentStatus === "Unpaid" || paymentStatus === "Failed") &&
+          shipment.paymentExpiredAt && (
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-100">
+              <Clock className="w-4 h-4 text-red-500 shrink-0 animate-pulse" />
+              <div className="text-xs text-red-700">
+                Sisa waktu pembayaran:{" "}
+                <CountdownTimer deadline={shipment.paymentExpiredAt} />
+              </div>
+            </div>
+          )}
+
         <div className="flex-1" />
 
         {status === "Pending" ? (
-          <Link
-            href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}&placeId=${item.placeId}&from=barangSaya`}
-            className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
-          >
-            {cta.label}
-          </Link>
+          shipment.type === "donation" ? (
+            <div className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center ${cta.cls}`}>
+              {cta.label}
+            </div>
+          ) : (
+            <Link
+              href={`form/pilihPengiriman?shipmentId=${id}&itemId=${itemId}&placeId=${item.placeId}&from=barangSaya`}
+              className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-90 active:opacity-75 ${cta.cls}`}
+            >
+              {cta.label}
+            </Link>
+          )
         ) : cta.href === "payment" ? (
           <Link
             href={`form/uploadBuktiTransfer?shipmentId=${id}`}

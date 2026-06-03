@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import ProfileDropdown from "@/components/Pengguna/profileDropdown";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Logo from "@/public/Logo/Logo.svg";
 import ReuseBot from "@/components/Chatbot/ReuseBot";
 import { MapPin, Mail, Phone } from "lucide-react";
+import AlertPopup from "@/components/AlertPopup";
 
 type Item = {
   id: number;
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [fetchingItems, setFetchingItems] = useState(true);
   const [selectedKategori, setSelectedKategori] = useState("");
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && search.trim()) {
@@ -50,7 +52,12 @@ export default function DashboardPage() {
   const [notifikasi, setNotifikasi] = useState<Notifikasi[]>([]);
   const [showNotif, setShowNotif] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1");
+  const itemsPerPage = 20;
+
   const [isVerified, setIsVerified] = useState(false);
+  const [showVerificationAlert, setShowVerificationAlert] = useState(false);
 
   const router = useRouter();
 
@@ -77,6 +84,16 @@ export default function DashboardPage() {
       console.error("Error fetching items:", error);
     } finally {
       setFetchingItems(false);
+    }
+  };
+
+  const getKategori = async () => {
+    try {
+      const res = await fetch("/api/Barang/getKategori");
+      const data = await res.json();
+      if (Array.isArray(data)) setDbCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
     }
   };
 
@@ -112,7 +129,7 @@ export default function DashboardPage() {
       }
 
       if (data.hasProfile && !data.isVerified) {
-        alert("Data diri sedang diverifikasi admin");
+        setShowVerificationAlert(true);
         return;
       }
 
@@ -122,6 +139,11 @@ export default function DashboardPage() {
       alert("Terjadi kesalahan");
     }
   };
+
+  const uniqueCategories = useMemo(() => {
+    const defaultCats = ["Pakaian", "Elektronik", "Perabot", "Mainan"];
+    return Array.from(new Set([...defaultCats, ...dbCategories])).sort();
+  }, [dbCategories]);
 
   const filteredItems = items.filter((item) => {
     const matchKategori = selectedKategori
@@ -134,6 +156,12 @@ export default function DashboardPage() {
 
     return matchKategori && matchSearch && matchStatus;
   });
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const getBerita = async () => {
     if (sessionStorage.getItem("beritaSudahMuncul")) {
@@ -183,12 +211,41 @@ export default function DashboardPage() {
     }
   };
 
+  const [hasAlert, setHasAlert] = useState(false);
+
+  const checkAlerts = async () => {
+    try {
+      const res = await fetch("/api/Barang/getMyBarang?action=Semua");
+      const body = await res.json();
+      const data = body.data || [];
+      
+      const needsAttention = data.some((shipment: any) => {
+        const isDonation = shipment.type === "donation";
+        if (isDonation && shipment.status === "Pending") return true;
+        if (!isDonation && shipment.status === "Pending" && !shipment.claimType) return true;
+        if (!isDonation && shipment.status === "Approved" && shipment.claimType === "delivery") {
+          if (shipment.paymentStatus === "Unpaid" || shipment.paymentStatus === "Failed") return true;
+        }
+        return false;
+      });
+      setHasAlert(needsAttention);
+    } catch (e) {
+      console.error("Gagal cek alert barang:", e);
+    }
+  };
+
   useEffect(() => {
     getPenggunaName();
     getItems();
+    getKategori();
     getBerita();
     getNotifikasi();
+    checkAlerts();
   }, []);
+
+  useEffect(() => {
+    setPageInput(currentPage.toString());
+  }, [currentPage]);
 
   return (
     <div
@@ -202,15 +259,23 @@ export default function DashboardPage() {
         </div>
 
         <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-700 items-center">
-          <a href="#" className="hover:text-teal-600 transition-colors">
-            Cara Donasi
+          <a
+            href="/dashboard/gudangPenyaluran"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Gudang Penyaluran
           </a>
 
-          <a href="#" className="hover:text-teal-600 transition-colors">
-            Penyaluran
-          </a>
-
-          <a href="#" className="hover:text-teal-600 transition-colors">
+          <a
+            href="#tentang-kami"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("tentang-kami")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="hover:text-teal-600 transition-colors"
+          >
             Tentang Kami
           </a>
 
@@ -273,25 +338,22 @@ export default function DashboardPage() {
                           router.push(`/dashboard/berita/${n.id}`);
                         }}
                         className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition border-b border-gray-50
-                        ${
-                          !n.isRead
+                        ${!n.isRead
                             ? "bg-yellow-50 hover:bg-yellow-100"
                             : "hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <div
-                          className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                            !n.isRead ? "bg-yellow-400" : "bg-gray-200"
-                          }`}
+                          className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.isRead ? "bg-yellow-400" : "bg-gray-200"
+                            }`}
                         />
 
                         <div className="flex-1 min-w-0">
                           <p
-                            className={`text-sm truncate ${
-                              !n.isRead
+                            className={`text-sm truncate ${!n.isRead
                                 ? "font-semibold text-gray-800"
                                 : "text-gray-600"
-                            }`}
+                              }`}
                           >
                             {n.title}
                           </p>
@@ -354,12 +416,16 @@ export default function DashboardPage() {
               onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(penggunaName)}&background=0D8ABC&color=fff`; }}
               className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm hover:ring-2 hover:ring-teal-500 transition-all"
             />
+            {hasAlert && (
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+            )}
 
             {isOpen && (
               <ProfileDropdown
                 namapengguna={penggunaName}
                 onLogout={handleLogout}
                 onProfile={handleProfile}
+                hasAlert={hasAlert}
               />
             )}
           </div>
@@ -421,15 +487,18 @@ export default function DashboardPage() {
 
             <select
               value={selectedKategori}
-              onChange={(e) => setSelectedKategori(e.target.value)}
+              onChange={(e) => {
+                setSelectedKategori(e.target.value);
+                setCurrentPage(1);
+              }}
               className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-400 outline-none bg-white"
             >
               <option value="">Semua Kategori</option>
-              <option value="Pakaian">Pakaian</option>
-              <option value="Elektronik">Elektronik</option>
-              <option value="Perabot">Perabot</option>
-              <option value="Mainan">Mainan</option>
-              <option value="Lainnya">Lainnya</option>
+              {uniqueCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -439,82 +508,135 @@ export default function DashboardPage() {
         ) : filteredItems.length === 0 ? (
           <p className="text-sm text-gray-400">Belum ada barang tersedia.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className="group bg-gradient-to-b from-white to-[#f0fffb] rounded-[32px] p-4 shadow-[0_10px_30px_rgba(20,184,166,0.08)] hover:shadow-[0_20px_45px_rgba(20,184,166,0.18)] transition-all duration-300 border border-teal-100 flex flex-col"
-              >
-                {/* IMAGE */}
-                <div className="relative rounded-[28px] overflow-hidden border border-teal-100 h-[280px]">
-                  {/* CATEGORY */}
-                  <div className="absolute top-4 left-4 z-10 bg-teal-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                    {item.category}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {paginatedItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="group bg-gradient-to-b from-white to-[#f0fffb] rounded-[32px] p-4 shadow-[0_10px_30px_rgba(20,184,166,0.08)] hover:shadow-[0_20px_45px_rgba(20,184,166,0.18)] transition-all duration-300 border border-teal-100 flex flex-col"
+                >
+                  {/* IMAGE */}
+                  <div className="relative rounded-[28px] overflow-hidden border border-teal-100 h-[280px]">
+                    {/* CATEGORY */}
+                    <div className="absolute top-4 left-4 z-10 bg-teal-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                      {item.category}
+                    </div>
+
+                    {/* IMAGE FULL */}
+                    <Image
+                      src={`/api/Barang/getImage/${item.id}`}
+                      alt={item.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
 
-                  {/* IMAGE FULL */}
-                  <Image
-                    src={`/api/Barang/getImage/${item.id}`}
-                    alt={item.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+                  {/* CONTENT */}
+                  <div className="mt-5 flex flex-col flex-1">
+                    <p className="text-sm text-teal-600 font-semibold">
+                      {item.category}
+                    </p>
 
-                {/* CONTENT */}
-                <div className="mt-5 flex flex-col flex-1">
-                  <p className="text-sm text-teal-600 font-semibold">
-                    {item.category}
-                  </p>
+                    <h3 className="text-2xl font-bold text-gray-800 mt-1 line-clamp-2 min-h-[64px]">
+                      {item.name}
+                    </h3>
 
-                  <h3 className="text-2xl font-bold text-gray-800 mt-1 line-clamp-2 min-h-[64px]">
-                    {item.name}
-                  </h3>
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
 
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                      <p className="text-sm text-gray-500">{item.status}</p>
+                    </div>
 
-                    <p className="text-sm text-gray-500">{item.status}</p>
-                  </div>
+                    <p className="text-sm text-gray-400 mt-1">
+                      {item.place?.name}
+                    </p>
 
-                  <p className="text-sm text-gray-400 mt-1">
-                    {item.place?.name}
-                  </p>
-
-                  {/* AJUKAN */}
-                  <div className="mt-6">
-                    {isVerified ? (
-                      <Link
-                        href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(
-                          item.name,
-                        )}&lokasi=${encodeURIComponent(
-                          item.placeId,
-                        )}&img=${encodeURIComponent(
-                          `/api/Barang/getImage/${item.id}`,
-                        )}`}
-                        className="w-full block text-center bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white py-3 rounded-full font-semibold transition-all duration-300"
-                      >
-                        Ajukan
-                      </Link>
-                    ) : (
-                      <>
-                        <button
-                          disabled
-                          className="w-full bg-gray-300 text-white py-3 rounded-full font-semibold cursor-not-allowed"
+                    {/* AJUKAN */}
+                    <div className="mt-6">
+                      {isVerified ? (
+                        <Link
+                          href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(
+                            item.name,
+                          )}&lokasi=${encodeURIComponent(
+                            item.placeId,
+                          )}&img=${encodeURIComponent(
+                            `/api/Barang/getImage/${item.id}`,
+                          )}`}
+                          className="w-full block text-center bg-white border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white py-3 rounded-full font-semibold transition-all duration-300"
                         >
                           Ajukan
-                        </button>
+                        </Link>
+                      ) : (
+                        <>
+                          <button
+                            disabled
+                            className="w-full bg-gray-300 text-white py-3 rounded-full font-semibold cursor-not-allowed"
+                          >
+                            Ajukan
+                          </button>
 
-                        <p className="text-[11px] text-red-500 mt-2 text-center">
-                          Akun belum terverifikasi
-                        </p>
-                      </>
-                    )}
+                          <p className="text-[11px] text-red-500 mt-2 text-center">
+                            Akun belum terverifikasi
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12 mb-4">
+                <button
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                  }}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-200 bg-white rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                >
+                  Sebelumnya
+                </button>
+                <div className="text-sm text-gray-500 font-medium flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
+                  <span>Halaman</span>
+                  <input
+                    type="number"
+                    value={pageInput}
+                    onChange={(e) => setPageInput(e.target.value)}
+                    onBlur={() => {
+                      let val = parseInt(pageInput);
+                      if (isNaN(val) || val < 1) val = 1;
+                      if (val > totalPages) val = totalPages;
+                      setCurrentPage(val);
+                      setPageInput(val.toString());
+                      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    className="w-14 text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-teal-500 text-teal-600 font-bold p-1 hide-arrows"
+                    min={1}
+                    max={totalPages}
+                  />
+                  <span>dari {totalPages}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-200 bg-white rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                >
+                  Selanjutnya
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
 
@@ -691,6 +813,14 @@ export default function DashboardPage() {
 
       {/* CHATBOT */}
       <ReuseBot />
+
+      {/* POPUP VERIFIKASI */}
+      {showVerificationAlert && (
+        <AlertPopup 
+          message="Data diri Anda sedang diverifikasi oleh admin. Mohon tunggu persetujuan sebelum dapat mengakses profil penuh."
+          onClose={() => setShowVerificationAlert(false)}
+        />
+      )}
     </div>
   );
 }

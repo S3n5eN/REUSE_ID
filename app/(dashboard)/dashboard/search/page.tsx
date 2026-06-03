@@ -39,17 +39,17 @@ function SearchPageContent() {
     };
 
     const checkVerified = async () => {
-    try {
-      const res = await fetch("/api/Pengguna/isVerified");
-      if (res.ok) {
-        const data = await res.json();
-        setIsVerified(data.data?.isVerified ?? false);
+      try {
+        const res = await fetch("/api/Pengguna/isVerified");
+        if (res.ok) {
+          const data = await res.json();
+          setIsVerified(data.data?.isVerified ?? false);
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  checkVerified();
+    };
+    checkVerified();
     if (q) fetchItems();
     else setLoading(false);
   }, [q]);
@@ -106,7 +106,7 @@ function SearchPageContent() {
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {[1,2,3,4,5].map((n) => (
+            {[1, 2, 3, 4, 5].map((n) => (
               <div key={n} className="bg-white rounded-2xl overflow-hidden animate-pulse">
                 <div className="w-full h-48 bg-[#E1F5EE]" />
                 <div className="p-3 space-y-2">
@@ -145,21 +145,21 @@ function SearchPageContent() {
                 <div className="p-3">
                   <h3 className="font-bold text-[#04342C] text-sm truncate">{item.name}</h3>
                   <p className="text-xs text-[#0F6E56] mt-0.5">{item.place?.name}</p>
-                {isVerified ? (
-                  <Link
-                    href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.placeId)}&img=${encodeURIComponent(`/api/Barang/getImage/${item.id}`)}`}
-                    className="mt-3 block text-center bg-[#1D9E75] text-white py-1.5 rounded-lg text-xs font-semibold hover:bg-[#0F6E56] transition"
-                  >
-                    Ajukan
-                  </Link>
-                ) : (
-                <div className="mt-3">
-                 <button  disabled className="w-full bg-gray-300 text-white py-1.5 rounded-lg text-xs font-semibold cursor-not-allowed">
-                  Ajukan
-                 </button>
-                <p className="text-[10px] text-red-500 mt-1 text-center">Akun belum terverifikasi</p>
-                </div>
-                )}
+                  {isVerified ? (
+                    <Link
+                      href={`/dashboard/konfirmasi?itemId=${item.id}&name=${encodeURIComponent(item.name)}&lokasi=${encodeURIComponent(item.place?.name ?? "")}&img=${encodeURIComponent(`/api/Barang/getImage/${item.id}`)}`}
+                      className="mt-3 block text-center bg-[#1D9E75] text-white py-1.5 rounded-lg text-xs font-semibold hover:bg-[#0F6E56] transition"
+                    >
+                      Ajukan
+                    </Link>
+                  ) : (
+                    <div className="mt-3">
+                      <button disabled className="w-full bg-gray-300 text-white py-1.5 rounded-lg text-xs font-semibold cursor-not-allowed">
+                        Ajukan
+                      </button>
+                      <p className="text-[10px] text-red-500 mt-1 text-center">Akun belum terverifikasi</p>
+                    </div>
+                  )}
 
                 </div>
               </div>

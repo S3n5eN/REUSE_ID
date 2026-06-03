@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import InformationBoxPopup from "@/components/InformationBoxPopup";
@@ -124,6 +124,25 @@ export default function FormInformasiBarang() {
     fetchLokasi();
   }, []);
 
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
+  useEffect(() => {
+    const fetchKategori = async () => {
+      try {
+        const res = await fetch("/api/Barang/getKategori");
+        const data = await res.json();
+        if (Array.isArray(data)) setDbCategories(data);
+      } catch (err) {
+        console.error("Gagal fetch kategori:", err);
+      }
+    };
+    fetchKategori();
+  }, []);
+
+  const uniqueCategories = useMemo(() => {
+    const defaultCats = ["Pakaian", "Elektronik", "Perabot", "Mainan"];
+    return Array.from(new Set([...defaultCats, ...dbCategories])).sort();
+  }, [dbCategories]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -213,10 +232,16 @@ export default function FormInformasiBarang() {
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("desc", form.desc);
-      formData.append(
-        "category",
-        form.category === "Lainnya" ? customCategory.trim() : form.category
-      );
+
+      let finalCategory =
+        form.category === "Lainnya" ? customCategory.trim() : form.category;
+      if (finalCategory) {
+        finalCategory =
+          finalCategory.charAt(0).toUpperCase() +
+          finalCategory.slice(1).toLowerCase();
+      }
+      formData.append("category", finalCategory);
+
       formData.append("placeId", String(selectedPlace.id));
       formData.append("foto", foto);
 
@@ -331,10 +356,11 @@ export default function FormInformasiBarang() {
                 className={inputClass}
               >
                 <option value="">Pilih Kategori</option>
-                <option value="Pakaian">Pakaian</option>
-                <option value="Elektronik">Elektronik</option>
-                <option value="Perabot">Perabot</option>
-                <option value="Mainan">Mainan</option>
+                {uniqueCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
                 <option value="Lainnya">Lainnya</option>
               </select>
               {form.category === "Lainnya" && (
@@ -652,12 +678,10 @@ export default function FormInformasiBarang() {
       </div>
       {showInfoPopup && (
         <InformationBoxPopup
-          message="Silahkan untuk segera mengantarkan barang ke gudang yang sudah dipilih untuk dilakukan verifikasi barang oleh admin, Terimakasih sudah berdonasi"
+          message="Terimakasih Telah Berdonasi"
           onClose={() => {
             setShowInfoPopup(false);
-            setTimeout(() => {
-              router.replace("/dashboard");
-            }, 1500)
+            router.replace("/dashboard");
           }} />
       )}
     </div>

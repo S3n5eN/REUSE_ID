@@ -59,28 +59,9 @@ const MapPinIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const COUNTRIES = [
-  { code: "+62", iso: "id", name: "Indonesia" },
-  { code: "+1", iso: "us", name: "United States" },
-  { code: "+60", iso: "my", name: "Malaysia" },
-  { code: "+65", iso: "sg", name: "Singapore" },
-  { code: "+81", iso: "jp", name: "Japan" },
-  { code: "+61", iso: "au", name: "Australia" },
-  { code: "+44", iso: "gb", name: "United Kingdom" },
-  { code: "+49", iso: "de", name: "Germany" },
-  { code: "+33", iso: "fr", name: "France" },
-  { code: "+82", iso: "kr", name: "South Korea" },
-  { code: "+86", iso: "cn", name: "China" },
-  { code: "+91", iso: "in", name: "India" },
-  { code: "+966", iso: "sa", name: "Saudi Arabia" },
-  { code: "+971", iso: "ae", name: "UAE" },
-];
-
 export default function ProfileContent() {
   const [isSaving, setIsSaving] = useState(false);
-  const [countryCode, setCountryCode] = useState("+62");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showCountryMenu, setShowCountryMenu] = useState(false);
 
   const [popupSuccess, setPopupSuccess] = useState<string | null>(null);
   const [popupError, setPopupError] = useState<string | null>(null);
@@ -109,30 +90,12 @@ export default function ProfileContent() {
       if (res.ok && response.hasProfile && response.data)
         profileData = response.data;
 
-      const fullPhone = profileData.phone ?? "";
-      let foundCode = "+62";
-      let localPhone = fullPhone;
-
-      const matchedCountry = COUNTRIES.slice()
-        .sort((a, b) => b.code.length - a.code.length)
-        .find((c) => fullPhone.startsWith(c.code));
-
-      if (matchedCountry) {
-        foundCode = matchedCountry.code;
-        localPhone = fullPhone.substring(matchedCountry.code.length);
-      } else if (fullPhone.startsWith("0")) {
-        foundCode = "+62";
-        localPhone = fullPhone.substring(1);
-      }
-
-      setCountryCode(foundCode);
-
       const filled: FormData = {
         namaLengkap: profileData.namaLengkap ?? "",
         email: profileData.email ?? "",
         usia: profileData.usia ?? "",
         gender: profileData.gender ?? "Laki-laki",
-        phone: localPhone,
+        phone: profileData.phone ?? "",
         address: profileData.address ?? "",
         latitude: profileData.latitude ?? -6.9175,
         longitude: profileData.longitude ?? 107.6191,
@@ -176,10 +139,10 @@ export default function ProfileContent() {
     if (!form.phone) {
       newErrors.phone = "Nomor telepon wajib diisi";
     } else {
-      const phoneRegex = /^[1-9][0-9]{7,15}$/;
+      const phoneRegex = /^\d{9,15}$/;
       if (!phoneRegex.test(form.phone)) {
         newErrors.phone =
-          "Nomor telepon tidak boleh dimulai dari 0 dan minimal 8 digit";
+          "Nomor telepon hanya boleh berisi angka dan terdiri dari 9 hingga 15 digit";
       }
     }
 
@@ -210,7 +173,7 @@ export default function ProfileContent() {
         },
         body: JSON.stringify({
           ...form,
-          phone: `${countryCode}${form.phone}`,
+          phone: `${form.phone}`,
         }),
       });
       const response = await res.json();
@@ -221,6 +184,9 @@ export default function ProfileContent() {
             ? "Profile berhasil disimpan! Data sedang menunggu verifikasi admin."
             : "Perubahan berhasil disimpan!",
         );
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
         setPopupError(response.message || "Gagal menyimpan perubahan.");
       }
@@ -330,87 +296,14 @@ export default function ProfileContent() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[.76rem] font-semibold">Nomor Telepon</label>
-            <div className="flex gap-1.5">
-              {/* Custom Country Dropdown with real SVG flags */}
-              <div className="relative">
-                <div
-                  onClick={() => setShowCountryMenu(!showCountryMenu)}
-                  className="flex items-center justify-between gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-[.83rem] font-bold text-gray-800 cursor-pointer transition hover:border-teal-600 focus-within:border-teal-600 select-none w-[95px] h-[38px]"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <img
-                      src={`https://flagcdn.com/w40/${COUNTRIES.find((c) => c.code === countryCode)?.iso || "id"}.png`}
-                      alt="flag"
-                      className="w-[18px] h-[12px] object-cover rounded-sm border border-gray-200 flex-shrink-0 shadow-sm"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                    <span>{countryCode}</span>
-                  </div>
-                  <svg
-                    className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${showCountryMenu ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-
-                {showCountryMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowCountryMenu(false)}
-                    />
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 shadow-xl rounded-xl py-1 z-50 max-h-60 overflow-y-auto">
-                      {COUNTRIES.map((c) => (
-                        <div
-                          key={c.code}
-                          onClick={() => {
-                            setCountryCode(c.code);
-                            setShowCountryMenu(false);
-                          }}
-                          className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-teal-50 transition-all text-[.83rem] select-none"
-                        >
-                          <img
-                            src={`https://flagcdn.com/w40/${c.iso}.png`}
-                            alt={c.name}
-                            className="w-[18px] h-[12px] object-cover rounded-sm border border-gray-100 shadow-sm flex-shrink-0"
-                          />
-                          <span className="font-bold text-gray-800">
-                            {c.code}
-                          </span>
-                          <span className="text-gray-400 text-[.72rem] truncate font-medium">
-                            {c.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <input
-                className={`${inputCls} flex-1 ${errors.phone ? "border-red-500 focus:border-red-500 focus:ring-red-100" : ""}`}
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={(e) => {
-                  let value = e.target.value;
-                  value = value.replace(/\D/g, "");
-                  if (value.startsWith("0")) {
-                    value = value.substring(1);
-                  }
-                  setForm((p) => ({ ...p, phone: value }));
-                }}
-              />
-            </div>
+            <input
+              className={`${inputCls} w-full ${errors.phone ? "border-red-500 focus:border-red-500 focus:ring-red-100" : ""}`}
+              type="text"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="08123456789"
+            />
             {errors.phone && (
               <p className="text-[11px] text-red-500 font-medium mt-0.5">
                 {errors.phone}
@@ -492,7 +385,10 @@ export default function ProfileContent() {
       {popupSuccess && (
         <SuccessPopup
           message={popupSuccess}
-          onClose={() => setPopupSuccess(null)}
+          onClose={() => {
+            setPopupSuccess(null);
+            window.location.reload();
+          }}
         />
       )}
       {popupError && (

@@ -113,7 +113,7 @@ async function pilihPengiriman(req: NextRequest, decoded: { id: string }) {
       distance = hitungJarak(userProfile.latitude!, userProfile.longitude!, placeLat, placeLng);
       shipmentCost = hitungOngkir(distance, shipment.item.weight || 1);
       paymentInvoice = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${String(shipment.id).padStart(6, "0")}`;
-      paymentTotal = shipmentCost + (shipment.id % 997) + 1;
+      paymentTotal = shipmentCost;
       paymentExpiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     }
 

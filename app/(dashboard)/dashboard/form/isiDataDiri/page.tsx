@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AlertPopup from "@/components/AlertPopup";
 
 // Dynamic import biar aman di Next.js
 const LocationPickerMap = dynamic(
@@ -29,6 +30,7 @@ export default function FormDataDiri() {
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
 
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({
@@ -112,7 +114,7 @@ export default function FormDataDiri() {
       const data = await res.json();
 
       if (res.ok) {
-        router.replace("/dashboard");
+        setShowPopup(true);
       } else {
         setErrorMsg(data.message);
       }
@@ -267,6 +269,13 @@ export default function FormDataDiri() {
           </div>
         </form>
       </div>
+
+      {showPopup && (
+        <AlertPopup 
+          message="Data diri Anda berhasil dikirim dan sedang diverifikasi oleh admin. Mohon tunggu persetujuan sebelum dapat mengakses fitur penuh."
+          onClose={() => router.replace("/dashboard")}
+        />
+      )}
     </div>
   );
 }
