@@ -16,19 +16,19 @@ const nextConfig: NextConfig = {
           {
             key: "X-Frame-Options",
             value: "DENY"
-          }, 
+          },
           {
             key: "X-Content-Type-Options",
             value: "nosniff"
-          }, 
+          },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.openstreetmap.org; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://*.tile.openstreetmap.org https://*.openstreetmap.org; worker-src blob:;"
-          }, 
+            value: "default-src 'self'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.openstreetmap.org https://unpkg.com https://images.unsplash.com https://ui-avatars.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://*.tile.openstreetmap.org https://*.openstreetmap.org https://unpkg.com; worker-src blob:;"
+          },
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin"
-          }, 
+          },
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload"

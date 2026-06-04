@@ -11,12 +11,15 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+const markerIcon = L.divIcon({
+  html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 41" width="25" height="41">
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 29 12 29s12-20 12-29c0-6.627-5.373-12-12-12z" fill="#2563eb"/>
+    <circle cx="12" cy="12" r="5" fill="white"/>
+  </svg>`,
+  className: "",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
 });
 
 const DEFAULT_POSITION: [number, number] = [-6.2, 106.816666]; // Jakarta
@@ -61,7 +64,7 @@ export default function locationPickerMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {initialLocation && <Marker position={initialLocation} />}
+      {initialLocation && <Marker position={initialLocation} icon={markerIcon} />}
       <MapClickHandler onLocationSelect={onLocationSelect} />
       {initialLocation && <MapUpdater center={initialLocation} />}
     </MapContainer>
