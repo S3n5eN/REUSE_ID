@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
           }, 
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self';"
+            value: "default-src 'self'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.openstreetmap.org; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' https://*.tile.openstreetmap.org https://*.openstreetmap.org; worker-src blob:;"
           }, 
           {
             key: "Referrer-Policy",
