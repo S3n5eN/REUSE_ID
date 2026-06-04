@@ -67,14 +67,36 @@ export default function FormDataDiri() {
       return;
     }
 
-    // Validasi NIK harus 16 digit
+    // Validasi gender
+    if (!form.gender) {
+      setErrorMsg("Gender wajib dipilih");
+      return;
+    }
+
+    // Validasi NIK
+    if (!form.nik) {
+      setErrorMsg("NIK tidak boleh kosong");
+      return;
+    }
     if (!/^\d{16}$/.test(form.nik)) {
       setErrorMsg("NIK harus terdiri dari 16 digit angka");
       return;
     }
 
+    // Validasi nomor HP
+    if (!form.noHp.trim()) {
+      setErrorMsg("Nomor HP tidak boleh kosong");
+      return;
+    }
+
+    // Validasi alamat
+    if (!form.alamat.trim()) {
+      setErrorMsg("Alamat lengkap tidak boleh kosong");
+      return;
+    }
+
     // Validasi usia minimal 17 tahun
-    if (Number(form.usia) < 17) {
+    if (!form.usia || Number(form.usia) < 17) {
       setErrorMsg("Usia minimal 17 tahun");
       return;
     }
@@ -142,7 +164,7 @@ export default function FormDataDiri() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="relative z-10">
+        <form onSubmit={handleSubmit} className="relative z-10" noValidate>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             {/* Nama Lengkap */}
             <div className="col-span-2">

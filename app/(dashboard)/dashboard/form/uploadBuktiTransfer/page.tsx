@@ -140,6 +140,16 @@ function UploadBuktiTransferPageContent() {
     e.preventDefault();
     setErrorMsg("");
 
+    if (!payerBank.trim()) {
+      setErrorMsg("Bank pengirim tidak boleh kosong.");
+      return;
+    }
+
+    if (!payerAccountName.trim()) {
+      setErrorMsg("Nama pemilik rekening tidak boleh kosong.");
+      return;
+    }
+
     if (!shipmentId || !proof) {
       setErrorMsg("Bukti transfer wajib diupload.");
       return;
@@ -275,7 +285,7 @@ function UploadBuktiTransferPageContent() {
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-600 mb-2">

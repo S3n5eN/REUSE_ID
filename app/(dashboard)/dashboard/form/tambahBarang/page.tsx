@@ -212,6 +212,19 @@ export default function FormInformasiBarang() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!form.name.trim()) {
+      setErrorMsg("Nama barang tidak boleh kosong");
+      return;
+    }
+    if (!form.category) {
+      setErrorMsg("Kategori wajib dipilih");
+      return;
+    }
+    if (!form.desc.trim()) {
+      setErrorMsg("Deskripsi tidak boleh kosong");
+      return;
+    }
+
     if (!foto) {
       setErrorMsg("Foto wajib diupload dan harus valid");
       return;
@@ -319,7 +332,7 @@ export default function FormInformasiBarang() {
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6" noValidate>
           {/* LEFT — Form */}
           <motion.div
             initial={{ opacity: 0, x: -16 }}

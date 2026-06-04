@@ -131,6 +131,16 @@ function FormPilihPengirimanContent() {
       setErrorMsg("ID Pengiriman tidak ditemukan. Silakan ulangi dari halaman sebelumnya.");
       return;
     }
+    
+    if (!form.jenisPengiriman) {
+      setErrorMsg("Metode penerimaan wajib dipilih.");
+      return;
+    }
+
+    if (form.jenisPengiriman === "delivery" && !form.alamat) {
+      setErrorMsg("Alamat tujuan belum diatur. Lengkapi profil data diri terlebih dahulu.");
+      return;
+    }
     setLoading(true);
     setSuccessMsg("");
     setErrorMsg("");
@@ -240,7 +250,7 @@ function FormPilihPengirimanContent() {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1" noValidate>
 
               {/* Jenis Pengiriman */}
               <div>
