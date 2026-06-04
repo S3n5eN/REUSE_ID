@@ -56,7 +56,7 @@ export default function KelolaRakPage() {
     x: number;
     y: number;
   } | null>(null);
-  
+
   // Pindah Barang States
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [selectedItemsToMove, setSelectedItemsToMove] = useState<number[]>([]);
@@ -594,7 +594,7 @@ export default function KelolaRakPage() {
                   <span className="font-medium text-zinc-900">
                     {Math.round(
                       (activeRak.kapasitasSekarang / activeRak.kapasitasMax) *
-                        100,
+                      100,
                     )}
                     %
                   </span>
@@ -672,11 +672,10 @@ export default function KelolaRakPage() {
               <div className="px-5 py-4 border-t border-zinc-100 shrink-0 flex gap-2">
                 <button
                   onClick={(e) => toggleSelect(e as never, activeRak.id)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium border transition ${
-                    selectedIds.includes(activeRak.id)
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border transition ${selectedIds.includes(activeRak.id)
                       ? "bg-zinc-900 text-white border-zinc-900"
                       : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"
-                  }`}
+                    }`}
                 >
                   {selectedIds.includes(activeRak.id)
                     ? "✓ Dipilih"
@@ -721,11 +720,18 @@ export default function KelolaRakPage() {
             >
               {/* Modal header */}
               <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center shrink-0">
-                <div>
+                <div className="w-full">
                   <h2 className="text-base font-semibold">Tambah Rak Baru</h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    Tambahkan satu atau beberapa rak sekaligus
+                  <p className="text-xs text-zinc-400 mt-0.5 mb-3">
+                    Tambahkan satu atau beberapa rak sekaligus.
                   </p>
+                  <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-xs leading-relaxed max-w-lg">
+                    <p className="font-bold mb-1">Ketentuan Pengisian:</p>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      <li><strong>Nomor Rak:</strong> Wajib kombinasi huruf dan angka (min. 1 huruf & 1 angka), tanpa simbol atau spasi.</li>
+                      <li><strong>Kapasitas:</strong> Minimal 10 item dan maksimal 100 item per rak.</li>
+                    </ul>
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
@@ -760,7 +766,7 @@ export default function KelolaRakPage() {
                       >
                         <input
                           type="text"
-                          placeholder="Cth: A-01, B-02"
+                          placeholder="Cth: A01, B02"
                           value={r.nomorRak}
                           onChange={(e) => {
                             const arr = [...newRaks];
@@ -771,7 +777,8 @@ export default function KelolaRakPage() {
                         />
                         <input
                           type="number"
-                          min="1"
+                          min="10"
+                          max="100"
                           placeholder="Cth: 50"
                           value={r.kapasitasMax}
                           onChange={(e) => {

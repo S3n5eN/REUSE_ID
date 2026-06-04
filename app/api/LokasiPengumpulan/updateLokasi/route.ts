@@ -2,10 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { protect } from "@/lib/protect";
 import { lokasiPengumpulan } from "@/types/lokasiPengumpulan";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcrypt";
 
 async function updateLokasi(req: NextRequest) {
   try {
-    const body: Omit<lokasiPengumpulan, "keyLocation"> = await req.json();
+    const body: lokasiPengumpulan = await req.json();
 
     if (
       !body.id ||
@@ -148,6 +149,36 @@ async function updateLokasi(req: NextRequest) {
       );
     }
 
+    let hashKey = undefined;
+    if (body.keyLocation && body.keyLocation.trim() !== "") {
+      if (containsEmoji(body.keyLocation)) {
+        return NextResponse.json(
+          { message: "Key Location tidak boleh mengandung emoji" },
+          { status: 400 },
+        );
+      }
+      if (body.keyLocation.length < 4) {
+        return NextResponse.json(
+          { message: "Key Location minimal terdiri dari 4 karakter" },
+          { status: 400 },
+        );
+      }
+      if (body.keyLocation.length > 12) {
+        return NextResponse.json(
+          { message: "Key Location maksimal terdiri dari 12 karakter" },
+          { status: 400 },
+        );
+      }
+      const GENERAL_PASSCODE = process.env.GENERAL_PASSCODE;
+      if (body.keyLocation === GENERAL_PASSCODE) {
+        return NextResponse.json(
+          { message: "Passcode yang digunakan adalah Passcode Admin Pusat" },
+          { status: 400 },
+        );
+      }
+      hashKey = await bcrypt.hash(body.keyLocation, 10);
+    }
+
     const isExist = await prisma.place.findFirst({
       where: { id: Number(body.id) },
     });
@@ -183,6 +214,7 @@ async function updateLokasi(req: NextRequest) {
         operationalJam: body.operationalJam,
         latitude: body.latitude,
         longitude: body.longitude,
+        ...(hashKey && { keyLocation: hashKey }),
       },
     });
 

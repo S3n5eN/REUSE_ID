@@ -20,11 +20,11 @@ async function TambahRak(
 
     const isOverflow = arrRak.some(
       (rak: { nomorRak: string; kapasitasMax: number }) => {
-        if (rak.nomorRak.length < 4 || rak.nomorRak.length > 10) {
+        if (rak.nomorRak.length < 2 || rak.nomorRak.length > 10) {
           return true;
         }
 
-        if (!rak.nomorRak.match(/^[a-zA-Z0-9-]+$/)) {
+        if (!rak.nomorRak.match(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/)) {
           return true;
         }
 
@@ -38,7 +38,7 @@ async function TambahRak(
       return NextResponse.json(
         {
           message:
-            "Rak tidak valid, nomor rak harus 4-10 karakter mengandung huruf, angka, dan garis, kapasitas max minimal 10 dan maksimal 100",
+            "Rak tidak valid, nomor rak harus 2-10 karakter dan wajib mengandung kombinasi huruf dan angka (tanpa spasi/simbol), serta kapasitas max minimal 10 dan maksimal 100",
         },
         { status: 400 },
       );

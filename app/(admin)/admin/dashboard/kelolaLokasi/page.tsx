@@ -24,6 +24,7 @@ type Place = {
   operationalJam: string;
   latitude: number;
   longitude: number;
+  keyLocation: string;
 };
 
 type PlaceItem = {
@@ -60,6 +61,7 @@ export default function DaftarLokasiPage() {
   } | null>(null);
   const [loadingPindah, setLoadingPindah] = useState(false);
   const [showPasskey, setShowPasskey] = useState(false);
+  const [capsLockPasskey, setCapsLockPasskey] = useState(false);
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -959,6 +961,7 @@ export default function DaftarLokasiPage() {
                   <input
                     type={showPasskey ? "text" : "password"}
                     name="keyLocation"
+                    placeholder="Passkey untuk admin gudang ini"
                     value={form.keyLocation}
                     onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition"
@@ -1137,6 +1140,28 @@ export default function DaftarLokasiPage() {
                     {parseFloat(form.longitude).toFixed(6)}
                   </p>
                 )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  Passkey Gudang Baru <span className="text-[10px] text-gray-400 normal-case">(Opsional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPasskey ? "text" : "password"}
+                    name="keyLocation"
+                    placeholder="Kosongkan jika tidak ingin mengubah passkey"
+                    value={form.keyLocation}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-10 text-sm focus:ring-2 focus:ring-teal-400 outline-none transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasskey(!showPasskey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                  >
+                    {showPasskey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
             </div>
             {error && (

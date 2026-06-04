@@ -186,7 +186,7 @@ export default function ProfileContent() {
         );
         setTimeout(() => {
           window.location.reload();
-        }, 1500);
+        }, 800);
       } else {
         setPopupError(response.message || "Gagal menyimpan perubahan.");
       }
