@@ -13,6 +13,7 @@ import {
   Package,
   MoveRight,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
 import SuccessPopup from "@/components/SuccessPopup";
 import ErrorPopup from "@/components/ErrorPopup";
@@ -62,6 +63,12 @@ export default function KelolaRakPage() {
   const [selectedItemsToMove, setSelectedItemsToMove] = useState<number[]>([]);
   const [targetRakId, setTargetRakId] = useState<number | "">("");
   const [isMoving, setIsMoving] = useState(false);
+
+  // Edit Rak States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editNomorRak, setEditNomorRak] = useState("");
+  const [editKapasitasMax, setEditKapasitasMax] = useState<number | "">("");
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
 
   const [successPopupMsg, setSuccessPopupMsg] = useState<string | null>(null);
   const [errorPopupMsg, setErrorPopupMsg] = useState<string | null>(null);
@@ -214,6 +221,64 @@ export default function KelolaRakPage() {
       type: "warning",
       onConfirm: () => executeMove(Number(targetRakId), selectedItemsToMove),
     });
+  };
+
+  const handleOpenEditModal = () => {
+    if (!activeRak) return;
+    setEditNomorRak(activeRak.nomor);
+    setEditKapasitasMax(activeRak.kapasitasMax);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!activeRak) return;
+    if (editNomorRak.trim() === "" || typeof editKapasitasMax !== "number" || editKapasitasMax <= 0) {
+      setErrorPopupMsg("Mohon isi nomor dan kapasitas dengan benar");
+      return;
+    }
+    
+    // Validasi format nomor rak dan kapasitas seperti TambahRak
+    if (editNomorRak.length < 2 || editNomorRak.length > 10) {
+      setErrorPopupMsg("Nomor rak harus 2-10 karakter");
+      return;
+    }
+    if (!editNomorRak.match(/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/)) {
+      setErrorPopupMsg("Nomor rak wajib mengandung kombinasi huruf dan angka tanpa spasi/simbol");
+      return;
+    }
+    if (editKapasitasMax < 10 || editKapasitasMax > 100) {
+      setErrorPopupMsg("Kapasitas minimal 10 dan maksimal 100");
+      return;
+    }
+    if (editKapasitasMax < activeRak.kapasitasSekarang) {
+      setErrorPopupMsg(`Kapasitas tidak boleh kurang dari jumlah item yang ada saat ini (${activeRak.kapasitasSekarang} item)`);
+      return;
+    }
+
+    setIsEditSubmitting(true);
+    try {
+      const res = await fetch(`/api/Admin/kelolaRak/${activeRak.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomorRak: editNomorRak,
+          maxKapasitas: editKapasitasMax,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsEditModalOpen(false);
+        setActiveRak(null);
+        fetchShelves();
+        setSuccessPopupMsg("Rak berhasil diperbarui");
+      } else {
+        setErrorPopupMsg(data.message || "Gagal memperbarui rak");
+      }
+    } catch {
+      setErrorPopupMsg("Terjadi kesalahan saat memperbarui rak");
+    } finally {
+      setIsEditSubmitting(false);
+    }
   };
 
   const filteredShelves = shelves.filter((s) =>
@@ -579,12 +644,21 @@ export default function KelolaRakPage() {
                     slot terisi
                   </p>
                 </div>
-                <button
-                  onClick={() => setActiveRak(null)}
-                  className="p-1.5 hover:bg-zinc-100 rounded-lg transition text-zinc-400"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={handleOpenEditModal}
+                    className="p-1.5 hover:bg-zinc-100 rounded-lg transition text-zinc-500 hover:text-zinc-700"
+                    title="Ubah Rak"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setActiveRak(null)}
+                    className="p-1.5 hover:bg-zinc-100 rounded-lg transition text-zinc-400 hover:text-zinc-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Capacity visual */}
@@ -841,6 +915,105 @@ export default function KelolaRakPage() {
                     <Check className="w-3.5 h-3.5" />
                   )}
                   Simpan Rak
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && activeRak && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setIsEditModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.97, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 400, damping: 35 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[85vh] flex flex-col border border-zinc-200 overflow-hidden"
+            >
+              {/* Modal header */}
+              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center shrink-0">
+                <div>
+                  <h2 className="text-base font-semibold">Ubah Detail Rak {activeRak.nomor}</h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Perbarui informasi nomor rak dan kapasitas maksimal.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="p-1.5 hover:bg-zinc-100 rounded-lg transition text-zinc-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-xs leading-relaxed">
+                  <p className="font-bold mb-1">Ketentuan Pengisian:</p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    <li><strong>Nomor Rak:</strong> Wajib kombinasi huruf & angka (min. 1 huruf & 1 angka), tanpa simbol/spasi.</li>
+                    <li><strong>Kapasitas:</strong> Minimal {activeRak.kapasitasSekarang > 10 ? activeRak.kapasitasSekarang : 10} item (tidak boleh kurang dari jumlah item yang ada saat ini) dan maksimal 100 item.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                    Nomor / Label Rak
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Cth: A01, B02"
+                    value={editNomorRak}
+                    onChange={(e) => setEditNomorRak(e.target.value)}
+                    className="w-full border border-zinc-200 px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-[#007582] focus:border-[#007582] text-sm transition bg-zinc-50 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                    Kapasitas Maksimal
+                  </label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="100"
+                    placeholder="Cth: 50"
+                    value={editKapasitasMax}
+                    onChange={(e) => setEditKapasitasMax(e.target.value ? parseInt(e.target.value) : "")}
+                    className="w-full border border-zinc-200 px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-[#007582] focus:border-[#007582] text-sm transition bg-zinc-50 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Modal footer */}
+              <div className="px-6 py-4 border-t border-zinc-100 flex justify-end gap-3 shrink-0 bg-zinc-50/50">
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-100 rounded-lg transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleEditSubmit}
+                  disabled={isEditSubmitting}
+                  className="px-5 py-2 text-xs font-medium bg-[#007582] text-white hover:bg-[#005f6b] rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isEditSubmitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  Simpan Perubahan
                 </button>
               </div>
             </motion.div>
