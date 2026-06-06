@@ -5,10 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 async function pindahItem(
   req: NextRequest,
   decoded: { id: string },
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const rakAsalId = Number(params.id);
+    const rakAsalId = Number((await params).id);
     const { rakTujuanId, itemIds } = await req.json();
 
     const [rakAsal, rakTujuan] = await Promise.all([
@@ -65,6 +65,6 @@ async function pindahItem(
   }
 }
 
-export async function POST(req: NextRequest) {
-    return (await protect(pindahItem, ["admin"]))(req);
+export async function POST(req: NextRequest,  { params }: { params: Promise<{ id: string }> }) {
+    return (await protect((req: NextRequest, decoded: { id: string }) => pindahItem(req, decoded, {params}) , ["admin"]))(req);
 }
