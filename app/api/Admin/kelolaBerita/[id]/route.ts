@@ -42,6 +42,10 @@ async function deleteBerita(
         { status: 404 },
       );
 
+    await prisma.newsRead.deleteMany({
+      where: { newsId: Number(id) },
+    });
+
     await prisma.news.delete({ where: { id: Number(id) } });
 
     return NextResponse.json({ message: "Berita berhasil dihapus" });
